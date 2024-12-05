@@ -35,8 +35,9 @@ int main() {
         return 1;
     }
 
-    STARTUPINFOA si = { sizeof(STARTUPINFOA) };
-    PROCESS_INFORMATION pi = { 0 };
+    STARTUPINFOA si;
+    si.cb = sizeof(STARTUPINFOA);
+    PROCESS_INFORMATION pi;
 
     if (CreateProcessA("calc.exe",NULL,NULL,NULL,FALSE,0,NULL,NULL,&si,&pi))
     {
