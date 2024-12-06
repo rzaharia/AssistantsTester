@@ -1,4 +1,66 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1569.002",
+                "T1059.003",
+                "T1055",
+                "T1574.002",
+                "T1070.004"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1218.001",
+                "T1047",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1053.005",
+                "T1543.003",
+                "T1036.005",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001",
+                "T1543.003",
+                "T1047",
+                "T1543.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055.012",
+                "T1543.003",
+                "T1562.001"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1106",
+                "T1106",
+                "T1106",
+                "T1106",
+                "T1059",
+                "T1059",
+                "T1106",
+                "T1106",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The provided assembly code snippet appears to execute the following actions:",
         "1. **Setup stack and register states**: - `push ebp` - `mov ebp, esp` - `sub esp, 0x94` - `push ebx` - `push esi` - `push edi`",
@@ -17,6 +79,46 @@
         "- **T1070.004**: Indicator Removal on Host: File Deletion - Not directly observed here, but often associated with cleanup after executing such processes.",
         "This is a direct interpretation based on the assembly code provided. Whether all these techniques are in use depends on broader code context and execution environment details that might not be",
         "available from this snippet alone.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates several behaviors that can be mapped to MITRE ATT&CK techniques. It's important to remember that assembly code alone doesn't definitively confirm",
+        "malicious intent. Context is crucial. However, based on common patterns, here's a possible interpretation and mapping:",
+        "* **T1005.001 - Process Injection (Thread Execution Hijacking):** Although we don't see direct thread manipulation, the presence of `sub_0x000005000`, `sub_0x000005004`, and `sub_0x00000500C`",
+        "being called with various memory addresses as arguments raises suspicion. These calls could potentially be related to injecting code into another process or manipulating existing threads.",
+        "`sub_0x000005004` takes many arguments and returns a value tested for error which suggests some kind of system call wrapper like `CreateProcess` or `NtCreateThreadEx`. The subsequent calls to",
+        "`sub_0x000005000` and `sub_0x00000500C` strengthen the possibility of thread hijacking or process injection, especially as they use the value at `[ebp-0x54]`. This value was likely initialized",
+        "by the potentially `CreateProcess`-like function `sub_0x000005004`.",
+        "* **T1218.001 - Signed Binary Proxy Execution:** The call to `sub_0x00000040A` with a hardcoded address (0x40609f) *might* be indicative of loading or utilizing a legitimate (signed) system",
+        "utility to achieve malicious ends. This is speculative without more context, but it's a common pattern.",
+        "* **T1047 - Windows Management Instrumentation:** This is a less confident mapping, but the complex argument structure of `sub_0x000005004`, particularly including values like `0x8000000` and",
+        "`0x403000`, hints at the possibility of interacting with lower-level system functions, sometimes leveraged through WMI. Again, this is highly dependent on what these functions actually do.",
+        "* **T1055.001 - Process Hollowing:** While less obvious than thread hijacking, the combined use of memory allocation and calls to external functions (the \"sub_\" routines) raises a slight",
+        "suspicion of process hollowing. More context is needed to confirm. The allocation of memory with `sub esp, 0x94` at the beginning could be preparation for a payload.",
+        "**Important Caveats:**",
+        "* **Context is King:** Without knowing what the called subroutines actually do, these are just educated guesses based on common patterns. Disassembly alone isn't enough for definitive",
+        "attribution. * **Function Names:** The generic \"sub_\" names give us no clues about their functionality. Properly labeled functions would significantly improve analysis. * **Static vs. Dynamic",
+        "Analysis:** Dynamic analysis, debugging the code in a controlled environment, would be invaluable for observing its true behavior.",
+        "To solidify these hypotheses, you'd need to analyze the `sub_` functions, look for strings, examine API calls, and understand the overall control flow. Tools like debuggers and disassemblers are",
+        "essential for this task.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of the `CreateProcessA` Windows API call, which is a strong indicator of **process injection**. Specifically, the code is creating a new process and waiting for",
+        "it to exit. This aligns with several MITRE ATT&CK techniques:",
+        "* **T1055.002 (Process Injection: CreateProcess)**: This is the most direct match. The code explicitly uses `CreateProcessA` to launch a new process, likely for malicious purposes. The use of",
+        "`WaitForSingleObject` and `CloseHandle` further strengthens this assessment, indicating the spawning process is monitoring and managing the lifecycle of the newly created process. The",
+        "`0x8000000` creation flag indicates `CREATE_NO_WINDOW`, suggesting the new process might be hidden.",
+        "* **T1053.005 (Process Injection: Parent PID Spoofing)**: While not definitively shown in this snippet, the absence of explicit security attribute manipulation doesn't rule this out. It's",
+        "possible the malware performs this spoofing elsewhere or relies on default inheritance, which can inadvertently lead to parent PID spoofing. Further analysis of the complete code would be needed",
+        "to confirm or deny this.",
+        "* **T1543.003 (Create or Modify System Process: Windows Service)**: While `CreateProcessA` *could* be used to create a service, there's no direct evidence of this in the provided code. Creating",
+        "a service would usually involve interaction with the Service Control Manager API (e.g., `CreateServiceA`, `StartServiceA`). This technique is less likely based on the provided snippet.",
+        "* **T1036.005 (Masquerading: Match Legitimate Name or Location)**: The code pushes a value to `lpCommandLine` (0x403000) and `lpApplicationName` (0). While the value for `lpApplicationName` is",
+        "null, which is suspicious, analysis of the data at address `0x403000` is required to determine if the malware is attempting to masquerade as a legitimate process. This technique is a",
+        "*possibility* but requires further investigation.",
+        "Therefore, the most likely MITRE ATT&CK technique based on the provided assembly code is **T1055.002**. Further analysis of the full codebase and the data at referenced memory addresses (e.g.,",
+        "0x403000, 0x40609f) is needed to confirm or refine this assessment and identify potentially other related techniques.",
         "Close"
     ],
     "gpt4o": [
@@ -40,5 +142,46 @@
         "context about the actor",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code snippet you provided shows a typical setup of a function prologue and epilogue (with the use of `push ebp; mov ebp, esp` at the top and the restoration of the stack and base",
+        "pointers with `mov esp, ebp; pop ebp` at the end). It also includes manipulation of in-stack variables and several function calls, which may suggest manipulation or interaction with system-level",
+        "APIs or data structures.",
+        "Key elements to consider in determining the associated MITRE ATT&CK techniques include: - Allocation of a large local stack space (`sub esp, 0x94`). - Multiple uses of `push` for passing",
+        "parameters, followed by `call` instructions to different subroutines, which could be indicative of API usage. - Possible conditional error handling or branch management following the `test eax,",
+        "eax` and `je` (jump if equal) instructions, which checks the result of a function/subroutine.",
+        "Given the ambiguity regarding the actual functionality of the subroutines being called (since the specific internal behavior of `sub_0x00000040A` and others isn't detailed), a safe assumption is",
+        "routines possibly interact with system resources or manage memory in a way that might be associated with evasion or other malicious behaviors typical in an exploitation scenario.",
+        "Some related MITRE ATT&CK Techniques that might fit include: - **T1055.012: Process Injection** - If one of these calls involves manipulation of another process's memory space. The sequence",
+        "involves manipulations with a pointer and conditional checks that could be consistent with validating successful injection. - **T1543.003: Create or Modify System Process: Windows Service** - If",
+        "the function is involved in creating or modifying services, although without specific API names, this is speculative. - **T1562.001: Impair Defenses: Disable or Modify Tools** - Depending on",
+        "what the functions and passed parameters achieve, this might involve disabling or bypassing security mechanisms.",
+        "However, without specific knowledge of the role and functioning of the called subroutines (`sub_0x00000040A`, `sub_0x000005004`, etc.), accurately pinning down the exact MITRE technique can be",
+        "challenging. Generic programming activities shown in the snippet like stack management and parameter passing to subroutines don't on their own suggest a specific MITRE technique unless the",
+        "broader context (such as specific API use, particular patterns known to be associated with malicious activities, etc.) is known. Additional context regarding the overall purpose and behavior of",
+        "the functions being invoked would be needed to identify a definite MITRE ATT&CK tag.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet showcases several behaviors typically associated with the processes of creating and managing another process on a Windows system. Here's an analysis of the",
+        "operations and the corresponding MITRE ATT&CK techniques:",
+        "1. **Creating a New Process**: The assembly code performs an operation to create a new process using the `CreateProcessA` API call. This function enables an application to create a new process",
+        "and its primary thread. The parameters such as `lpProcessInformation`, `lpStartupInfo`, `lpCommandLine`, and others indicate the setup and command line used for the new process.",
+        "- **MITRE Technique**: [**T1106**.001](https://attack.mitre.org/techniques/T1106/001) - Native API",
+        "2. **Checking Execution Status**: After creating the process, the code checks the return value to determine if the process was created successfully (`test eax, eax` and `je` instruction). This",
+        "indicates error handling functionality to see if `CreateProcessA` succeeded.",
+        "- **MITRE Technique**: This is generally part of error handling and is not specifically classified under a technique by MITRE. However, checking the execution status helps in decision-making in",
+        "the context of an attack, so it could relate more broadly to [**T1106**](https://attack.mitre.org/techniques/T1106/) for using native APIs.",
+        "3. **Waiting for the Created Process to Exit**: The instructions after the process creation make use of `WaitForSingleObject`. This API is used here to wait indefinitely (`dwMilliseconds` set to",
+        "`-1`) for the new process to terminate.",
+        "- **MITRE Technique**: [**T1059**.001](https://attack.mitre.org/techniques/T1059/001) - Command and Scripting Interpreter: PowerShell (but in a broader context of waiting for process",
+        "termination)",
+        "4. **Closing Handles**: After waiting, the process handles obtained are closed using `CloseHandle`. This is a cleanup operation to free system resources.",
+        "- **MITRE Technique**: This cleanup action itself doesn't directly correspond to a specific MITRE technique but can be part of resource management often observed in techniques like",
+        "[**T1106**](https://attack.mitre.org/techniques/T1106/).",
+        "Combining these observations, the main technique evident from this code is the use of system API calls to manage other processes, notably using **T1106**.001 (Native API) due to direct",
+        "interaction with system-level APIs to execute potentially malicious behaviors (e.g., process injection, process hollowing, etc.).",
+        "Note that while some specific MITRE techniques are mentioned, the context in which these APIs are used could change the actual applicable techniques. This coverage assumes potential malicious",
+        "use cases based on the nature of operations being performed in the assembly code.",
+        "Close"
+    ]
 }

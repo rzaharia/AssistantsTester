@@ -1,4 +1,62 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1012.002"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1055.004",
+                "T1218.011",
+                "T1047.015",
+                "T1005.001",
+                "T1047.015",
+                "T1055.004",
+                "T1218.011"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1012.002",
+                "T1012.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1112",
+                "T1003.002",
+                "T1112",
+                "T1003.002"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1574.002",
+                "T1565.001",
+                "T1106",
+                "T1543.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1012",
+                "T1112",
+                "T1547.001",
+                "T1012",
+                "T1112"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The assembly code shows signs of Registry key access and reading a registry value. This maps to the MITRE ATT&CK technique **T1012.002 - Query Registry**.",
         "Specifically, the code performs the following actions:",
@@ -6,6 +64,38 @@
         "Queries the opened key for a value. While the value name isn't explicitly defined in the provided snippet (it uses NULL, suggesting it may be targeting the default value), it retrieves the value",
         "data and its size. 3. **`RegCloseKey`**: Closes the opened registry key.",
         "This sequence clearly indicates an attempt to retrieve information from the registry, aligning with the **Query Registry** technique's definition of accessing and reading registry keys.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The assembly code shows signs of several potential MITRE ATT&CK techniques. It's important to note that static analysis of assembly is rarely conclusive, and a deeper understanding of the",
+        "surrounding code and runtime behavior would be necessary for definitive classification. However, based on the provided snippet, here's a breakdown of possible techniques and why:",
+        "* **T1005.001.Process Injection (Thread Execution Hijacking):** The code allocates stack space (`sub esp, 0x148`), saves register states (`push ebx`, `push esi`, `push edi`), calls external",
+        "functions (`call sub_0x00000040A`, `call sub_0x000005000`, etc.), and restores the stack/registers (`pop edi`, etc.) before returning. This pattern is often indicative of injecting code into",
+        "another process and hijacking a thread to execute it. The allocation of stack space, saving of registers, and restoration of the stack and register suggest a shellcode-like behavior. The use of",
+        "`jne offset_0x0000004AA` implies error checking after a call, which would be expected if trying to ensure the injection succeeded.",
+        "* **T1055.004.Process Hollowing:** This is less likely given the evidence provided but cannot be definitively ruled out. The code *could* be part of a process hollowing attempt where a",
+        "legitimate process's memory is overwritten with malicious code. The calls to various subroutines (particularly `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) might represent actions",
+        "like unmapping sections, writing the malicious payload, and resuming execution. However, without further context (e.g., what these subroutines do), this is speculative.",
+        "* **T1218.011.Signed Binary Proxy Execution:** While the code itself doesn't directly reveal this, the use of a call to `sub_0x00000040A` at the beginning could be a mechanism for resolving or",
+        "loading a signed binary that is later used for malicious purposes. This is often done to bypass application whitelisting defenses. Again, this is a possibility, not a certainty.",
+        "* **T1047.015.Dynamic-link Library Injection:** This is another possibility, especially considering the series of calls to `sub_0x00000500*`. These calls could be used to load and execute a",
+        "malicious DLL within the address space of another process. The arguments pushed onto the stack before these calls likely represent parameters for DLL injection functions.",
+        "**Important Considerations:**",
+        "* **Lack of Context:** Without knowing what the called subroutines (`sub_0x00000040A`, `sub_0x00000500*`) do, it's difficult to be certain about the exact techniques used. * **Static Analysis",
+        "Limitations:** Static analysis alone is often insufficient. Dynamic analysis (debugging, tracing) would be necessary to observe the code's runtime behavior and confirm these suspicions.",
+        "To summarize, based on this snippet, **T1005.001 (Process Injection via Thread Execution Hijacking)** and **T1047.015 (DLL Injection)** appear most likely, but **T1055.004 (Process Hollowing)**",
+        "and **T1218.011 (Signed Binary Proxy Execution)** cannot be ruled out without more information. Remember that multiple techniques could be chained together.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code demonstrates Registry key manipulation for the purpose of reading a value. This maps to the MITRE ATT&CK technique **T1012.002 - Query Registry**.",
+        "Specifically:",
+        "* **RegOpenKeyExA:** This function attempts to open a registry key (`0x403000` - likely a string representing the key path) with desired access rights (`0x20019` - KEY_READ). This is the core",
+        "action related to querying the registry. * **RegQueryValueExA:** If the key is successfully opened, this function queries the value associated with a value name (NULL in this case, likely",
+        "meaning the default value) of the opened key. The size of the data buffer and the data itself is stored at `[ebp-0x108]` and `[ebp-0x104]` respectively. * **RegCloseKey:** This closes the opened",
+        "registry key, indicating proper cleanup after the query operation.",
+        "The conditional jump (`jne offset_0x0000004AA`) suggests error handling",
+        "Therefore, the primary MITRE ATT&CK technique is **T1012.002**.",
         "Close"
     ],
     "gpt4o": [
@@ -25,5 +115,43 @@
         "sensitive part of the registry. This assessment is based on the snippet and considering typical usage of the API functions involved.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "This assembly code snippet shows behavior typical of a few different tactics, but the specific actions visible in this code appear to focus primarily on process injection, memory manipulation,",
+        "and potentially unauthorized API calls. Based on these attributes, we can suggest the following MITRE ATT&CK techniques and sub-techniques:",
+        "1. **T1055: Process Injection** - This technique involves injecting code into running processes to evade detection and maintain persistence. While the exact target process is not specified in",
+        "the provided assembly, the sequence of pushing various parameters and handles before making calls (`call sub_0x000005000`, `call sub_0x000005004`, and `call sub_0x000005008`) suggests operations",
+        "that could be injecting or manipulating another process's address space.",
+        "2. **T1574.002: DLL Injection** - Although the direct evidence of DLL injection (such as `LoadLibrary` or `GetProcAddress` API use) is not visible here, the pattern of manipulation and the",
+        "context involving pushing memory addresses and parameters before a function call could imply loading or interacting with dynamic libraries or executing code within another process space.",
+        "3. **T1565.001: Stored Data Manipulation** - The instruction `mov dword ptr [ebp - 0x108], 0x100` indicates manipulation of stored data within the process heap or stack, although without",
+        "additional code, the exact intent remains uncertain.",
+        "4. **T1106: Native API** - The use of assembly language to directly invoke function calls (`call`) with specific parameters being pushed onto the stack suggests potential use of native API calls",
+        "for malicious purposes or unauthorized operations, even though the API names are not detailed here.",
+        "5. **T1543.003: Create or Modify System Process: Windows Service** - The nature and functionality of called subroutines are unclear, but the manipulation of execution flow alongside parameter",
+        "setup could involve creating or modifying system processes, often seen with Windows services.",
+        "It is important to note that without further context such as API names or additional code, these assessments are based on common coding patterns seen in malware and may not definitively",
+        "represent the actual tactics being portrayed. Furthermore, the context around how and where this code is executed (e.g., the context of its packaging into an executable or script, its runtime",
+        "environment) would play a critical role in determining exact techniques and intentions.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet demonstrates mechanisms for interacting with the Windows Registry using API functions such as `RegOpenKeyExA`, `RegQueryValueExA`, and `RegCloseKey`. These",
+        "functions are used to access, read, and then close a registry key.",
+        "**Breakdown of the Registry-related operations:**",
+        "1. **Opening a registry key:** - `RegOpenKeyExA` is called with parameters that designate which key to open. `hKey` is set to `0x80000002` (which typically represents `HKEY_LOCAL_MACHINE`), and",
+        "`lpSubKey` is set to a memory address which likely contains the name of the subkey to be opened. 2. **Querying a registry value:** - After successfully opening the registry key,",
+        "`RegQueryValueExA` is used to query a value from the opened key. This operation aims to retrieve certain data stored in the registry, potentially used for configuration or other purposes. 3.",
+        "**Closing the registry key:** - `RegCloseKey` is called at the end to ensure the opened registry key is properly closed, an important step to prevent leaks of system resources.",
+        "Considering these actions, we can map them to the MITRE ATT&CK framework:",
+        "- **T1547.001: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder** - This technique involves manipulating registry keys that control what is executed during startup or login.",
+        "While the specific registry keys and values targeted are not provided in the snippet, the usage of registry manipulation functions is a common method employed in such techniques.",
+        "- **T1012: Query Registry** - This technique pertains to the querying of the registry to gather information which can be utilized in further stages of an attack or for espionage purposes. The",
+        "use of `RegQueryValueExA` directly aligns with this technique.",
+        "- **T1112: Modify Registry** - Even though the code provided does not explicitly demonstrate modifying the registry values, the ability to open and query registry keys often accompanies the",
+        "potential for modifying them as part of a technique (depending on the privileges and overall intent).",
+        "In summary, the assembly code maps to: - **T1547.001** for potentially preparing autostart execution mechanisms. - **T1012** for querying registry values to gather information. - **T1112** might",
+        "be relevant if registry modifications are within the broader scope of the operations the code segment is part of.",
+        "More specific sub-technique identification would require additional context on the registry keys and values being targeted.",
+        "Close"
+    ]
 }

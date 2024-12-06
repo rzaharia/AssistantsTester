@@ -1,4 +1,63 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003",
+                "T1059.001",
+                "T1218.002",
+                "T1027.002",
+                "T1564.001",
+                "T1059.003",
+                "T1059.001",
+                "T1218.002",
+                "T1564.001",
+                "T1027.002"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.009",
+                "T1055.001",
+                "T1055.002",
+                "T1055.003",
+                "T1055.009"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1218.011"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001",
+                "T1059",
+                "T1204",
+                "T1218"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1543"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1204",
+                "T1106",
+                "T1204",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The assembly code shows signs of several MITRE ATT&CK techniques:",
         "* **T1059.003 - Command and Scripting Interpreter: Windows Command Shell:** The code calls `cmd.exe` with the parameter \"powershell.exe -WindowStyle Hidden a.ps1\". This clearly indicates the use",
@@ -13,6 +72,38 @@
         "* **T1564.001 - Hide Artifacts: Hidden Files and Directories:** The `-WindowStyle Hidden` argument passed to `powershell.exe` is an attempt to hide the PowerShell window from the user, which can",
         "be classified as hiding artifacts.",
         "Therefore, the most evident MITRE ATT&CK techniques are: **T1059.003, T1059.001, T1218.002, and T1564.001.** T1027.002 remains a possibility depending on the nature of `sub_0x00000040A`.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code shows signs of process injection, specifically using a technique similar to **RunPE**. While classic RunPE isn't perfectly mirrored, the elements present suggest a",
+        "similar methodology. Therefore, the most relevant MITRE ATT&CK technique is:",
+        "**T1055.009 - Process Injection: RunPE**",
+        "Here's a breakdown of why:",
+        "* **`push ebp` / `mov ebp, esp` / `sub esp, 0x40` / `push ebx` / `push esi` / `push edi`**: Standard function prologue, setting up the stack frame and saving registers. This is common and not",
+        "injection-specific, but necessary groundwork.",
+        "* **`mov ecx, 0x40609f` / `call sub_0x00000040A`**: This likely retrieves or sets up something at address `0x40609f`. Without more context on `sub_0x00000040A`, its precise purpose is unknown.",
+        "However, it could be involved in preparing for process injection, such as locating or allocating memory.",
+        "* **`push 0` (multiple times) / `push 0x403000` / `push 0x403034` / `push 0x403040` / `call sub_0x000005030`**: This is the strongest indicator. Pushing multiple addresses followed by a call to",
+        "another function (`sub_0x000005030`) highly suggests setting up arguments for process creation or injection. The pushed addresses could represent things like the image base, entry point, or",
+        "other essential parameters for running the injected code. This aligns with RunPE-style techniques where critical PE structures are manually set up in memory.",
+        "* **`xor eax, eax`**: Setting `eax` to 0, often done before returning from a function.",
+        "* **`pop edi` / `pop esi` / `pop ebx` / `mov esp, ebp` / `pop ebp` / `ret`**: Standard function epilogue, restoring the stack and registers.",
+        "**Why not other techniques",
+        "While some actions might superficially resemble other techniques, the combination points most strongly towards RunPE (or a very similar variant):",
+        "* **Not T1055.001 (Process Hollowing):** We don't see typical hollowing actions like unmapping sections of a legitimate process. * **Not T1055.002 (Thread Execution Hijacking):** No evidence of",
+        "manipulating thread contexts or setting up APC calls. * **Not T1055.003 (DLL Injection):** Lack of calls to `LoadLibrary` or similar functions.",
+        "**Key Takeaway:** Without complete disassembly and analysis of the called subroutines, definitive classification is impossible. However, based on the visible code, **T1055.009 (RunPE)** is the",
+        "most probable match. The pushing of memory addresses as arguments to a function strongly suggests the manual loading and execution of a PE image within another process's memory space, a hallmark",
+        "of RunPE.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code demonstrates the use of `ShellExecuteA`, a Windows API function commonly used for executing external applications. This maps to the MITRE ATT&CK technique **T1218.011 - Signed",
+        "Binary Proxy Execution: ShellExecute**.",
+        "Specifically, the code pushes arguments onto the stack for `lpOperation`, `lpFile`, `lpParameters`, `lpDirectory`, and `nShowCmd` before calling `ShellExecuteA`. This setup allows for a variety",
+        "of actions, but without knowing the contents of the data pointed to by these addresses (0x403040, 0x403034, 0x403000, etc.), we can't definitively say which specific action is being performed",
+        "(e.g., opening a document, running an executable). However, the presence of `ShellExecuteA` itself strongly suggests an attempt to execute something. The call to `sub_0x00000040A` beforehand",
+        "could be setting up these parameters or performing other related actions.",
         "Close"
     ],
     "gpt4o": [
@@ -31,5 +122,45 @@
         "this isolated snippet. Always consider additional context from surrounding code and runtime behavior for more precise classification and mitigation steps.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code provided consists of several characteristic patterns common in various types of malware, including setting up a function prologue and epilogue, stack manipulations, and calling",
+        "functions indirectly which might be for executing specific tasks or malicious action.",
+        "1. **Function Prologue and Epilogue**: - `push ebp; mov ebp, esp` begins a function prologue, which saves the base pointer and sets up a new stack frame. - `sub esp, 0x40` is used to make space",
+        "on the stack for local variables. - The corresponding epilogue is `mov esp, ebp; pop ebp; ret`, which cleans up the stack frame and returns from the function.",
+        "2. **Pushing Registers**: - Registers `ebx`, `esi`, and `edi` are pushed onto the stack at the beginning and popped at the end. This is typical in functions that modify these registers, to",
+        "preserve their values across function calls as required by the calling convention (callee save registers).",
+        "3. **Use of `nop` (No Operation)**: - The `nop` instructions could be used for instruction alignment or as part of a technique to confuse disassemblers and analysis tools.",
+        "4. **Indirect Function Call**: - The `call sub_0x00000040A` and `call sub_0x000005030` statements suggest that the code is executing functions based on hardcoded addresses. This could be a sign",
+        "of unpacked executable code in memory, or possibly maliciously altered function pointers.",
+        "5. **Use of Hardcoded Memory Addresses**: - Hardcoded addresses like `0x403000`, `0x403034`, `0x403040` could imply memory manipulation, accessing particular data sections, or calling functions",
+        "at specific addresses directly",
+        "Given these observations, this assembly code's behavior potentially aligns with several MITRE ATT&CK techniques, particularly those related to execution and defense evasion:",
+        "- **T1055: Process Injection** - Possible manipulation or preparation of memory for injection into another process.",
+        "- **T1027: Obfuscated Files or Information** - Use of `nop` can be indicative of attempts to obfuscate the true intent of code, though it has legitimate uses as well.",
+        "- **T1543: Create or Modify System Process** - Indirect function calling and manipulation of memory could be associated with the creation or modification of system processes, possibly in a",
+        "persistent manner.",
+        "While more context about the functionality of the subroutines called and the overall intent of this code would be needed to make a more precise determination, the patterns seen are suggestive of",
+        "the above techniques commonly associated with malware behaviors.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet appears to utilize various techniques that involve manipulation of execution flow, inter-process communication, and potentially malicious functionality",
+        "typically observed in malware operations. Here",
+        "1. **Stack Frame Set-up and Local Variable Reservation**: ``` push ebp mov ebp, esp sub esp, 0x40 push ebx push esi push edi ``` - This portion of the code is primarily boilerplate for function",
+        "prologue in x86 assembly, setting up a stack frame and preserving registers. It doesn",
+        "2. **Somewhere an Arbitrary Function is Called (sub_0x00000040A)**: ``` mov ecx, 0x40609f call sub_0x00000040A nop ``` - A specific function is called after moving a constant into `ecx`. Without",
+        "further details about the function's purpose, it",
+        "used by adversaries to set up an attack or manipulate an environment.",
+        "3. **Use of ShellExecuteA to Launch or Control Applications**: ``` push 0 ; nShowCmd push 0 ; lpDirectory push 0x403000 ; lpParameters push 0x403034 ; lpFile push 0x403040 ; lpOperation push 0 ;",
+        "hwnd call ShellExecuteA nop ``` - This block represents a potential misuse of the `ShellExecuteA` Windows API call, which is used to launch programs or open documents. The parameters suggest",
+        "that some operation (`lpOperation`), possibly executing a file or opening a URL or document (`lpFile`), is intended with specific parameters (`lpParameters`). - **MITRE technique**: Use of this",
+        "call to execute or interact with external files/processes maps to **T1204 - User Execution** if leveraged through user interaction, or **T1106 - Native API** for direct interaction using system",
+        "APIs to execute commands or binaries.",
+        "4. **Function Clean-up and Return**: ``` xor eax, eax pop edi pop esi pop ebx mov esp, ebp pop ebp ret ``` - This part is the function epilogue, aiming to clean up the stack and restore",
+        "registers before returning control to the caller. This doesn",
+        "The most striking element in the code concerning potential security threats corresponds to the possible execution of potentially harmful operations via `ShellExecuteA`. This should be noted when",
+        "assessing the security impact of this code in real-world applications. Thus the relevant MITRE technique here primarily points to **T1204 - User Execution** and **T1106 - Native API** based on",
+        "the context provided.",
+        "Close"
+    ]
 }

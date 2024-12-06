@@ -1,4 +1,62 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547",
+                "T1547",
+                "T1547.001",
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547",
+                "T1547"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055",
+                "T1027.004",
+                "T1218.011",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1112.001",
+                "T1005.001",
+                "T1112.001",
+                "T1005.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1106",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1112"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        }
+    },
     "gemini": [
         "The provided assembly code snippet demonstrates various techniques associated with registry manipulation to achieve persistence on a system. Here's a breakdown of the code and associated MITRE",
         "ATT&CK techniques:",
@@ -15,6 +73,41 @@
         "maintain presence on an infected system across reboots without user intervention.",
         "Close"
     ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, primarily focused around process injection and potentially defense evasion:",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** The code calls `sub_0x000005000` with arguments that resemble those used for `CreateRemoteThread`. Specifically, pushing a",
+        "pointer to a memory location ([ebp-4]), followed by arguments likely representing thread creation flags, start address, and a handle to a process (0x80000002 - which might be a pseudo-handle or",
+        "relate to a specific process). If `sub_0x000005000` is a wrapper or resolves to `CreateRemoteThread`, this would be strong evidence for DLL injection. The later calls to `sub_0x000005004`",
+        "(possibly `WriteProcessMemory`",
+        "injection to write the DLL path into the target process and allocate memory for the DLL.",
+        "* **T1055 - Process Injection:** Even if the specific sub-technique isn't definitively 001 (DLL injection), the overall pattern points towards process injection in a broader sense.",
+        "* **T1027.004 - Obfuscated Files or Information: Obfuscation by API Hashing:** The call to `sub_0x00000040A` with the argument `0x40609f` could potentially be resolving an API address through a",
+        "hashing mechanism. This is a common obfuscation technique to avoid directly referencing API names like `CreateRemoteThread` or `LoadLibrary`. This is speculative without more context about",
+        "`sub_0x00000040A`.",
+        "* **T1218.011 - Signed Binary Proxy Execution: Rundll32:** Though less likely given the observed pattern, the combination of loading a DLL and potentially resolving functions could indicate the",
+        "use of `rundll32.exe` for proxy execution. More context about how the initial process is invoked would be necessary to confirm this.",
+        "* **T1140 - Deobfuscate/Decode Files or Information:** If the code is indeed using obfuscation (as hinted by potential API hashing), then a deobfuscation step must be occurring, likely within",
+        "`sub_0x00000040A`.",
+        "**Important Note:** This analysis is based on limited information. Confirming these techniques requires further analysis, including:",
+        "* **Dynamic analysis:** Running the code in a controlled environment and observing its behavior. * **Examining the referenced subroutines (`sub_...`):** Disassembling and analyzing these",
+        "functions is crucial for determining their exact purpose. * **Understanding the broader context:** How is this code executed",
+        "interpret these individual actions.",
+        "Without more context, the assessment remains tentative. However, the code snippets strongly suggest activities related to process injection, possibly with some obfuscation techniques employed.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of **Registry Modification** and potentially **Defense Evasion**.",
+        "* **T1112.001 - Modify Registry:** The code clearly interacts with the Windows Registry. `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey` are used to open a registry key, set a value, and",
+        "close the key, respectively. This maps directly to registry modification.",
+        "* **T1005.001 - Data Obfuscation: String Concealment:** The strings for registry key path (`0x403000`), value name (`0x403048`), and the data being written (`0x403038`) are stored as hardcoded",
+        "addresses rather than directly embedded strings. This obfuscates the strings from static analysis, making it harder to immediately understand what the code is doing. Although not definitive",
+        "proof, this is a common technique to make analysis more difficult and could be indicative of an attempt to evade detection.",
+        "Therefore, the MITRE ATT&CK techniques present are:",
+        "* **T1112.001** * **T1005.001 (Possible)** - It's *possible* but not definitively proven by the code alone. More context would be needed.",
+        "It is important to note that simply using registry functions doesn't inherently make something malicious. Legitimate programs also modify the registry. The context of the entire program, the",
+        "specific registry key being targeted, and the data being written are crucial to determine whether this is malicious activity.",
+        "Close"
+    ],
     "gpt4o": [
         "The assembly code provided involves the use of Windows API calls related to the Windows registry, specifically `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`. These functions are used to",
         "access, modify, and close a registry key respectively. The specific use of these API calls in the code is to set a value in the registry that causes a program to run at system startup.",
@@ -29,5 +122,44 @@
         "an infected system.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code snippet given involves several interesting aspects that can be linked to various techniques from the MITRE ATT&CK framework:",
+        "1. **Prologue and Epilogue**: The beginning and end of the code snippet include standard function prologue and epilogue, which sets up and then restores the stack frame (e.g., `push ebp`, `mov",
+        "ebp, esp`, `mov esp, ebp`, `pop ebp`).",
+        "2. **Memory Manipulation**: The code adjusts the stack pointer (`sub esp, 0x44`) to allocate space which may be used for local storage. This itself is not malicious, but it is a common practice",
+        "in both benign and malicious code.",
+        "3. **System Interaction via API Calls**: The code contains calls to subroutines whose specific purposes are not detailed within the snippet (e.g., `call sub_0x000005000`, `call sub_0x000005004`,",
+        "`call sub_0x000005008`). These calls probably interact with system APIs or perform specific tasks like manipulating memory, files, or other resources. This could relate to the MITRE technique: -",
+        "**T1106: Native API**. The usage of direct system calls can indicate an attempt to leverage native APIs for potentially malicious purposes.",
+        "4. **Conditional Branching and Error Handling**: The code performs a conditional check (`test eax, eax` followed by `je offset_0x000000477`) and accordingly either continues execution or jumps",
+        "to handle an alternate flow, which could involve error handling or alternate operations based on the condition (`mov eax, 1` which seems to set a status).",
+        "5. **Data Passing to Functions**: The code pushes pointers and values onto the stack just before function calls (`push eax`, `push 2`, etc.), suggesting data is being passed to these functions.",
+        "This is a normal programming practice but can also be used maliciously to prepare arguments for API functions, especially in exploitation or manipulation scenarios.",
+        "Based on the details provided by the assembly and typical usage context in security frameworks like MITRE, this code excerpt notably aligns with: - **T1106: Native API** - due to direct",
+        "interaction inferred with the system's APIs.",
+        "Further detailed analysis would require a deeper context about what each called function (`sub_*`) does specifically, and what the magic constants represent (e.g., `0x40609f`, `0x80000002`).",
+        "Additionally, observing calls to specific well-known APIs or manipulation of specific types of data could refine the matching to other specific techniques or sub-techniques within the MITRE",
+        "ATT&CK framework.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code includes interactions with the Windows Registry, such as opening a registry key, setting a value in it, and then closing the registry key. Analyzing the specific",
+        "function calls and their parameters reveals the following MITRE ATT&CK techniques and sub-techniques:",
+        "1. **RegOpenKeyExA**: This function attempts to open a registry key. The parameters include a handle to an open key (`hKey = 0x80000002`, which corresponds to `HKEY_LOCAL_MACHINE`), a pointer to",
+        "a subkey (`lpSubKey = 0x403000`), desired access rights (`samDesired = 0x2`, which typically indicates `KEY_WRITE`), and options set to zero. Successful opening of the key jumps to further",
+        "operations; failure jumps to an alternate block presumably involving error handling or alternate logic.",
+        "2. **RegSetValueExA**: This function is used to set the value of a registry entry. It takes parameters like an open key handle, the name of the value (`lpValueName = 0x403048`), reserved (set to",
+        "`0` which means the value is not volatile), the type of data being written (`dwType = 1`, which corresponds to `REG_SZ`, indicating a string being written), the data itself (`lpData =",
+        "0x403038`), and the size of the data (`cbData` set to 0xf bytes).",
+        "3. **RegCloseKey**: This function closes a handle to the open registry key, cleaning up and releasing resources associated with the key.",
+        "These actions match the following MITRE ATT&CK techniques and sub-techniques:",
+        "- **T1547.001**: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder. The technique involves setting values in registry keys that allow programs to execute automatically upon",
+        "startup or user logon. While the specific key manipulated is not detailed in the provided assembly code, the function and context suggest operations involving registry keys, possibly for",
+        "persistence or configuration modification purposes.",
+        "- **T1112**: Modify Registry. This technique encompasses modifications to the registry, which could include adding, modifying, or deleting registry keys and values. The detailed use of",
+        "`RegSetValueExA` and `RegCloseKey` clearly fits within this definition.",
+        "Overall, without more context on the specific registry paths and names involved, these mappings to the MITRE technique numbers are based on generic interpretations of the assembly code",
+        "behaviors. More specific details from the actual workspace, including registry key names and system behavior, would allow for more precise mapping and identification of techniques.",
+        "Close"
+    ]
 }

@@ -1,4 +1,58 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1027.004",
+                "T1027.002",
+                "T1574.002",
+                "T1055.001",
+                "T1056.001",
+                "T1055.012",
+                "T1574.010",
+                "T1027",
+                "T1055",
+                "T1056",
+                "T1574",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1012.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1112",
+                "T1112"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1562",
+                "T1068"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1112"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The assembly code provided demonstrates a sequence typically used for registry interaction within a Windows environment. Specifically, registry keys are opened, modified, or queried based on",
         "different parameters passed to functions such as `RegOpenKeyExA` and then closed with `RegCloseKey`. Here is a step-by-step breakdown of the relevant parts of the assembly and the associated",
@@ -19,6 +73,38 @@
         "code context or the broader objective of the software.",
         "Close"
     ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, but without more context about the called functions ( `sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`,",
+        "`sub_0x000005008`), it's difficult to be precise. We can, however, infer likely techniques based on common patterns.",
+        "Here's a breakdown and potential MITRE techniques:",
+        "* **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x148`, `push ebx`, `push esi`, `push edi` (prologue) and `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`,",
+        "`pop ebp`, `ret` (epilogue) are standard function setup and cleanup. This doesn't directly map to a MITRE technique, but indicates a structured function.",
+        "* **Dynamic API Resolution (Possible):** `mov ecx, 0x40609f`, `call sub_0x00000040A` could be resolving an API address at runtime. This is a common technique for obfuscation and anti-analysis.",
+        "Possible MITRE techniques include: * **T1027.004 - Obfuscated Files or Information: Dynamic-link Library Side-Loading:** If `sub_0x00000040A` loads a DLL, especially a non-standard one, this",
+        "could be side-loading. * **T1027.002 - Obfuscated Files or Information: API Resolving:** More generally, resolving API addresses dynamically is obfuscation. * **T1574.002 - Hijack Execution",
+        "Flow: DLL Side-Loading:** Also a possibility depending on what `sub_0x00000040A` does.",
+        "* **Memory Allocation (Likely):** `mov dword ptr [ebp - 0x108], 0x100` followed by `lea eax, [ebp - 4]`, `push eax` ... `call sub_0x000005000` strongly suggests memory allocation. `0x100` might",
+        "be the size being allocated. `sub_0x000005000` could be a wrapper for `VirtualAlloc` or similar. This itself isn't malicious, but is frequently used in conjunction with other techniques.",
+        "* **Process Injection or API Hooking (Possible):** The sequence of calls to `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` after a potential memory allocation is suspicious. The use",
+        "of `ebp - 4`, `ebp - 0x108`, and `ebp - 0x104` for memory addresses strengthens this suspicion. This pattern hints at writing code to the allocated memory and then executing it. * **T1055.001 -",
+        "Process Injection: Dynamic-link Library Injection:** If the allocated memory is filled with DLL code and then executed, this would be DLL injection. * **T1056.001 - Process Injection:",
+        "CreateRemoteThread:** Similarly, creating a remote thread in another process would fit this pattern. * **T1055.012 - Process Injection: Process Hollowing:** Could also be process hollowing where",
+        "a legitimate process's image is replaced with malicious code. * **T1574.010 - Hijack Execution Flow: SetWindowsHookEx:** The pattern *could* be consistent with API hooking using",
+        "`SetWindowsHookEx`.",
+        "* **Error Checking:** `test eax, eax` and `jne offset_0x0000004AA` shows error handling. The jump suggests that if the previous operations (likely the suspected injection or hooking) failed, the",
+        "function exits.",
+        "**In summary:** Without knowing the true nature of the called subroutines, it is impossible to give definite MITRE ATT&CK mappings. However, the code suggests possible techniques related to",
+        "**obfuscation (T1027), process injection (T1055, T1056), API hooking (T1574), and potentially process hollowing (T1055.012).** Further analysis of the subroutines, especially `sub_0x000005000`,",
+        "`sub_0x000005004`, and `sub_0x000005008`, is crucial for definitive classification. A debugger or disassembler would be necessary to gain further insight.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of Registry key manipulation for the purpose of likely reading configuration data or other stored values. This maps to the following MITRE ATT&CK technique:",
+        "* **T1012.002 - Query Registry**",
+        "Specifically, the code calls `RegOpenKeyExA`, `RegQueryValueExA`, and `RegCloseKey`. This sequence opens a registry key, queries its value, and then closes the key, which is the standard",
+        "procedure for reading data from the Windows Registry. The use of `RegQueryValueExA` strongly points to the \"Query Registry\" sub-technique.",
+        "Close"
+    ],
     "gpt4o": [
         "The provided x86 assembly code snippet includes several actions that can be correlated with MITRE ATT&CK techniques, specifically involving registry operations which are often used for",
         "persistence, privilege escalation, or system information discovery. Below is a breakdown of these operations and the corresponding MITRE techniques:",
@@ -36,5 +122,44 @@
         "categorization or additional related techniques such as execution or defense evasion (by potentially hooking or modifying registry values critical for monitoring or logging tools).",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code appears to implement several behaviors that can be correlated to techniques identified in the MITRE ATT&CK framework. Here's a breakdown of likely relevant techniques",
+        "based on typical activities visible in the code:",
+        "1. **Process Injection (T1055)**: - The `call` instructions, especially to significant memory addresses (such as `sub_0x000005008`), could be involved in techniques that manipulate the execution",
+        "flow of other processes, potentially indicative of process injection techniques. These calls and subsequent operations might be targeting code injection or modifying another process",
+        "space.",
+        "2. **Execution (T1106)**: - The usage of `call` instructions to execute different subroutines can be indicative of execution techniques. The various subroutine calls likely lead to further",
+        "actions which could not only manipulate data but also execute additional unknown payloads.",
+        "3. **Defense Evasion (T1562)**: - The manipulations of the stack and direct memory modification (e.g., `mov eax, dword ptr [ebp - 4]`, `mov dword ptr [ebp - 0x108], 0x100`) can be an attempt to",
+        "hide the true intentions of the assembly code or to alter its behavior to evade security mechanisms.",
+        "4. **Privilege Escalation (T1068)**: - Although not explicitly clear from just the provided assembly instructions, the nature of operations (pushes and pops to manipulate data, direct memory",
+        "access) might also suggest an attempt to escalate privileges or bypass security features which could also fall under techniques aimed at privilege escalation.",
+        "5. **Unusual Data Manipulation (Custom Technique)**: - The direct manipulation of memory addresses and data (`mov dword ptr [ebp - 0x108], 0x100`, etc.) suggests potential data manipulation,",
+        "which could align with techniques like patching process memory to change its behavior.",
+        "6. **Conditional Branching (Custom Technique)**: - The use of `test` and `jne` instructions is used for conditional checks and could be determining a path of execution based on the results of",
+        "previous operations, possibly to handle errors or check for specific conditions being met to decide the continuation of malicious activities.",
+        "Since the concepts of subroutines and jumps are heavily used (especially with meaningful checks like `test eax, eax` followed by `jne`), it is likely that the code is designed for sophisticated",
+        "flow control, potentially to adapt based on the environment or execution outcomes.",
+        "Without further context like the specifics of what these subroutines do, it",
+        "operations which likely span several technique categories as described above.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code snippet you've shared shows several interesting behaviors that interact with the Windows registry. Here's a breakdown of this behavior and the corresponding MITRE ATT&CK",
+        "Techniques and sub-techniques:",
+        "1. **Prolog Setup & Stack Frame Management**: - The initial part of the assembly code (`push ebp`, `mov ebp, esp`, `sub esp, 0x148`, etc.) typical of a function prolog, isn't directly related to",
+        "a specific MITRE technique but sets up the stack frame for local variables and saved registers.",
+        "2. **Windows Registry Operations**: - The code uses `RegOpenKeyExA`, `RegQueryValueExA`, and `RegCloseKey` functions to interact with the Windows registry. This involves opening a registry key,",
+        "querying a value, and closing the key.",
+        "3. **MITRE Techniques**: - **T1547.001**: **Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder** - The use of `0x80000002` as a parameter for the `hKey` in `RegOpenKeyExA`,",
+        "which corresponds to `HKEY_LOCAL_MACHINE`, suggests an operation on a registry key that could be used for persistence. However, without specific registry paths (`lpSubKey`), it's speculative. -",
+        "**T1112**: **Modify Registry** - Modifying the registry can be indicated through the use of `RegOpenKeyExA` and `RegQueryValueExA` functions. Even though the code shows querying values rather",
+        "than setting, the context of similar operations can lead to registry modifications, which are common in various adversarial techniques.",
+        "The exact paths and keys in the registry operations (`lpSubKey` and `lpValueName`) are crucial in identifying the specific purpose and target of the registry operations. In the absence of such",
+        "specific data, identifying the exact MITRE sub-technique is difficult but can be generally associated with registry operations as mentioned.",
+        "Therefore, the key associated MITRE techniques would likely be driven around persistence and possibly defense evasion or privilege escalation, depending on further actions not shown in the",
+        "provided snippet. The registry manipulation suggests an aim likely at persistence (if values are being added or modified) or potentially system configuration discovery (if primarily querying",
+        "information).",
+        "Close"
+    ]
 }

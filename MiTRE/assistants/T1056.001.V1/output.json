@@ -1,4 +1,66 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1546.008",
+                "T1055",
+                "T1574",
+                "T1546.008"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1059.001",
+                "T1574.002",
+                "T1027.004",
+                "T1080",
+                "T1562.001",
+                "T1050",
+                "T1005",
+                "T1218.011",
+                "T1070"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1056.004"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1546.008",
+                "T1546.008",
+                "T1546.008",
+                "T1546"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1480",
+                "T1105",
+                "T1055",
+                "T1480"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1546.008",
+                "T1543.003",
+                "T1554.002",
+                "T1562.001",
+                "T1546.008",
+                "T1543"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The assembly code provided performs several actions that map to specific MITRE ATT&CK techniques. Here's a breakdown of each key action observed in the code and the corresponding MITRE",
         "technique:",
@@ -15,6 +77,40 @@
         "Primarily, the use of `SetWindowsHookExW` to monitor keyboard events and maintain a message loop is indicative of potential malicious behavior, especially in the context of surveillance or data",
         "capture, usually used in scenarios where an adversary wants to monitor user activities or capture inputs. Therefore, the strongest association is with the technique **T1546.008 - Event Triggered",
         "Execution: Windows Hook**. Note that more context around the purpose and deployment of this code would be needed to firmly classify it within a threat model.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, though definitively labeling them requires more context. Here's a breakdown of suspicious instructions and their",
+        "*possible* corresponding techniques:",
+        "* **Function Prologue/Epilogue (Standard Stack Frame Setup):** `push ebp`, `mov ebp, esp`, `sub esp, 0x5c`, `push ebx`, `push esi`, `push edi` ... `pop edi`, `pop esi`, `pop ebx`, `mov esp,",
+        "ebp`, `pop ebp`, `ret`. This is standard function setup and cleanup, not directly a MITRE technique.",
+        "* **Call to External Functions:** Calls like `call sub_0x00000040F`, `call sub_0x000004000`, `call sub_0x000004044`, `call sub_0x000004048`, `call sub_0x000004038`, `call sub_0x000004034`, `call",
+        "sub_0x00000403C` are highly suspicious. Without knowing what these functions do, we can only speculate. They *could* be related to:",
+        "* **T1055.001 (Process Injection - Dynamic-link Library Injection):** If these calls load and execute external DLLs. * **T1059.001 (Command and Scripting Interpreter - PowerShell):** If the",
+        "functions interact with `powershell.exe`. * **T1574.002 (Hijack Execution Flow - DLL Side-Loading):** If the code exploits DLL search order. * **T1027.004 (Obfuscated Files or Information -",
+        "Compile After Delivery):** Possible if the called functions perform decryption or unpacking.",
+        "* **Looping Behavior:** The `jmp offset_0x0000004BD` creates a loop. Combined with the conditional jump `je offset_0x0000004E9`, this suggests the code is repeatedly checking something. This",
+        "*could* be related to:",
+        "* **T1080 (Taint Shared Content):** If the loop modifies files or registry keys that are expected to be read by other processes. * **T1562.001 (Impair Defenses: Disable or Modify Tools):** If",
+        "the loop searches for and disables security tools. * **T1050 (New Service):** Less likely but possible if the loop is attempting to install or start a service.",
+        "* **Memory Access:** `mov eax, dword ptr [0x403000]` accesses a specific memory address. This *could* relate to:",
+        "* **T1005 (Data from Local System):** Reading configuration data or other information from the local system. * **T1218.011 (Signed Binary Proxy Execution: Rundll32):** If the memory location",
+        "holds a function pointer to be executed using `rundll32.exe`.",
+        "* **Zeroing Out EAX:** `xor eax, eax` sets the EAX register to zero. This is common practice before function return, but it *could* also be an attempt to:",
+        "* **T1070 (Indicator Removal on Host: Clear Windows Event Logs):** Less likely without more context, but if combined with other suspicious calls, it could be part of cleanup efforts.",
+        "**Important Considerations:**",
+        "* **Context is Crucial:** Without knowing the functionality of the called subroutines and the purpose of the data being accessed, it's impossible to definitively assign MITRE ATT&CK techniques.",
+        "This analysis is based on educated guesses. * **Static Analysis Limitations:** Static analysis of assembly code alone provides a limited view. Dynamic analysis (running the code in a sandboxed",
+        "environment) would offer more insights.",
+        "In summary, the code snippets you've provided raise red flags and warrant further investigation. However, more information is required for accurate MITRE ATT&CK mapping.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of implementing a message hook using `SetWindowsHookExW`. This aligns with the following MITRE ATT&CK technique:",
+        "* **T1056.004 - Input Capture: Keylogging**",
+        "The code sets a hook with `WH_KEYBOARD_LL` (indicated by `idHook = 0xd`) to capture keyboard input. The `GetMessageW`, `TranslateMessage`, and `DispatchMessageW` functions are used within a",
+        "message loop to process intercepted messages. The use of `GetModuleHandleW` to obtain the handle of the current module is common in malware to make the call to `SetWindowsHookExW`. Finally,",
+        "`UnhookWindowsHookEx` is called before program termination, which is good practice but also frequently seen in malware.",
         "Close"
     ],
     "gpt4o": [
@@ -35,5 +131,39 @@
         "unwanted applications for surveillance or data theft activities.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code you've provided shows a general structure for a function, including stack frame manipulation for local variable usage and calling other functions. The specific functionality",
+        "with regards to MITRE ATT&CK techniques cannot be conclusively identified without more context about what the called subroutines (`sub_0x<address>`) perform. However, we can infer potential",
+        "candidate techniques based on common assembly operations and their use in various attack methodologies.",
+        "1. **Stack Operations and Function Calls** - This code modifies the stack and calls multiple subroutines. This could suggest: - **Process Injection (T1055)**: Often involves manipulating the",
+        "stack and calling APIs via function pointers to inject code into another process's address space.",
+        "2. **Conditional Branching** - The assembly performs conditional checks (`test` and `je`), which could be indicative of: - **Defense Evasion Techniques**: Such as **Conditionally Executing Code",
+        "(T1480)** or checking for certain conditions before performing malicious actions.",
+        "3. **Looping** - The `jmp` back to `offset_0x0000004BD` suggests looping behavior, possibly for: - **Command and Control (T1105)**: Persistent command retrieval or execution techniques often use",
+        "loops to continuously check for commands or maintain persistence.",
+        "Here",
+        "- **Process Injection (T1055)**: General technique that could involve calling different routines and manipulating memory, as suggested by pushing different values and managing the stack. -",
+        "**Conditionally Executing Code (T1480)**: Used for executing code based on the runtime state to evade defenses or only operate under certain conditions.",
+        "To conclude, while it's plausible to associate parts of the assembly snippet with certain ATT&CK techniques, the actual calls (`sub_0x<address>`) are critical to identifying the precise nature",
+        "of the behavior and associated techniques. More detailed information about what these subroutines do would be necessary to accurately map this assembly code to specific MITRE ATT&CK techniques",
+        "and sub-techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code provided performs several notable actions which are commonly associated with specific techniques in the MITRE ATT&CK framework. Let's analyze the relevant portions of the code",
+        "and identify the corresponding MITRE techniques:",
+        "1. **Setting a Windows Hook (SetWindowsHookExW call)**: - The code sets up a hook using `SetWindowsHookExW` which is indicative of manipulation of Windows hooks to intercept or inject events.",
+        "Hooks can monitor and manipulate system behavior. - **MITRE Technique**: T1546.008 - Subvert Trust Controls: DLL Search Order Hijacking.",
+        "2. **Message Loop (GetMessageW, TranslateMessage, DispatchMessageW)**: - The code contains a message loop processing (polling and dispatching Windows messages) suggesting the program may intend",
+        "to keep running persistently to process or intercept user inputs or system events. - **MITRE Technique**: T1543.003 - Create or Modify System Process: Windows Service.",
+        "3. **Event Handling (TranslateMessage and DispatchMessageW)**: - This part of the code manages message translation and dispatch. Such functionality is typical in applications that need to handle",
+        "asynchronous events, often used in legitimate applications, but can also be misused in malware for handling communication or maintaining persistence. - **MITRE Technique**: T1554.002 -",
+        "Compromise Client Software Binary.",
+        "4. **Clean up with UnhookWindowsHookEx**: - At the end, the code cleans up by calling `UnhookWindowsHookEx`, which shows an intention to remove traces of the hooking activity, typically done to",
+        "avoid detection or to clean up after execution. - **MITRE Technique**: T1562.001 - Impair Defenses: Disable or Modify Tools.",
+        "Overall, the primary MITRE technique that this code demonstrates is manipulation of system hooks to alter or hijack the behavior of processes or to intercept data, fitting the description of",
+        "T1546.008 for hook injection. The looping and message handling suggest at least an intent for persistency and interaction interception, aligning with general behaviors under the T1543 series",
+        "related to process creation or management, though those specifics are less directly indicated than the hook manipulation.",
+        "Close"
+    ]
 }

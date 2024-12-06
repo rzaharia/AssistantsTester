@@ -1,4 +1,69 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1569.002",
+                "T1106",
+                "T1059",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1218.009",
+                "T1056.001",
+                "T1005",
+                "T1562.001",
+                "T1005.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1055.002",
+                "T1057",
+                "T1059.001",
+                "T1055.002",
+                "T1057"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1106",
+                "T1569",
+                "T1106",
+                "T1569",
+                "T1106",
+                "T1569"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055",
+                "T1055",
+                "T1068"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1543",
+                "T1543.003",
+                "T1106",
+                "T1106.001",
+                "T1106.001"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "Analyzing the provided x86 assembly code, it appears to perform the following actions:",
         "1. Basic function prologue sets up the stack frame. 2. Allocates local stack space. 3. Calls another subroutine (`sub_0x00000040A`). 4. Prepares and invokes `CreateProcessA` to create a new",
@@ -15,6 +80,45 @@
         "These techniques suggest that the assembler code is oriented toward enabling and managing execution of external commands or binaries, typically as part of execution or persistence phases within",
         "the MITRE ATT&CK framework. It could broadly be part of multi-stage deployment of malware or unauthorized activities within a compromised system, often starting with the execution of a seemingly",
         "benign or useful tool like `curl` to retrieve payloads or other tools.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates several behaviors that could be associated with MITRE ATT&CK techniques. It's crucial to remember that static analysis of assembly code alone often isn't",
+        "enough to definitively assign a technique ID. Dynamic analysis and a broader understanding of the program's purpose are essential. However, based on the code provided, here are some *possible*",
+        "relevant techniques:",
+        "* **T1005.001 (Process Injection: Thread Execution Hijacking):** The code allocates memory on the stack (`sub esp, 0x94`), and makes multiple calls to external functions (`sub_0x000005004`,",
+        "`sub_0x000005000`, `sub_0x00000500C`). The combination of memory allocation and calls to potentially unknown functions *could* indicate thread execution hijacking, where the code injects its own",
+        "code into another process's memory and executes it. The call to `sub_0x000005004` with several arguments that resemble process creation parameters further strengthens this suspicion. However,",
+        "without knowing what these functions do, we can't be certain.",
+        "* **T1218.009 (System Information Discovery: Query Registry):** This is less likely based solely on the assembly provided, but the call to `sub_0x00000040A` with a fixed address argument",
+        "(`0x40609f`) *might* be an indirect way of accessing registry keys. Again, without more context about what this function does, it's speculation.",
+        "* **T1056.001 (Input Capture: Keylogging):** This is unlikely given the code provided. Keylogging typically involves setting up hooks or monitoring keyboard input buffers. This code doesn't show",
+        "any such behavior.",
+        "* **T1005 (Process Injection):** More generally, without knowing the specifics of the called functions, we can",
+        "* **T1562.001 (Impair Defenses: Disable or Modify Tools):** Depending on what `sub_0x000005000`, `sub_0x000005004`, and `sub_0x00000500C` actually do, this could be a possibility. If those",
+        "functions interact with security tools or processes, this code could be disabling or modifying them. Again, further analysis is needed.",
+        "**Why definitive identification is difficult:**",
+        "* **Lack of Function Information:** We don't know what `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` do. They're crucial to understanding the overall behavior. *",
+        "**Static Analysis Limitations:** Static analysis can only tell us so much. Dynamic analysis (running the code in a controlled environment) is often necessary to see the real-world effects and",
+        "definitively assign MITRE ATT&CK techniques. * **Context is King:** The same assembly code could be part of legitimate functionality or malicious activity depending on the larger program it",
+        "belongs to.",
+        "In summary, based on the assembly snippet, **T1005.001 (Process Injection: Thread Execution Hijacking)** is the most likely candidate, but more information is needed to be certain. The other",
+        "possibilities should also be investigated with dynamic analysis and a more thorough understanding of the code's context.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code clearly shows the use of the `CreateProcessA` Windows API call. This maps to **T1059.001** (**Command and Scripting Interpreter: PowerShell**). While the code doesn't",
+        "explicitly use PowerShell, `CreateProcessA` is a common method used by malware to execute PowerShell commands or scripts indirectly. It's important to note that `CreateProcessA` can be used to",
+        "launch *any* executable, not just PowerShell. However, given the context of malware analysis and the MITRE ATT&CK framework, the use of `CreateProcessA` is often associated with this technique",
+        "when the ultimate goal is arbitrary code execution, which PowerShell facilitates.",
+        "There is also evidence of process creation and manipulation:",
+        "* **T1055.002 (Process Injection: CreateRemoteThread)** While the code doesn't use `CreateRemoteThread` directly, the presence of `WaitForSingleObject` and two `CloseHandle` calls following",
+        "`CreateProcessA` suggests the code may be interacting with a newly created process, possibly for injection or further manipulation. We don't see direct evidence of injection in *this* snippet,",
+        "but the surrounding code or overall program logic could utilize other techniques to achieve code injection into the created process.",
+        "* **T1057 (Process Discovery)** While not a direct match, the usage of process handles and the potential for process interaction hints that the malware *might* be engaging in process discovery.",
+        "It's speculative based on this snippet alone. More context is needed.",
+        "Therefore, the most relevant MITRE ATT&CK technique is **T1059.001**. The other techniques (T1055.002 and T1057) are possible, but not definitively demonstrated by *just* this code snippet. More",
+        "code or dynamic analysis would be required to confirm their presence.",
         "Close"
     ],
     "gpt4o": [
@@ -37,5 +141,42 @@
         "multi-stage attack involving downloading and executing additional payloads.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code snippet you've provided shows several common malware or exploitation techniques, which can be mapped to MITRE ATT&CK techniques. The code snippet seems to be dealing with",
+        "memory manipulation, function calling, and conditional branching based on function call results. Here",
+        "1. **Stack Operations**: The beginning of the code shows typical function prologue operations with `push ebp`, `mov ebp, esp`, and `sub esp, 0x94`, setting up the stack frame for local variables",
+        "and space allocation. This is generally a common programming practice rather than a specific attack technique.",
+        "2. **System API Invocation**: - Calls to subs like `sub_0x00000040A`, `sub_0x000005004` etc., suggest interactions with system APIs or internal functions. Without more context about what these",
+        "subs do, exact attack techniques are harder to map. However, pushing various hardcoded values and addresses could relate to configuring certain services or parameters, potentially for malicious",
+        "use.",
+        "3. **Memory Manipulation**: - The use of `mov` and `lea` to handle pointers (e.g., `mov dword ptr [ebp - 0x44], 0x44` and `lea eax, [ebp - 0x54]`) suggests operations on buffers and structured",
+        "data in memory, indicative of potential buffer overflow or other memory corruption tactics (e.g., **T1055** Process Injection, if these are used to manipulate process memory).",
+        "4. **Conditional Branching**: - Handling the result of a function call and branching with `test eax, eax` and `je` (jump if equal) suggests conditional behavior based on the success or failure",
+        "of previous operations, which could be used in exploitation or evasion scenarios.",
+        "5. **Potential Code Injection and Elevated Privilege Execution**: - The use of hard-coded pointers and possible API calls (`call sub_0x000005004` with multiple `push` instructions setting up",
+        "arguments) could denote an attempt to execute code (possibly shellcode) in different memory sections, potentially aiming for process injection or execution with elevated privileges (**T1055**).",
+        "While it is difficult to assign an exact MITRE ATT&CK technique without knowing the specifics of what each subroutine does, here are possible candidates, based primarily on generic operations",
+        "observed: - **T1055**: Process Injection (general category for memory manipulation and unauthorized code execution within a process) - **T1068**: Exploitation for Privilege Escalation (if the",
+        "manipulation involves elevated permissions or bypassing normal security restrictions)",
+        "To better pinpoint specific techniques, additional information about what the functions (like `sub_0x000005004`) do would be necessary. If these functions are interacting with system APIs for",
+        "malicious activities, further classification can be done into more specific sub-techniques potentially involving exploitation, code injection, or other tactics.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "This assembly code is involved in the process creation and management on a Windows system. The MITRE ATT&CK techniques and sub-techniques associated with this kind of activity can be analyzed as",
+        "follows:",
+        "1. **Process Injection (T1055)**: Although the code here does not directly show injection techniques such as DLL injection, process hollowing, etc., the use of `CreateProcessA` for process",
+        "creation is often a preliminary step in such techniques.",
+        "2. **Native API (T1106)**: The code directly calls several native Windows API functions: `CreateProcessA`, `WaitForSingleObject`, `CloseHandle`. This technique involves the use of these",
+        "functions to interact directly with the operating system at a low level, which could be used for benign purposes or for conducting various malicious activities.",
+        "3. **Create or Modify System Process (T1543)**: Specifically, this could involve: - **T1543.003**: Windows Service: The assembly code does not directly demonstrate setting up a new Windows",
+        "service, but the `CreateProcessA` function is typically central to such activities involving manipulation or creation of processes.",
+        "4. **Execution through API (T1106)**: - **T1106.001**: Native API: This sub-technique specifically involves the use of the native Windows API for execution, which is exemplified by the call to",
+        "`CreateProcessA`.",
+        "Given the provided code snippet, the following MITRE ATT&CK techniques most specifically apply: - **Execution through API (T1106.001)**: Usage of `CreateProcessA`, `WaitForSingleObject`, and",
+        "`CloseHandle` represent direct interaction with the Windows API for executing or managing a process.",
+        "This code allows for the creation of a new process, the waiting for it to signal that it has completed using `WaitForSingleObject`, and the subsequent closure of its handles using `CloseHandle`.",
+        "These are typical actions used in process manipulation and management in Windows environments.",
+        "Close"
+    ]
 }

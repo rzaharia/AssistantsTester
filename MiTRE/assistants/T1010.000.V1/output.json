@@ -1,4 +1,57 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1518",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1056.001",
+                "T1056",
+                "T1056.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1057",
+                "T1010",
+                "T1010"
+            ],
+            "valid": [
+                "T1010",
+                "T1010",
+                "T1010",
+                "T1010"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1574",
+                "T1027",
+                "T1027",
+                "T1574.012"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1518",
+                "T1518"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The provided assembly code depicts various operations typical in programming but a few segments stand out for analysis in the context of MITRE ATT&CK techniques:",
         "1. **Function Prologue and Epilogue**: The initial and final parts of the assembly code are standard for setting up and tearing down a function's stack frame: ``` push ebp mov ebp, esp sub esp,",
@@ -13,6 +66,40 @@
         "Without more context (especially regarding what `sub_0x00000040F` and the function at `0x401005` are doing), it's challenging to precisely map this to MITRE ATT&CK techniques beyond broad",
         "categories like discovery or potential process injection. More information about the behaviors occurring within these functions would offer a clearer linkage to specific techniques and",
         "sub-techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates aspects of **Process Injection**: specifically, **T1055.001 - Process Injection: Dynamic-link Library Injection**.",
+        "Here's why:",
+        "1. **`push 0x401005` `push 0` `call sub_0x000004030`**: This sequence strongly suggests loading a library (address `0x401005` likely a string representation of a DLL path) and then calling a",
+        "function (presumably `LoadLibraryA` or similar based on pushing a zero prior to the path). The address `0x401005` residing in the `.data` section further strengthens this interpretation, as DLL",
+        "paths are usually stored there.",
+        "2. **`mov ecx, 0x40509f` `call sub_0x00000040F`**: This is highly indicative of getting a procedure address. The address `0x40509f` probably points to the name of a function within the",
+        "previously loaded DLL (e.g., the string \"GetProcAddress\"). The call to `sub_0x00000040F` is likely a resolved import for `GetProcAddress` itself.",
+        "3. **Function prologue/epilogue (pushes, pops, mov esp,ebp, etc.)**: This setup creates a standard stack frame for a function, saving registers, allocating local variables, and restoring the",
+        "state before returning. This structure doesn't identify a *specific* injection technique, but is consistent with the overall process.",
+        "4. **Absence of `CreateRemoteThread` or other direct thread creation**: We don't see direct calls related to creating a remote thread within another process. This, combined with the library",
+        "loading and procedure address retrieval, points toward DLL injection, where the operating system's loader performs thread creation when the DLL is mapped into the target process.",
+        "**Important Caveat**: This analysis is based on limited information. Without analyzing the called subroutines (`sub_0x000004030` and `sub_0x00000040F`) and examining the data at the given memory",
+        "addresses, the conclusion can't be definitive. It is highly probable the code performs DLL injection, but it's essential to perform dynamic analysis or further static analysis to be 100%",
+        "certain.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1056.001. Enumeration for Existing Windows**",
+        "**Rationale:**",
+        "* **`EnumWindows` API Call:** The code directly calls the `EnumWindows` API function. This function is specifically designed to enumerate all top-level windows currently present on the system.",
+        "This is a strong indicator of an attempt to discover open windows, potentially for further interaction or manipulation. * **Callback Function:** The code pushes `0x401005` onto the stack before",
+        "calling `EnumWindows`. This value is likely the address of a callback function (`lpEnumFunc`). `EnumWindows` uses a callback mechanism. It iterates through each window and, for every window",
+        "found, calls the provided callback function. This allows the malicious code to process information about each window. The `0` pushed as `lParam` is user-defined data passed to the callback. *",
+        "**Context Setup/Teardown:** The assembly instructions like `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` set up a standard stack frame for the function's local",
+        "variables. The corresponding `pop` instructions restore the registers and stack pointer before returning. This is common function prologue/epilogue code. * **Unclear Intent:** While the code",
+        "enumerates windows, it's impossible to determine the ultimate goal solely from this snippet. It could be part of a larger process performing various actions, such as: *",
+        "**Spying/Reconnaissance:** Gathering information about running applications. * **Window Manipulation:** Finding specific windows to interact with (e.g., sending messages, closing them, etc.) *",
+        "**Process Injection:** Identifying target processes based on their windows.",
+        "It's important to note that T1056 covers more than just `EnumWindows`. Other APIs like `FindWindow`, `GetWindow`, etc., can also be used for window enumeration and would fall under the same",
+        "technique. However, based on the specific code provided, T1056.001 is the most accurate mapping.",
         "Close"
     ],
     "gpt4o": [
@@ -32,5 +119,44 @@
         "Moreover, the specifics of the callback function, if any detailed or targeted functionality is used, might refine or adjust the technique classification.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code provided appears to set up a stack frame, reserve space on the stack, call some functions, and manipulate data registers. However, we need more context to tie these behaviors",
+        "directly to specific MITRE ATT&CK techniques as these actions could be part of various normal and malicious activities. However, we can attempt to attribute a few general techniques based on",
+        "common use cases:",
+        "1. **Subroutine Calls (e.g., `call sub_0x00000040F`, `call sub_0x000004030`):** - This could relate to **T1055: Process Injection.** If these subroutines involve manipulating other processes'",
+        "address spaces or injecting code, this technique would be applicable. - If we consider the called subroutines manipulating or interacting with APIs in a way that alters normal process behavior",
+        "or facilitates stealth, it could also involve **T1574: Hijack Execution Flow.**",
+        "2. **Memory Manipulation (e.g. `sub esp, 0x40`):** - The manipulation of stack memory (adjusting the stack pointer and potentially storing data) can be a part of various techniques such as",
+        "**T1027: Obfuscated Files or Information** if used to hide what is being executed or stored.",
+        "3. **Data Encoding/Decoding (e.g., `xor eax, eax`):** - Using XOR even simply to clear a register (`xor eax, eax` sets `eax` to zero) is a common instruction, but XOR is also widely used in",
+        "encoding and decoding routines. This could fall under **T1027: Obfuscated Files or Information** if employed to manipulate data in a way that disguises its purpose.",
+        "4. **Function Pointer Usage (passing `0x401005` to a function call):** - The manipulation or usage of function pointers can be considered under **T1574.012: Process Hollowing** if it involves",
+        "overwriting memory of an existing process to execute arbitrary code.",
+        "Linking these assembly operations directly to specific malicious techniques without further context (such as the actual functionalities of `sub_0x00000040F` and `sub_0x000004030`) is",
+        "speculative. Often, the interpretation of these assembly instructions would require understanding additional details about what the surrounding code does, the program's overall functionality,",
+        "and the runtime behaviors.",
+        "For precise classification with the MITRE ATT&CK framework, exploring the subroutines' intentions, the program's target, and the operational context is essential.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given assembly code snippet provides a typical structure of a function prologue and epilogue with the use of stack frames, and it also includes a call to the Windows API function",
+        "`EnumWindows`. Here's my analysis of its components and the associated MITRE ATT&CK technique:",
+        "1. **Function Prologue and Epilogue**: - The instructions (`push ebp; mov ebp, esp; sub esp, 0x40`) are indicative of setting up a stack frame for local function use. This is not an attack",
+        "technique but standard programming practice. - Similarly, the instructions at the end (`mov esp, ebp; pop ebp; ret`) are for restoring the previous stack frame, another standard practice.",
+        "2. **Use of Operating System API**: - `EnumWindows` is a Windows API function used to enumerate through all top-level windows on the screen. This function takes two parameters: a pointer to a",
+        "callback function (`lpEnumFunc`) that processes the window handles and an application-defined value (`lParam`) passed to the callback. In the attack context, using `EnumWindows` could be",
+        "oriented towards gathering information about open windows, possibly to find specific applications or context for further actions.",
+        "3. **Potential Technique Identification**: - Given that `EnumWindows` could be used to survey applications on the user's desktop, the closest MITRE ATT&CK technique is **T1518: Software",
+        "Discovery**. This technique involves an adversary attempting to get information about installed software, and enumerating window titles could indirectly serve this purpose to discover running",
+        "software. - However, specific identification down to sub-techniques might need more contextual information about what the callback function (`lpEnumFunc`) pointed at `0x401005` is programmed to",
+        "do. Typically, if this callback was scanning for particular software window titles or properties, it would substantiate the use of this technique more directly.",
+        "4. **General Observations**: - The code does not directly suggest typical adversarial techniques such as privilege escalation or lateral movement. The primary action of interest revolves around",
+        "the use of `EnumWindows`.",
+        "Considering the analysis, if the use of `EnumWindows` is intended for identifying or interacting with software processes based on the window titles or other properties detected, it aligns with:",
+        "- **T1518: Software Discovery** - However, I don't have enough direct evidence from the snippet alone to specify a sub-technique under this category. We'd need more information about what",
+        "`lpEnumFunc` does exactly.",
+        "This analysis is based on the understanding that the enumeration of windows can be part of an information gathering or discovery phase in a broader attack scenario. Further details about how the",
+        "enumerated data is used would better clarify the exact sub-technique or confirm another technique.",
+        "Close"
+    ]
 }

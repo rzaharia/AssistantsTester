@@ -1,4 +1,51 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1140",
+                "T1055",
+                "T1574"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1027.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1027.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1140",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1027",
+                "T1027.002",
+                "T1202",
+                "T1027",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1027",
+                "T1055",
+                "T1140"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "This assembly code exhibits behavior related to several computer security techniques as classified by MITRE ATT&CK. Analyzing the provided assembly code snippet, several features stand out:",
         "1. **Stack Modification**: The use of `push`, `pop`, `sub esp`, and direct manipulation of `ebp` and `esp` registers for local variable management and stack frame setup is evident. This is",
@@ -19,6 +66,36 @@
         "MITRE ATT&CK techniques. The assessment above is based on structural and syntactical analysis limited to the supplied assembly code.",
         "Close"
     ],
+    "gemini_no_imports_no_strings": [
+        "The assembly code suggests the following MITRE ATT&CK technique:",
+        "* **T1027.001 Obfuscated Files or Information: String Concealment**",
+        "**Rationale:**",
+        "The code appears to be implementing a simple string decryption routine. Here's why:",
+        "1. **Initialization:** The code initializes a pointer (`dword ptr [ebp - 0x404]`) to a memory address (likely containing encrypted data) and sets up some key values (`byte ptr [ebp - 0x405]`,",
+        "`byte ptr [ebp - 0x406]`). The `sub_0x00000040A` call likely retrieves the encrypted data or sets up some related aspect of the decryption.",
+        "2. **Looping Decryption:** The loop at `offset_0x000000483` iterates through the data byte-by-byte. Inside the loop: * It reads a byte from the data pointed to by `[ebp - 0x404]`. * It performs",
+        "some arithmetic and logical operations (addition, XOR) using the key values. This is a classic indicator of a simple stream cipher or XOR-based decryption. * The decrypted byte (`cl`) is stored",
+        "in a buffer (`[ebp + edx - 0x400]`). * The data pointer and destination buffer index (`edx`, representing the counter stored in `[ebp-0x40c]`) are incremented.",
+        "3. **Null-Termination Check:** The loop continues until a null byte (0x00) is encountered in the encrypted data, signaling the end of the string. This is typical for null-terminated strings.",
+        "This behavior strongly suggests that the code is designed to conceal a string by encrypting it and then decrypting it at runtime. This aligns with the string concealment sub-technique of",
+        "obfuscated files or information. The use of a simple XOR operation for decryption points towards a basic form of obfuscation, likely aimed at hindering static analysis.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code suggests the following MITRE ATT&CK technique:",
+        "* **T1027.001 Obfuscated Files or Information: XOR**",
+        "**Rationale:**",
+        "The code implements a loop (starting at `offset_0x000000483` and jumping back using `jmp offset_0x000000483`) that reads bytes from a memory location pointed to by `[ebp - 0x404]`. The crucial",
+        "part is the XOR operation:",
+        "```assembly xor ecx, eax ```",
+        "This operation XORs a byte read from the input data with a key (stored in `[ebp - 0x406]`, initialized to 0xc0). The result is then stored in a buffer pointed to by `[ebp + edx - 0x400]`. This",
+        "is a classic XOR obfuscation/deobfuscation technique. The loop continues until a null byte is encountered in the input data.",
+        "The call to `sub_0x00000040A` *might* be related to fetching or setting up the data to be decoded, but without further information, it's hard to be certain. However, the core loop's XORing logic",
+        "clearly points to obfuscation.",
+        "It's important to note that while this code *implements* XOR, it doesn't necessarily mean the *purpose* of the code is malicious. XOR is used legitimately in many non-malicious applications",
+        "(checksumming, compression, cryptography, etc.). More context would be needed to determine the intent.",
+        "Close"
+    ],
     "gpt4o": [
         "The provided assembly code snippet exhibits the behavior of a simple XOR-based decryption loop. Here's a breakdown of the key elements and their implications related to MITRE ATT&CK techniques:",
         "1. **Setup and Initialization**: The function sets up the stack frame and reserves space in the stack for local variables, which is typical for most functions in assembly. - `push ebp; mov ebp,",
@@ -36,5 +113,45 @@
         "manipulating data, a common method used by malware to evade detections based on static analysis.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code appears to implement a simple encryption or obfuscation routine. Let",
+        "techniques:",
+        "1. **Function Prologue and Epilogue**: The beginning (`push ebp`, `mov ebp, esp`, etc.) and the end (`mov esp, ebp`, `pop ebp`, `ret`) of the code are standard function prologue and epilogue,",
+        "which setup and teardown the stack frame respectively.",
+        "2. **Buffer Creation and Manipulation**: The assembly instruction `sub esp, 0x4cc` allocates space on the stack, which could indicate the creation of a buffer used for data manipulation.",
+        "3. **Encryption-like Operations**: - The code includes operations that indicate manipulation of data in a manner similar to encryption or encoding (`xor ecx, eax` and manipulations involving",
+        "`add` and `movzx` instructions in a loop). - `xor` is particularly suggestive of cryptographic operations, commonly used for simple encoding or masking.",
+        "4. **Loop Construct**: A loop is evident from the `jmp` instruction to an earlier address (`jmp offset_0x000000483`) that repeatedly processes data until a condition is met (`je",
+        "offset_0x0000004D8`), which tests if the byte at a computed memory address is zero.",
+        "Based on these observations, the primary MITRE ATT&CK techniques that appear relevant are:",
+        "- **T1027: Obfuscated Files or Information**. This technique involves making data or code more difficult to understand or analyze. The use of loop and XOR operations for potential data",
+        "transformation aligns with common methods used to obfuscate data. - **T1027.002: Software Packing**. While the provided code is not explicitly implementing a software packing routine, the",
+        "operations resemble the kind of data transformations (e.g., simple encryption or encoding mechanisms) you might find in packed software, intended to obscure the true nature of the data or code.",
+        "- **T1202: Indirect Command Execution**: The call to a subroutine `call sub_0x00000040A` could potentially be part of executing commands or payloads in a manner that obfuscates the intent or",
+        "actual command being run. However, without more context about the subroutine's functionality, this linkage is speculative.",
+        "Given the excerpt, the clearest connection is to T1027, especially considering obfuscative data transformations in the code. However, identifying a specific sub-technique within T1027 heavily",
+        "depends on additional context about the overall functionality and purpose of the program containing this assembly code segment.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code presented is a routine that manipulates memory and performs bitwise operations, which might suggest techniques generally used in code injection, obfuscation, or data encoding.",
+        "Here",
+        "1. **Prologue and Stack Frame Allocation**: ```assembly push ebp mov ebp, esp sub esp, 0x4cc push ebx push esi push edi ``` - This sets up the stack frame for local variables and saved",
+        "registers. This is typical for function prologs in x86 assembly.",
+        "2. **Data Manipulation and Logic**: ```assembly mov ecx, 0x406000 call sub_0x00000040A ... mov eax, 1 imul ecx, eax, 0 add ecx, 0x403000 ... movzx ecx, byte ptr [eax] test ecx, ecx je",
+        "offset_0x0000004D8 ... xor ecx, eax ... jmp offset_0x000000483 ``` - The code manipulates data and performs arithmetic and bitwise operations, such as `imul`, `add`, `xor`, and conditional jumps",
+        "(`je`). The use of XOR (`xor ecx, eax`) is particularly noteworthy as it is commonly used for encoding and decoding data, often in shellcode or to evade detection.",
+        "3. **Looping Structure**: ```assembly offset_0x000000483 ... jmp offset_0x000000483 ``` - Implementation of a loop suggests data transformation or algorithmic computation, possibly iterating",
+        "over a buffer or array.",
+        "4. **Termination and Stack Clean-up**: ```assembly xor eax, eax pop edi pop esi pop ebx mov esp, ebp pop ebp ret ``` - Standard function epilog, restoring the stack and registers before",
+        "returning to the caller. The `xor` operation may be used to clear the `eax` register effectively (often used to set the return value to zero).",
+        "### MITRE ATT&CK Techniques While this code does not directly match a specific predefined MITRE technique without further context (like purpose, usage, and the broader impact of subroutines it",
+        "interacts with), several aspects suggest techniques related to: - **T1027** (Obfuscated Files or Information): The bitwise operations (particularly `xor`), non-obvious constants, and control",
+        "structures might be employed to obfuscate the code behavior. - **T1055** (Process Injection): If deployed in the context of producing or transforming executable code in runtime (not strictly",
+        "evident here), such techniques could be involved. - **T1140** (Deobfuscate/Decode Files or Information): The set of operations hinting at potential encoding or decoding routines.",
+        "### Conclusion Given the provided snippet operates in isolation, it is challenging to definitively pin it to specific MITRE ATT&CK techniques without understanding the broader software or attack",
+        "context. However, it certainly uses common low-level operations associated with obfuscation and potential manipulation of execution flow which are characteristic in various kinds of software,",
+        "including malware.",
+        "Close"
+    ]
 }

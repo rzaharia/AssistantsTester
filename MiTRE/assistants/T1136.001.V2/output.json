@@ -1,4 +1,61 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003",
+                "T1574.002",
+                "T1070.004",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1059.001",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1543.003",
+                "T1574.002",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1064.001",
+                "T1106",
+                "T1574.001",
+                "T1027",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1559.002",
+                "T1559",
+                "T1059",
+                "T1059",
+                "T1053.005",
+                "T1053",
+                "T1559.002",
+                "T1059"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The assembly code snippet you provided implements a specific type of behavior commonly associated with malware, specifically around process manipulation and potentially adding a user to a",
         "system. Let's break down the key actions and associate them with MITRE ATT&CK techniques:",
@@ -17,6 +74,31 @@
         "- **T1059.003: Command and Scripting Interpreter: Windows Command Shell**",
         "This technique is the most directly relevant because it encapsulates the execution of a command-line utility (`net user /add abc`) for potentially nefarious purposes, likely to establish",
         "persistence or escalate privileges by adding a new user account.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippets suggest the following MITRE ATT&CK techniques:",
+        "* **T1005.001 (Process Injection: Process Hollowing):** The code shows signs of process hollowing. Several indicators point towards this:",
+        "* **`sub esp, 0x94`**: Allocating stack space, potentially for shellcode or a new PE image. * **`mov ecx, 0x40609f` / `call sub_0x00000040A`**: This *could* be getting a handle to a process",
+        "(though without more context, we can't be certain). The `mov ecx` instruction is loading an address, which might refer to a string like a process name. The following call could be resolving that",
+        "to a handle using something like `CreateProcess`. * **Calls to `sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`:** These calls, especially with arguments that seem to deal with memory",
+        "allocation (e.g., `0x8000000`), writing to memory (potentially unmapping sections/writing the new image), and potential resuming of a suspended thread, strengthen the suspicion of process",
+        "hollowing. The arguments `0`, `0`, `0`, `0x403000` to `sub_0x000005004` look suspiciously like `CreateProcess` flags (especially `0x400000` which represents `CREATE_SUSPENDED`). * **`test eax,",
+        "eax` and `je offset_0x0000004A9`:** Checking the return value of a critical function. Failure likely leads to skipping the rest of the injection process. This error handling is typical in",
+        "process injection.",
+        "It's crucial to understand that this analysis relies on inference and educated guesses based on common process hollowing patterns. **Without more context (such as the code within the called",
+        "subroutines, strings, and import table information), definitively confirming process hollowing is impossible.** Dynamic analysis or debugging would provide the necessary information to confirm",
+        "with high confidence. Static analysis alone can only suggest probabilities.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of the `CreateProcessA` Windows API call, which is indicative of process creation. This maps to the MITRE ATT&CK technique **T1059.001 - Command and Script",
+        "Interpreter: Windows Command Shell**. The code also uses `WaitForSingleObject` and `CloseHandle`, suggesting the program waits for the created process to finish. This further reinforces the",
+        "process execution and control aspect.",
+        "Therefore, the primary MITRE ATT&CK technique is:",
+        "* **T1059.001**",
+        "It's important to note that while other techniques might be *possible* depending on what `sub_0x00000040A` does (e.g., obfuscation, fetching code), the provided assembly definitively shows",
+        "process creation via `CreateProcessA` which directly maps to **T1059.001**. Without further context, other techniques are speculative.",
         "Close"
     ],
     "gpt4o": [
@@ -39,5 +121,47 @@
         "this is part of a larger series of operations), additional techniques might also apply or be more accurate.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code shown here illustrates several common techniques used in low-level programming, specifically ones that could be used in the context of exploitation, malware development, or by",
+        "defensively coding low-level system routines. Below, I'll translate the semantic elements of the assembly code into potential MITRE ATT&CK techniques:",
+        "1. **Stack Frame Manipulation**: - `push ebp; mov ebp, esp; sub esp, 0x94`: Standard function prologue establishing a new stack frame. - `mov esp, ebp; pop ebp`: Standard function epilogue. This",
+        "setup does not directly map to a MITRE ID, but it's foundational for understanding the code flow, which might play into various other techniques.",
+        "2. **Function Calling and Local Storage**: - `push ebx; push esi; push edi`: Preservation of registers, indicating use of these registers within the function without altering calling function",
+        "context. - `mov eax, dword ptr [ebp - x]`: These instructions and the pushes immediately following might indicate parameter setup for function calls. - The calls to `sub_xxx` functions could",
+        "implement any functionality, thus without more context, assigning them a specific MITRE technique is speculative. However, the pattern of saving data to a buffer and manipulating it is typical",
+        "in: - **T1064.001**: Scripting: Use of scripting languages to execute arbitrary code.",
+        "3. **Direct System Calls/Function Invocation**: - Multiple `push` followed by `call sub_xxx`: Often used to configure parameters for API calls or custom functions. Could be indicative of: -",
+        "**T1106**: Native API",
+        "4. **Conditional Branching and Error Handling**: - `test eax, eax; je offset_xxx`: Check the result of a prior call (could be an error check) and jump based on the result. This type of error",
+        "handling can be part of: - **T1574.001**: Hijack Execution Flow: Conditional Branching.",
+        "5. **Memory Location Addressing and Manipulation**: - `lea eax, [ebp - x]`: Loading effective address of a local variable indicates buffer or memory manipulation, which is crucial in: -",
+        "**T1027**: Obfuscated Files or Information",
+        "Considering the structure and operations involved, particularly, the setup with multiple pushes and direct function calls, resemble techniques associated with creating or managing resources",
+        "(such as memory and handles), which might involve API hooking or process injection if used within malicious contexts. However, specific techniques like process injection (e.g., **T1055**:",
+        "Process Injection) require more explicit evidence of interacting with external processes' memory space.",
+        "Starting from base techniques and evaluating more specific sub-techniques would be ideal when more context or specific API usages are available. Hence, while it is important to understand how",
+        "basic operations contribute to higher-level techniques, these conclusions are tentative without broader context into how and where the code is executed.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code you provided shows the process of creating a new process, waiting for it to complete, and then closing the handle to that process. Here is a breakdown of the key operations and",
+        "their corresponding MITRE ATT&CK techniques:",
+        "1. **Process Creation**: The use of `CreateProcessA` function suggests that a new process is being created. - **MITRE ATT&CK Technique**:",
+        "[T1559.002](https://attack.mitre.org/techniques/T1559/002) (System Services: Service Execution).",
+        "2. **Initialization and Cleanup**: The code snippet starts with standard function prologue operations (`push ebp`, `mov ebp, esp`) and ends with the corresponding epilogue to restore the stack",
+        "frame and return from the function. This is typical in function management but is not directly related to a specific MITRE technique related to malicious activity.",
+        "3. **Command Line Manipulation**: Before calling `CreateProcessA`, the code prepares arguments such as `lpCommandLine`. Manipulating command line parameters may be used to execute commands or",
+        "scripts. - **MITRE ATT&CK Technique**: [T1059](https://attack.mitre.org/techniques/T1059/) (Command and Scripting Interpreter).",
+        "4. **Handle Closing**: After the process is created and has finished execution (waiting via `WaitForSingleObject`), the handles to the process and possibly its primary thread (`hHandle`,",
+        "`hObject`) are closed using `CloseHandle`. - **MITRE ATT&CK Technique**: This is typical cleanup of resources in Windows programming and is not directly a MITRE ATT&CK technique related to",
+        "adversarial tactics.",
+        "5. **Synchronization**: The `WaitForSingleObject` function is used to wait for the newly created process to finish, indicating possibly synchronous execution control of another process. -",
+        "**MITRE ATT&CK Technique**: This could be part of [T1053.005](https://attack.mitre.org/techniques/T1053/005) (Scheduled Task/Job: Scheduled Task) if used in a broader context of task scheduling",
+        "and execution control.",
+        "In summary: - T1559.002: System Services: Service Execution (specifically through `CreateProcessA` to execute or manage services). - T1059: Command and Scripting Interpreter (related to command",
+        "line parameter manipulation).",
+        "The precise alignment of these techniques with adversarial intent would depend on the broader context of how and why this code is being used. In benign cases, these could merely be typical",
+        "system programming practices.",
+        "Close"
+    ]
 }

@@ -1,4 +1,68 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1569.002",
+                "T1059.003",
+                "T1070.004"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1005.001",
+                "T1218.011",
+                "T1047",
+                "T1055.003"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1053.005",
+                "T1543.003",
+                "T1036.005"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1569.002",
+                "T1059"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1055.012",
+                "T1055.013",
+                "T1564",
+                "T1564.001",
+                "T1564.004",
+                "T1564.006",
+                "T1574",
+                "T1574.002",
+                "T1574.009",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1106",
+                "T1573.002",
+                "T1106",
+                "T1106",
+                "T1573.002"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The provided assembly code snippet incorporates multiple system-level manipulations primarily centered around process creation and execution of external commands using the Windows",
         "`CreateProcessA` API. Here",
@@ -15,6 +79,53 @@
         "assembly code includes the direct deletion of files and directories via `del` and `rmdir` commands, indicative of a cleanup or destructive objective.",
         "These techniques align with the actions and intentions exhibited in the assembly code. Each one is critical for a comprehensive analysis in a security context, aiding in categorizing and",
         "mitigating the potential threats associated with this sort of malicious activity.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The assembly code suggests several potential MITRE ATT&CK techniques, primarily focused on process injection and memory allocation:",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** The code makes multiple calls to `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` with arguments that resemble",
+        "parameters for Windows API functions related to process injection. Specifically, the sequence of allocating memory, writing to it, and potentially executing code within a remote process is",
+        "indicative of DLL injection or a similar technique. The presence of arguments like `0x403000` and `0x403014` could be addresses within the injecting process's memory space, possibly a DLL to be",
+        "injected.",
+        "* **T1005.001 - Process Injection: Thread Execution Hijacking:** While less certain than DLL injection, the code could also be performing thread execution hijacking. This suspicion arises from",
+        "the usage of memory allocation functions followed by calls to other subroutines. It's possible the allocated memory is used to store code that is then executed in the context of a hijacked",
+        "thread within another process.",
+        "* **T1218.011 - Signed Binary Proxy Execution: Compiled HTML File:** Although less likely without further context, the constant value `0x40609f` followed by a call to `sub_0x00000040A` could be",
+        "related to loading or executing a compiled HTML file (CHM), a form of signed binary proxy execution. This is highly speculative and requires more information to confirm.",
+        "* **T1047 - Process Discovery:** The use of process and thread manipulation functions could potentially indicate attempts to enumerate or interact with other processes, which is characteristic",
+        "of process discovery. However, the provided snippet doesn't have explicit calls that clearly demonstrate process discovery. It's inferred from the context of potential process injection.",
+        "* **T1055.003 - Process Injection: Windows Hooking:** The assembly could potentially implement hooking by manipulating memory regions in other processes. This is very speculative and would",
+        "require additional context or analysis to confirm.",
+        "**Important Considerations:**",
+        "* **Lack of API Names:** The analysis is based on the general structure and common patterns in injection techniques. Without knowing the actual API calls made by `sub_0x000005004`,",
+        "`sub_0x000005000`, and `sub_0x00000500C` (e.g., `VirtualAllocEx`, `WriteProcessMemory`, `CreateRemoteThread`, `SetWindowsHookEx`), it's difficult to definitively determine the specific",
+        "technique. * **Context is Crucial:** The provided code is a small snippet. The broader context of the surrounding code and the overall behavior of the program are essential for accurate",
+        "classification. * **Speculative Nature:** Without symbol information or dynamic analysis, associating MITRE ATT&CK techniques with assembly code involves some educated guesswork.",
+        "To improve the accuracy of the analysis, one would need to:",
+        "1. **Resolve API Calls:** Determine the functions called through `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`. 2. **Dynamic Analysis:** Run the code in a controlled environment",
+        "(e.g., a debugger) to observe its runtime behavior.",
+        "With more information, a more precise mapping to MITRE ATT&CK techniques can be made.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code clearly shows the use of the `CreateProcessA` Windows API call, twice. This API call is used to create a new process. The arguments passed to `CreateProcessA` indicate process",
+        "creation and potential execution. Key observations include:",
+        "* **Two distinct calls to `CreateProcessA`:** This suggests the code launches two separate processes. * **`lpCommandLine` parameter:** This parameter specifies the command line to be executed in",
+        "the new process. The code uses two different values: `0x403000` and `0x403014`. These are likely pointers to strings containing the command to execute. * **`dwCreationFlags` parameter:** The",
+        "value `0x8000000` corresponds to `CREATE_NO_WINDOW`. This flag indicates that the new process will not create a visible window. This is often used to hide the execution of the new process. *",
+        "**`WaitForSingleObject` and `CloseHandle`:** The code waits for the created process to finish using `WaitForSingleObject` and then closes the handles using `CloseHandle`. This demonstrates",
+        "proper process handling after creation.",
+        "Based on these observations, the most relevant MITRE ATT&CK technique is:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe:** While the code doesn't explicitly mention `cmd.exe`, using `CreateProcessA` to execute arbitrary commands stored at memory addresses",
+        "(`0x403000` and `0x403014`) is a common way to leverage the command interpreter indirectly. Without knowing the contents of those memory addresses, it's difficult to say for certain, but this is",
+        "the most likely scenario. This is especially relevant given the use of `CREATE_NO_WINDOW`, which is consistent with attempts to hide malicious activity.",
+        "Other potentially relevant techniques, depending on the actual commands being executed, could include:",
+        "* **T1053.005 - Scheduled Task/Job: Scheduled Task:** If the commands executed by `CreateProcessA` involve creating or modifying scheduled tasks, this would be relevant. However, the assembly",
+        "code provided doesn't directly indicate this. * **T1543.003 - Create or Modify System Process: Windows Service:** Similar to the above, if the commands involve interacting with Windows services,",
+        "this technique might apply. But again, there's no direct evidence of this in the code. * **T1036.005 - Masquerading: Match Legitimate Name or Location:** Depending on the commands being executed",
+        "and the names of the created processes, this might be relevant if the malware tries to blend in with legitimate processes. However, without more context, it's hard to say definitively.",
+        "It's crucial to analyze the contents of the memory addresses pointed to by `lpCommandLine` to determine the precise commands being executed. This would allow for a more accurate and specific",
+        "mapping to MITRE ATT&CK techniques.",
         "Close"
     ],
     "gpt4o": [
@@ -35,5 +146,50 @@
         "assembly snippet indicates that the malware or program is likely designed for some form of disruptive purpose by deleting files and directories covertly.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code snippet appears to perform several system-related operations, including memory management and function calls. Analyzing such details can help in identifying the",
+        "corresponding MITRE ATT&CK techniques that are being utilized or mimicked.",
+        "Here",
+        "1. **Memory Manipulation and Function Calls**: - The functions involve manipulating stack memory (e.g., `sub esp, 0x94` to adjust the stack pointer, and `mov`, `lea`, and `push` to set up",
+        "function arguments). - The repeated pushes of memory addresses (`lea eax, [ebp - 0x54]`) and constants followed by calls to certain subroutines (`call sub_0x000005004`).",
+        "2. **Conditional Checks and Jumping**: - Usage of `test eax, eax` followed by a conditional jump (`je`) suggests conditional execution based on the results of a function or operation.",
+        "3. **Process Injection Indicator**: - The snippet obscures the exact functionality due to a lack of specific API calls, but the pattern of pushing multiple zero and non-zero values, handling",
+        "memory addresses, and calling subroutines multiple times might indicate an attempt to manipulate another process's address space. - Techniques such as `VirtualAlloc` or `VirtualProtect` could be",
+        "speculated due to constants that resemble memory protection flags or allocation types (`0x8000000`).",
+        "4. **Encoding or Obfuscation**: - The use of `nop` (No Operation) instructions might be used to obfuscate the code flow or align instructions to certain boundaries.",
+        "Based on these patterns, the assembly code aligns with several potential MITRE ATT&CK techniques:",
+        "- **T1055: Process Injection** - Malware injects code into the address space of other processes to evade process-based defenses as well as possibly elevate privileges. This technique seems",
+        "relevant due to the pushing of addresses and parameters typically used in such APIs. - Example Sub-techniques: - **T1055.001**: Dynamic-link Library Injection - **T1055.012**: Process Hollowing",
+        "- **T1055.013**: Process Doppelg",
+        "- **T1564: Hide Artifacts** - This technique refers to methods threat actors use to hide data and obfuscate their operations. - Example Sub-techniques: - **T1564.001**: Hidden Files and",
+        "Directories - **T1564.004**: NTFS File Attributes - **T1564.006**: Run Virtual Instance",
+        "- **T1574: Hijack Execution Flow** - Techniques to achieve Defense Evasion via hijacking the way operating systems or software execution paths operate. - Example Sub-techniques: - **T1574.002**:",
+        "DLL Side-Loading - **T1574.009**: Binary Padding",
+        "- **T1027: Obfuscated Files or Information** - Obfuscation techniques to conceal command and control channels, scripts, or executables. - Owing to the presence of `nop` instructions and the",
+        "possibly non-straightforward flows indicated by conditional checks and memory address handlers.",
+        "This analysis assumes knowledge of standard programming patterns and common exploit techniques to map observed behaviors to MITRE ATT&CK techniques, but it would benefit from more context or",
+        "specific API identifiers that could offer clearer insight into the exact techniques being used.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code you've provided performs several functions that are typical in Windows API-based malware and can be associated with specific MITRE ATT&CK techniques. The code features",
+        "functions like setting up a stack frame, process creation, and waiting for the created process to finish before closing handles. Here",
+        "techniques:",
+        "1. **Stack Frame Setup and Housekeeping Instructions**: - `push ebp; mov ebp, esp; sub esp, 0x94; push ebx; push esi; push edi`: Setup for stack frame and saving registers to preserve the state.",
+        "This is common and not specific to any technique.",
+        "2. **Process Creation Using `CreateProcessA`**: - `CreateProcessA` is explicitly called with parameters such as `lpCommandLine`, which is crucial for process execution. - The call to",
+        "`CreateProcessA` is typical of malicious activities where a new process might be spawned to execute another payload or maintain persistence. - MITRE ATT&CK Technique: **T1106** - Native API.",
+        "This technique covers the usage of native system calls to interact with the system at a low level, which includes API calls like `CreateProcessA`.",
+        "3. **Use of `WaitForSingleObject`**: - After creating a process, `WaitForSingleObject` is used to wait indefinitely until the created process terminates. - This can be indicative of the malware",
+        "waiting for a payload to execute or complete before continuing or cleaning up. - MITRE ATT&CK Technique: **T1573.002** - Asynchronous Procedure Call. While your code does not explicitly",
+        "manipulate APC queue, waiting on objects can sometimes be associated with synchronization mechanisms or indirect process injection (though this use is less direct).",
+        "4. **Handle Manipulation with `CloseHandle`**: - Handles to objects (likely processes here) are explicitly closed using `CloseHandle`. - Properly closing handles is both a general programming",
+        "practice and a method used by malware to avoid detection and free resources. - MITRE ATT&CK Technique: **T1106** - Native API, as part of managing system resources and cleanup.",
+        "In summary, the primary MITRE ATT&CK techniques demonstrated in this assembly snippet are: - **T1106** (Native API) for the overall use of system API calls like `CreateProcessA`, and",
+        "`CloseHandle`. - **T1573.002** (Asynchronous Procedure Call) might be considered if the use of `WaitForSingleObject` is seen as part of synchronization or indirect code execution methods, though",
+        "it",
+        "These techniques reflect the use of low-level system calls to manage processes, synchronize execution, and manipulate system resources, behaviors often found in various types of malicious",
+        "software.",
+        "Close"
+    ]
 }

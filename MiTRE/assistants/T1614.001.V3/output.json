@@ -1,4 +1,52 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1082",
+                "T1082"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.001",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1005.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1056",
+                "T1056",
+                "T1056"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055.012",
+                "T1548.002",
+                "T1562.001"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1518.001",
+                "T1518",
+                "T1055.001",
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The provided assembly code appears to contain a snippet that queries the keyboard layouts installed on a system. Analyzing the operations, particularly the calls to `GetKeyboardLayoutList`,",
         "provides clues on what kind of techniques are being employed. Here",
@@ -12,6 +60,36 @@
         "Inspecting the applicable MITRE ATT&CK techniques: - **T1082: System Information Discovery** - This technique involves an adversary trying to find information about the host system where the",
         "implant is executed. Gathering keyboard layouts fits into discovering details about the system's configuration and settings that could aid in further attacks.",
         "Therefore, the most appropriate MITRE technique associated with the behavior described in this assembly code is: - **T1082: System Information Discovery**",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet doesn't directly map to a specific MITRE ATT&CK technique. It shows generic function prologues, calls to other functions, and stack manipulation. Without",
+        "knowing what the called functions (`sub_0x000000405`, `sub_0x000000414`, and `sub_0x000004030`) do, it's impossible to assign a MITRE ATT&CK technique.",
+        "Here's why and what additional information is needed:",
+        "* **Lack of Context:** Assembly code is low-level. We need to understand the *purpose* of these instructions within the larger program. Are these functions reading files, writing to registry",
+        "keys, allocating memory, or communicating over the network",
+        "likely perform the core actions that *could* be mapped to MITRE ATT&CK. For example, if `sub_0x000004030` is a wrapper for the `VirtualAlloc` API, that might indicate memory allocation related",
+        "to process injection (which would be relevant to a technique like T1055.001 - Process Injection: Dynamic-link Library Injection). * **Data Matters:** The constants like `0x1204`, `0x40509f`,",
+        "`0`, and `0x1004` could be important flags, handles, or memory offsets. Knowing their meaning is essential for understanding the code's purpose.",
+        "**Example of How Context Changes Interpretation**",
+        "Let's hypothesize:",
+        "1. **`sub_0x000004030` is `VirtualAllocEx`:** This function allocates memory in another process. 2. **`sub_0x000000414` is `WriteProcessMemory`:** This function writes data to another process's",
+        "memory. 3. **`sub_0x000000405` obtains a handle to a process:** Perhaps using `OpenProcess`.",
+        "In this scenario, the assembly code snippet *could* be indicative of process injection, mapping to T1055.001 - Process Injection: Dynamic-link Library Injection, or potentially T1055.012 -",
+        "Process Hollowing, depending on the overall logic.",
+        "**In short:** Provide more information about the called functions, and the program's overall goals, to get a more accurate MITRE ATT&CK mapping. Static analysis tools, debuggers, and",
+        "disassemblers can help in understanding the complete context.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code demonstrates behavior related to **enumerating keyboard layouts**, which aligns with the MITRE ATT&CK technique **T1005.003 - Input Capture: Keylogging**.",
+        "Here's why:",
+        "* **`GetKeyboardLayoutList`:** This API call is the core of the code's functionality. It retrieves a list of keyboard layouts installed on the system. A keylogger could use this information to",
+        "correctly interpret captured keystrokes, as different layouts map keys to different characters.",
+        "* **Two Calls to `GetKeyboardLayoutList`:** The code calls `GetKeyboardLayoutList` twice. The first call determines the number of keyboard layouts, and the second retrieves the actual list. This",
+        "is a standard pattern for using this API.",
+        "While this snippet *doesn't directly implement keylogging itself*, acquiring keyboard layout information is a necessary step for a well-functioning keylogger. It's crucial for translating scan",
+        "codes (raw keyboard input) into the correct characters based on the active layout. Therefore, observing this code in a program would be a strong indicator of potential keylogging activity.",
         "Close"
     ],
     "gpt4o": [
@@ -30,5 +108,47 @@
         "In summary, the closest related MITRE technique to this particular snippet seems to predominantly focus on preparation for input capturing: - **T1056**: Input Capture",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "The given assembly code provides a high-level representation of multiple operations usually typical in low-level programming. To relate this to MITRE ATT&CK techniques, we can analyze the",
+        "purpose and the behavior of the code rather than focusing on a direct attribution to a specific known technique, as assembly code in itself can be used for both benign and malign purposes.",
+        "Here's an interpretation based on the provided assembly code:",
+        "1. **Function Prolog and Epilog**: ``` push ebp mov ebp, esp ... mov esp, ebp pop ebp ret ``` These lines represent the standardized way of managing the call stack in function prologs and",
+        "epilogs, common in software of all types. There are no specific ATT&CK techniques related to this standard practice alone.",
+        "2. **System or Library Calls and Data Handling**: ``` call sub_0x000000405 call sub_0x000000414 ... call sub_0x000004030 ``` Here, the code makes several subroutine calls. Without specific",
+        "details on what these subroutines do, it's challenging to directly relate them to a specific MITRE ATT&CK technique. However, these could be part of many behaviors such as data manipulation,",
+        "memory access, or system interfacing, depending on the nature of the subroutines.",
+        "3. **Memory Manipulation**: ``` mov dword ptr [ebp - 4], eax lea eax, [ebp - 0x1004] mov ecx, dword ptr [ebp - 4] ``` These instructions handle memory directly and manipulate pointers, which are",
+        "common in many applications but can also be components of techniques like **T1055.012: Process Injection** if used maliciously to inject code.",
+        "4. **Use of Immediate Values**: ``` mov eax, 0x1204 mov ecx, 0x40509f push 0 push 0 ``` Immediate values are pushed/moved into registers, possibly to set up parameters for function calls or for",
+        "configuration purposes. This could be preparatory steps for anything like **T1548.002: Abuse Elevation Control Mechanism: Bypass User Account Control** if used in that context to bypass security",
+        "controls.",
+        "5. **Zeroing Registers (Clean up or Anti-forensics)**: ``` xor eax, eax ``` Zeroing a register (clearing it by XORing it with itself). This can be used to clear data from memory to prevent",
+        "forensics analysis and therefore could be an indication of **T1562.001: Impair Defenses: Disable or Modify Tools**, although this would be a weak attribution without further context.",
+        "Based on the available assembly code, we can deduce general techniques about memory manipulation, function calling, and potentially data clearing. However, without knowing the specific",
+        "functionality of the called subroutines and the overall intent of the code (benign use versus actual exploitation or malicious operation), attributing precise MITRE ATT&CK techniques remains",
+        "speculative and broader in nature. A deeper analysis into what each subroutine does is required to provide a more precise mapping to MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given assembly code snippet appears to be involved in enumerating installed keyboard layouts on a system using the `GetKeyboardLayoutList` Windows API function, which is called twice within",
+        "this code. This function retrieves the input locale identifiers (keyboard layouts) for the installed languages for the system. Here's a high-level breakdown of what each section of the code",
+        "accomplishes:",
+        "1. **Prologue**: Standard function prologue to set up the stack frame. ```assembly push ebp mov ebp, esp ```",
+        "2. **Preparation for calling other functions/subroutines** (possibly setting up parameters and environment): ```assembly mov eax, 0x1204 call sub_0x000000405 push ebx push esi push edi mov ecx,",
+        "0x40509f call sub_0x000000414 nop ```",
+        "3. **Keyboard layout enumeration**: `GetKeyboardLayoutList` is used to get the number of keyboard layouts, and then it retrieves them into a buffer. ```assembly push 0 ; lpList push 0 ; nBuff",
+        "call GetKeyboardLayoutList mov dword ptr [ebp - 4], eax lea eax, [ebp - 0x1004] push eax ; lpList mov ecx, dword ptr [ebp - 4] push ecx ; nBuff call GetKeyboardLayoutList nop ```",
+        "4. **Epilogue**: Standard function epilogue to restore the stack and register state before returning. ```assembly xor eax, eax pop edi pop esi pop ebx mov esp, ebp pop ebp ret ```",
+        "Considering this breakdown, the MITRE ATT&CK techniques potentially associated with this code are as follows:",
+        "- **[T1518.001 Security Software Discovery: Security Software Discovery via GetKeyboardLayoutList](https://attack.mitre.org/techniques/T1518/001/)** - In scenarios where adversaries need to",
+        "understand the environment better without directly querying system data that might trigger security alerts. Enumerating keyboard layouts might provide indirect insights about the system or user",
+        "locality settings, although by itself it's not a strong indicator of malicious activity.",
+        "- **[T1055.001 Process Injection: Dynamic-link Library Injection](https://attack.mitre.org/techniques/T1055/001/)** - This might be applicable if the code context in which",
+        "`GetKeyboardLayoutList` is being used is maliciously injected into another process for purpose of evasion. However, nothing directly in the snippet indicates process injection without additional",
+        "context suggesting an injection routine.",
+        "Without knowing the broader context or additional malicious behaviors tied to this code (like what `sub_0x000000405` and `sub_0x000000414` are doing), a precise MITRE ATT&CK mapping might not",
+        "fully capture the intent or threat level. However, the usage of `GetKeyboardLayoutList` could be part of a broader information-gathering or reconnaissance routine within a malicious software's",
+        "capabilities.",
+        "Close"
+    ]
 }

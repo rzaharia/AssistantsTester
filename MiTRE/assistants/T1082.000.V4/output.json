@@ -1,4 +1,63 @@
 {
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059",
+                "T1059.003",
+                "T1036",
+                "T1027",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1027.004",
+                "T1005.001",
+                "T1218.011"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1547.001",
+                "T1204.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1204",
+                "T1204.002",
+                "T1059",
+                "T1059.003",
+                "T1059.005",
+                "T1005"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1204",
+                "T1204.002",
+                "T1204.003",
+                "T1204.002",
+                "T1204.003",
+                "T1204.002",
+                "T1204.003"
+            ],
+            "valid": []
+        }
+    },
     "gemini": [
         "The given assembly code snippet demonstrates the use of the ShellExecuteA function to execute a system command, specifically using \"cmd.exe\" to append the output of the \"ver\" command to a file",
         "located in the temp directory.",
@@ -13,6 +72,42 @@
         "This technique is associated because the code leverages \"cmd.exe\", a common command line interface executable on Windows, to execute command operations. The specific operation in question",
         "(redirecting the output of \"ver\" to a temporary file) would not necessarily add additional sub-techniques unless it was part of a broader strategy such as data collection or staged execution of",
         "payloads.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet suggests several potential MITRE ATT&CK techniques, but without more context (like what `sub_0x00000040A` and `sub_0x000005030` do), it's difficult to be",
+        "definitive. The code demonstrates function prolog and epilog, stack manipulation, and calls to other functions. These are common operations and don't automatically map to specific attack",
+        "techniques. However, we can make some educated guesses:",
+        "* **T1059.001 - Command and Scripting Interpreter: PowerShell:** The use of `xor eax, eax` before returning is a common way to set the return value to 0, which is often used to indicate success.",
+        "This, combined with pushing arguments onto the stack before calling `sub_0x000005030` and the relatively large stack allocation (`sub esp, 0x40`), could suggest interaction with a command",
+        "interpreter or scripting engine. If `sub_0x000005030` is a wrapper for invoking PowerShell (common in malware), this technique becomes more likely.",
+        "* **T1027.004 - Obfuscated Files or Information: Compile After Delivery:** The address `0x40609f` loaded into `ecx` could potentially be obfuscated or dynamically resolved shellcode. If",
+        "`sub_0x00000040A` is responsible for decrypting or deobfuscating this shellcode and then executing it, this technique would be relevant.",
+        "* **T1005.001 - Process Injection: Dynamic-link Library Injection:** The function calls, stack manipulation, and clearing of `eax` could be indicative of process injection, particularly DLL",
+        "injection. More context on the called functions is needed to confirm this.",
+        "* **T1218.011 - Signed Binary Proxy Execution: Rundll32:** If the addresses being pushed onto the stack before the second function call (`sub_0x000005030`) refer to functions within legitimate",
+        "system DLLs (like `rundll32.exe`), this technique might be in play, used to execute malicious code indirectly.",
+        "**Important Considerations:**",
+        "* **Lack of Context:** Without knowing what the called subroutines do, these are just educated guesses. The same assembly instructions could be used for benign purposes. * **Dynamic Analysis:**",
+        "To determine the true purpose of this code, dynamic analysis using a debugger is essential. This would allow you to step through the code, inspect register values, and examine the memory",
+        "locations being accessed, revealing the actual functionality.",
+        "In summary, while the provided code snippet hints at certain techniques, more context is crucial for a definitive mapping. Dynamic analysis is the best way to determine the true intent and",
+        "associated MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of `ShellExecuteA`. This maps to **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**. While `ShellExecute` *can* be used for",
+        "other purposes, in the absence of other context and given its common usage, autostart execution is the most likely scenario depicted here.",
+        "Here's why:",
+        "* **ShellExecuteA:** This function is commonly used to execute external applications. In the context of malware, this can be utilized to launch a malicious payload during system startup or user",
+        "logon.",
+        "* **Arguments to ShellExecuteA:** The arguments pushed onto the stack before the `ShellExecuteA` call appear to be setting up the parameters for execution: * `lpOperation`: Seems to point to a",
+        "string potentially specifying the operation (e.g., \"open\"). * `lpFile`: Points to what is likely the path to the executable to be launched. * `lpParameters`: Likely command-line parameters to be",
+        "passed to the executable.",
+        "* **Startup Persistence:** While the code snippet doesn't show *how* this code is executed at startup (e.g., registry key modification, shortcut in startup folder), the use of `ShellExecuteA`",
+        "with what looks like file paths and parameters strongly suggests the intent is to launch something upon system start or user login.",
+        "Therefore, **T1547.001** is the most appropriate MITRE ATT&CK technique. You might also consider **T1204.002 - Create or Modify System Process: Windows Service** if there's other evidence to",
+        "suggest the payload is being installed as a service. However, the provided assembly doesn't directly reveal that.",
         "Close"
     ],
     "gpt4o": [
@@ -38,5 +133,45 @@
         "context (like user deception or triggered by malware) would refine their specific identification further.",
         "Close"
     ],
-    "input": null
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing the given assembly code and relating it to potential MITRE ATT&CK techniques requires consideration of the typical behaviors or functionalities that the assembly instructions might",
+        "represent. Here's a breakdown of the potential aspects and corresponding MITRE techniques:",
+        "1. **Function Prologue and Epilogue:** - The instructions `push ebp`, `mov ebp, esp`, followed by setting up the function's stack frame with `sub esp, 0x40` and and then eventually restoring the",
+        "stack with `mov esp, ebp` and `pop ebp` are part of the function prologue and epilogue. These are standard practices in assembly to handle function call conventions and not directly indicative",
+        "of any specific MITRE technique.",
+        "2. **Register Preservation:** - `push ebx`, `push esi`, `push edi` and corresponding `pop` instructions at the end maintain the values of registers over the function execution, which is again",
+        "standard practice.",
+        "3. **Direct Function Calls:** - The `call sub_0x00000040A` and `call sub_0x000005030` suggest function calls. The nature of these functions isn't clear from the given snippet alone. They could",
+        "be interacting with APIs or performing other tasks that might be linked to specific techniques if the functions are malicious or sensitive in nature.",
+        "4. **Use of Hardcoded Pointers and Constants:** - Setting `ecx` to `0x40609f` and pushing `0x403000`, `0x40301c`, `0x403028`, which appear to be hardcoded memory addresses, might suggest",
+        "interaction with specific memory locations. This could relate to **Process Injection (T1055)** if these addresses are part of another process's memory space.",
+        "5. **Manipulation of Zero Flags and Return Conditions:** - `xor eax, eax` sets the `EAX` register to zero, commonly used to return a `NULL` or successful execution status from functions, or to",
+        "clear the register for conditional checks.",
+        "From this analysis, the strongest alignment with a MITRE technique is potentially with **Process Injection (T1055)**, given the use of hardcoded pointers which might suggest manipulation or",
+        "interaction with particular memory areas, possibly for injecting code or data. Without additional context or knowing the purpose of the subroutines called (`sub_0x00000040A` and",
+        "`sub_0x000005030`), precise determination of further techniques is challenging.",
+        "To make more accurate connections to MITRE ATT&CK techniques, more details about the overall function of the code and the specific roles of the subroutines would be necessary.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given x86 assembly code snippet demonstrates the use of function prologue and epilogue conventions to manage stack frames and save registers, typical setup for a subroutine call. In the",
+        "middle of the snippet, there's a sequence of instructions that appears to set up for and invoke the `ShellExecuteA` Windows API function. Here's a breakdown of key parts of this assembly that",
+        "can be mapped to MITRE ATT&CK techniques:",
+        "1. **Function Prologue and Epilogue**: - `push ebp; mov ebp, esp; sub esp, 0x40;` set up a new stack frame. - `pop edi; pop esi; pop ebx; mov esp, ebp; pop ebp` restore the stack and registers.",
+        "This is typical in x86 assembly for managing function calls and returns but doesn't map directly to a specific ATT&CK technique.",
+        "2. **Register Saves and Function Call Preparation**: - `push ebx; push esi; push edi` are instructions to save callee-saved registers, a conventional practice in function calls. - `mov ecx,",
+        "0x40609f; call sub_0x00000040A` instructions setting up and calling another subroutine, storing values or addresses which could potentially be influencing subsequent operations including",
+        "indirect control flow manipulation.",
+        "3. **Use of `ShellExecuteA`**: - `push` instructions setup parameters for `ShellExecuteA`, which is used here to possibly execute or open a file/URL. - MITRE ATT&CK Technique: **T1204",
+        "Execution**: - Sub-technique **T1204.002** - **Malicious File**: This sub-technique includes scenarios where the execution of a file is triggered by the user action which could be deceived by",
+        "filenames or icons (even if not directly shown here), or - Sub-technique **T1204.003** - **Malicious Link**: Opening a URL or file path from an untrusted source that could lead to downloading or",
+        "execution of malicious payloads.",
+        "4. **No Operation (NOP)**: - `nop` instructions typically do nothing but can be used for instruction alignment and to create no-operation sleds which are often utilized in buffer overflow",
+        "exploitation, though no explicit exploit-related code is indicated here.",
+        "Based on the usage of the `ShellExecuteA` function mainly, the applicable MITRE technique, in this case, would be **T1204.002** if deceptive files or **T1204.003** if deceptive links are",
+        "discerned from the context of `lpFile`, `lpParameters`, and `lpOperation` values (which seem static and point to specific addresses potentially indicating hardcoded paths or actions).",
+        "Hence, if malicious intent is implied (e.g., in a scenario where this code path is part of malware), the primary MITRE ATT&CK technique evinced would be: - **T1204.002** or **T1204.003**",
+        "depending on further use-case specifics not fully disclosed in the assembly snippet.",
+        "Close"
+    ]
 }
