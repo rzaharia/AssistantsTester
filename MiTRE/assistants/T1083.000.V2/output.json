@@ -1,0 +1,202 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1083.002",
+                "T1106.001",
+                "T1081",
+                "T1518"
+            ],
+            "valid": [
+                "T1083.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1055.012",
+                "T1083",
+                "T1070",
+                "T1055.001"
+            ],
+            "valid": [
+                "T1083",
+                "T1083"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055",
+                "T1027.004",
+                "T1129",
+                "T1574.002",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1083",
+                "T1083",
+                "T1083",
+                "T1106"
+            ],
+            "valid": [
+                "T1083",
+                "T1083",
+                "T1083",
+                "T1083",
+                "T1083",
+                "T1083"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1574",
+                "T1564",
+                "T1064"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1574.010",
+                "T1027",
+                "T1496",
+                "T1218",
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code suggests the following MITRE ATT&CK techniques:",
+        "* **T1083.002 (File and Directory Discovery)**: The code performs operations related to file system exploration. `lea eax, [ebp - 0x140]` followed by `push eax` and `push 0x403000 ; \"C:\\Program",
+        "Files\\*.*\"` before a `call (null)` strongly suggests a file system enumeration/searching function like `FindFirstFileA` is being called. The wildcard `*.*` indicates a search for all files in",
+        "the specified directory. The subsequent loop (indicated by `jne offset_0x00000047F` and the jump back to this offset) further supports this analysis, likely iterating through found files using",
+        "something like `FindNextFileA`.",
+        "* **T1106.001 (Native API):** The use of `call (null)` suggests direct calls to Windows API functions. This is a common method for malware to interact with the operating system without relying",
+        "on imported libraries, which might be monitored or hooked. Specifically, as mentioned above, the context suggests the usage of Windows file system APIs.",
+        "It's **important** to note that without the ability to analyze `sub_0x00000040A` and the specific functions being called via `call (null)`, these are educated guesses. Static analysis of",
+        "assembly is limited; dynamic analysis or debugging would be needed to confirm these techniques definitively.",
+        "It is also possible, but not explicitly evident from this snippet, that other techniques are involved depending on what happens with the file handles/information retrieved. For example, if the",
+        "code subsequently attempts to open or manipulate the found files, additional techniques such as **T1081 (File and Directory Access)** might be applicable. If the enumeration is used to identify",
+        "specific software versions for exploitation, then techniques related to **Software and Data Integrity (e.g., T1518)** could be relevant.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The assembly code shows signs of several potential MITRE ATT&CK techniques, but without more context (like the functionality of the called subroutines), definitive classification is difficult.",
+        "Here's a breakdown of suspicious elements and the *potential* associated techniques:",
+        "* **Process Injection (T1055):** The code seems to allocate memory (`sub esp, 0x184`), potentially preparing a buffer. The calls to `sub_0x000005000`, `sub_0x000005004`, and `sub_0x00000500C`",
+        "coupled with passing memory addresses (`lea eax, [ebp-0x140]` and pushing `ecx`) strongly suggest manipulation of a remote process or writing into a newly allocated memory region. This sequence",
+        "could be indicative of: * **T1055.001 - Process Injection: Dynamic-link Library Injection:** If `sub_0x000005000` is `LoadLibrary` and `sub_0x000005004` is `GetProcAddress`, it would confirm DLL",
+        "injection. * **T1055.012 - Process Injection: Thread Execution Hijacking:** If the code modifies the execution flow of an existing thread in another process, this technique would be a closer",
+        "match.",
+        "* **File and Directory Discovery (T1083):** The address `0x403000` passed to `sub_0x000005000` might be a string. If this string represents a file or directory path, and if the functions are",
+        "related to file system access, this could be related to file discovery.",
+        "* **Return Code Manipulation (T1070):** The comparison (`cmp dword ptr [ebp - 0x144], -1`) and conditional jump (`jne offset_0x00000047F`) suggests checking the return value of",
+        "`sub_0x000005000`. If the code modifies the expected return value of a function (though it doesn't explicitly do so here), it could fall under this technique. This is less likely given the",
+        "observed structure, but worth mentioning.",
+        "**Key Uncertainties and Further Investigation:**",
+        "* **Functionality of `sub_...` routines:** Deciphering the exact purpose of `sub_0x000005000`, `sub_0x000005004`, and `sub_0x00000500C` is crucial. Dynamic analysis or debugging would reveal",
+        "their behavior and confirm or refute the suspected techniques. * **Value of `0x403000`:** Is it a string pointer, a function pointer, or something else",
+        "help understand its purpose. * **Context of the code:** Where is this code running",
+        "**Example (Hypothetical - Assuming DLL Injection):**",
+        "If, after further analysis, it was confirmed that the code performs DLL injection, the MITRE ATT&CK technique would be **T1055.001**.",
+        "It's critical to emphasize that this analysis is based on limited information. Reverse engineering and dynamic analysis are essential to obtain a more accurate assessment.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, primarily focusing on process injection and potentially dynamic-link library (DLL) injection. However, without more",
+        "context (like the nature of the called functions at addresses `0x40A`, `0x403000`, and the other null/indirect calls), it's impossible to be definitive. Here's a breakdown of *possible*",
+        "techniques and why, along with caveats:",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** This is the most likely candidate. The code allocates memory on the stack (`sub esp, 0x184`), gets a handle to what is likely",
+        "kernel32.dll (`mov ecx, 0x40609f; call sub_0x00000040A`), loads an address (possibly a DLL path) at `0x403000`, and makes several calls through null pointers, which is indicative of resolving",
+        "API addresses dynamically. The loop with `jne offset_0x00000047F` suggests repeated attempts, possibly related to writing or loading into the target process.",
+        "* **T1055 - Process Injection:** This is the parent technique, encompassing various injection methods. Given the hints of DLL injection above, this is relevant.",
+        "* **T1027.004 - Software Packing: Loader:** The indirect calls and potential DLL loading could also indicate unpacking, where the code decrypts and loads a packed payload into memory. This",
+        "depends heavily on what those calls actually do.",
+        "* **T1129 - Execution through Module Load:** If the code is loading a DLL, it could be leveraging this technique to execute code within another process by getting that process to load the DLL.",
+        "This again relates closely to DLL injection.",
+        "* **T1574.002 - Hijack Execution Flow: DLL Side-Loading:** Although less likely with just this snippet, it's possible the code is attempting to load a malicious DLL with the same name as a",
+        "legitimate one, taking advantage of DLL search order.",
+        "**Why these are just possibilities:**",
+        "* **Missing Context:** We don't know the functions being called. The addresses `0x40A`, `0x403000`, and the null pointer calls are crucial. They could be anything from API calls like",
+        "`LoadLibrary`, `GetProcAddress`, and `CreateRemoteThread` (strongly indicating injection) to something entirely different. * **Static Analysis Limitations:** Assembly analysis alone can be",
+        "misleading. Dynamic analysis would provide a much clearer picture of the code's behavior. * **Code Snippet Size:** This is a small section of code. The broader context of the function's purpose",
+        "is essential for accurate classification.",
+        "**In summary:** The most likely MITRE ATT&CK technique based on this limited information is **T1055.001 - Process Injection: Dynamic-link Library Injection**, but further analysis with more",
+        "context is required for a definitive classification. The other listed techniques are also plausible depending on the actual functionality of the called functions. Always corroborate with dynamic",
+        "analysis and broader context for a more accurate assessment.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code snippet provided appears to involve file and directory operations and could indicate behavior often associated with adversarial techniques. Here's a breakdown of the relevant",
+        "parts and their probable relationship to MITRE ATT&CK Framework techniques:",
+        "1. The initial setup (`push ebp`, `mov ebp, esp`, `sub esp, 0x184`) consists of typical function prologue operations in x86 assembly which generally don't map directly to a MITRE technique but",
+        "are foundational for understanding code execution context.",
+        "2. The snippet: ``` push 0x403000 ; \"C:\\Program Files\\*.*\" call (null) ``` This part of the code is indicative of attempting to enumerate or access files within the \"Program Files\" directory.",
+        "This type of behavior can be associated with the following MITRE technique: - **T1083: File and Directory Discovery** - Often used by adversaries to figure out the environment they landed in by",
+        "enumerating files and directories or to search for files of interest on a system.",
+        "3. The looping structure (utilizing `jne` and repeating via accessing `[ebp - 0x140]` and utilizing `push eax, call`) continuing until a specific condition fails: ``` cmp dword ptr [ebp -",
+        "0x144], -1 jne offset_0x00000047F ``` This suggests continuous checking and processing, possibly looping through files and directories. This is part of file enumeration and also maps to: -",
+        "**T1083: File and Directory Discovery**",
+        "4. The absence of more specific functionality due to placeholders like `call (null)` makes it challenging to ascertain the exact intent beyond file/directory operations. However, generally this",
+        "placeholder would be where a call to an API or subroutine would be, managing file handles and performing operations like reading/writing information.",
+        "5. Cleanup and return from the function: ``` mov esp, ebp pop ebp ret ``` This simply indicates the end of a routine and doesn't map to a specific technique.",
+        "Given these observations, the primary MITRE technique applicable to this assembly code snippet is **T1083: File and Directory Discovery.** This technique deals with the adversary",
+        "enumerate and interact with files that can give insights into the system or contain valuable data. There are other potential techniques that could be inferred such as T1106: Native API if the",
+        "actual API calls were visible (here represented by `(null)`), reflecting access to native system calls to interact with the OS and filesystem.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The given x86 assembly code contains several indicators typical of various malware behaviors. Here's a breakdown relevant to identifying possible MITRE ATT&CK techniques:",
+        "1. **Memory Handling**: - `sub esp, 0x184`: Allocates space on the stack. - `lea eax, [ebp - 0x140]`: Loading an effective address into a register. - `[ebp - 0x144], -1` and `[ebp - 0x144],",
+        "eax`: Managing data in local stack memory.",
+        "2. **Calling Other Functions**: - `call sub_0x00000040A`, `call sub_0x000005000`, `call sub_0x000005004`, `call sub_0x00000500C`: There are multiple calls to subroutines, indicating a",
+        "decomposition of tasks and potential interaction with APIs or execution of specific sub-tasks.",
+        "3. **Decision Making and Looping**: - `cmp`, `jne`, `test`, `jne`: Instructions used for comparing and branching based on conditions. - Loops can be inferred where there",
+        "conditions and jumping back to previous instructions.",
+        "4. **Error Handling or Conditional Execution**: - Testing for an error-like value (`cmp dword ptr [ebp - 0x144], -1`), and conditional branching based on that (such code patterns are common in",
+        "handling error states or conditional logic).",
+        "Considering the above behaviors, several MITRE ATT&CK techniques might be relevant. Without knowing the higher-level intention of the called subroutines (`sub_xxx`), below are a few guesses",
+        "based on typical scenarios:",
+        "- **T1055: Process Injection** - This involves injecting code into a process to execute code in the context of that process. The calls and stack manipulation might indicate setting up and",
+        "handling injected code, though it's more of a conjecture without specific API interactions.",
+        "- **T1106: Native API** - Direct interactions with the system via API calls, suggested but not explicit here due to the abstraction level.",
+        "- **T1574: Hijack Execution Flow** - Possibly redirecting or modifying the execution flow of a process. The presence of multiple subrountine calls and conditional checks could imply manipulation",
+        "of execution logic.",
+        "- **T1564: Hide Artifacts** - Depending on what `sub_xxx` functions are doing, there might be an attempt to obfuscate or conceal actions or data.",
+        "- **T1064: Scripting** - If the subroutines involve script execution or processing, this might be relevant.",
+        "To exactly pinpoint the techniques, more contextual information about what each function (e.g., `sub_0x00000040A`, `sub_0x000005000`) is doing would be necessary. The behavior patterns observed",
+        "do suggest complex manipulations typical of techniques encompassed in MITRE ATT&CK, but more specifics would be essential for exact mappings.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code performs various operations involving memory management, function calling, and conditional branching. Here's a breakdown of potential MITRE ATT&CK techniques based on",
+        "the observed assembly operations:",
+        "1. **Stack Operations and Function Prologue/Epilogue**: - The instructions `push ebp`, `mov ebp, esp`, `sub esp, 0x184`, and corresponding epilogue with `mov esp, ebp`, `pop ebp` represent",
+        "typical function prologue and epilogue to handle stack frame for local storage and clean-up. This suggests basic technique, but doesn't map directly to a specific MITRE technique.",
+        "2. **Defense Evasion**: - The use of `call (null)` and direct manipulation of the program's control flow (`jne` based on comparison results) could suggest an underlying manipulation to alter",
+        "expected execution paths or an attempt to execute dynamically resolved functions (potentially unresolved or malicious). - In MITRE ATT&CK context, dynamically calculating function addresses and",
+        "jumping to these could relate to **T1574.010** (Hijack Execution Flow: Dynamic-link Library Injection).",
+        "3. **Obfuscated Files or Information**: - The manipulation and setup in memory before direct calls (`push eax`, where `eax` is loaded with memory offsets and manipulated values, `call (null)`)",
+        "might suggest an attempt to obfuscate what is being executed or how data is being processed. This could be captured under **T1027** (Obfuscated Files or Information), although this technique",
+        "generally refers to higher level obfuscations.",
+        "4. **Resource Hijacking**: - Instructions like loading specific values into registers, setting up for calls with specific memory locations, and looping back based on comparison (`jne",
+        "offset_0x00000047F`) suggest exploitation or hijacking of resources might be occurring. However, without more context about the actual operation in `call (null)`, it's speculative. A potential",
+        "related technique is **T1496** (Resource Hijacking), if the purpose was to misuse system resources.",
+        "5. **System Binary Proxy Execution**: - Usage of calls that are not directly resolved (`call (null)`) may indicate proxy execution where an innocent binary is made to execute potentially",
+        "malicious code or routines. This correlates to **T1218** (System Binary Proxy Execution) in scenarios where execution uses system executables to proxy execution.",
+        "6. **Process Injection**: - There are indications that the code could be preparing for or executing a form of process injection (manipulating process space and jumping to new code dynamically).",
+        "This might align with **T1055** (Process Injection).",
+        "The exact techniques and sub-techniques would depend heavily on the specifics of what `call (null)` and the surrounding manipulations are intended to do, which isn't entirely clear from the raw",
+        "assembly code alone. These suggestions are based on analysis of the assembly operations in the context of typical MITRE ATT&CK categorizations, assuming potentially malicious behavior. Specific",
+        "determination would require understanding the runtime context or higher-level behavior of these snippets.",
+        "Close"
+    ]
+}
