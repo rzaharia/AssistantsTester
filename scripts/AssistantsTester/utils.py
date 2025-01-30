@@ -199,12 +199,15 @@ def do_statistics_run_1(assistants_out):
             print(f'\t{problem[0]}: {problem[1]}')
     print('\tEmpty techniques: {}'.format(empty_unique_techniques))
     common_problems = {}
+    problems_at_least_one = set()
     for problem in problems_statistics.items():
         problem_name, problem_data = problem
         same_value = {}
         for assistant_name, assistant_value in problem_data.items():
             split_name = str(assistant_name).split('_', maxsplit=1)
             if len(split_name) == 1:
+                if assistant_value:
+                    problems_at_least_one.add(problem_name)
                 split_name.append('all_feature')
             if assistant_value:
                 feature_name = split_name[1]
@@ -216,6 +219,7 @@ def do_statistics_run_1(assistants_out):
                 if feature not in common_problems:
                     common_problems[feature] = []
                 common_problems[feature].append((problem_name, assistants))
+    print(f'Problems solved at least one by one LLM: {len(problems_at_least_one)}')
     print(f'Found {len(common_problems)} features: ')
     for feature, problem_data in common_problems.items():
         print(f'\tFound {len(problem_data)} features: ' + feature)
