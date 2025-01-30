@@ -37,7 +37,7 @@ class MitreTechnique:
                     self.exec_patterns.append(file.read())
 
     def validate_first(self):
-        if self.name != 'Technique' or self.tactic != 'Tactic' or self.technique != 'Technique' or self.link != 'Link':
+        if 'Technique' not in self.name or self.tactic != 'Tactic' or self.technique != 'Technique' or self.link != 'Link':
             print('Invalid CSV file')
             sys.exit(1)
 

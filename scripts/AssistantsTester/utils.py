@@ -224,7 +224,10 @@ def do_statistics_run_1(assistants_out):
     print('All problems: ')
     for problem_name, problem_data in problems_statistics.items():
         data_string = ''
-        for assistant_name, assistant_value in problem_data.items():
+        for index, (assistant_name, assistant_value) in enumerate(problem_data.items()):
             assistant_value = int(assistant_value)
-            data_string += f'{assistant_name}: {assistant_value}, '
+            data_string += f'{assistant_name}: {assistant_value}'
+            if index < len(problem_data) - 1:
+                data_string += ','
+            data_string += ' '
         print(f'\t{problem_name}: {data_string}')

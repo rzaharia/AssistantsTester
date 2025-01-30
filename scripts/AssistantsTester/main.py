@@ -339,7 +339,7 @@ def main():
     # collect_binaries()
     # collect_assistants_output('gpt4o', suffix)
     # collect_assistants_output('gemini', suffix)
-    process_assistants_output()
+    # process_assistants_output()
     # vote_best_assistant()
     do_statistics()
     pass
