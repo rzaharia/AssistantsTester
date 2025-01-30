@@ -1,0 +1,160 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1071.001",
+                "T1053.005",
+                "T1003.001",
+                "T1003.002",
+                "T1081"
+            ],
+            "valid": [
+                "T1003.001",
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.002",
+                "T1546.007",
+                "T1055.005",
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1547.002",
+                "T1055.005",
+                "T1056.001",
+                "T1070.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1106",
+                "T1203",
+                "T1083",
+                "T1005",
+                "T1106",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1620",
+                "T1574"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.006",
+                "T1106",
+                "T1569.002"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code shows the creation of a process using `CreateProcessA`, followed by waiting for and closing the process handles. This strongly suggests the following MITRE ATT&CK",
+        "techniques:",
+        "* **T1547.001: Create Process:** The `CreateProcessA` call directly implements this technique. The command line passed (\"wmic process call create ...\") further indicates that the created process",
+        "is likely used for further malicious activity.",
+        "* **T1071.001: Application Layer Protocol:** While not explicitly stated, the use of `wmic` suggests the use of a legitimate application layer protocol (WBEM/CIM) for malicious purposes. This is",
+        "inferred from the command line argument which leverages `wmic` to create a process.",
+        "* **T1053.005: Scheduled Task/Job:** Although not directly shown in the code, the use of `wmic` to create a process hints at the possibility of this being used as a persistence mechanism. The",
+        "code itself doesn't create a scheduled task, but the *method* used to launch the process could be part of a larger scheduled task or job.",
+        "**Important Note:** The command line argument passed to `CreateProcessA` is crucial in determining the full extent of the attack. The command suggests executing `msadcs.exe` with specific",
+        "arguments, which might further link to techniques like:",
+        "* **T1003.001: Data from Local System:** Potentially accessing NTDS.dit (Active Directory database) if successful. * **T1003.002: Data from Network Share:** Potentially accessing network",
+        "resources, dependent on the contents of `a.txt` and `a.csv` * **T1081:Credential Access:** Potentially aiming to exfiltrate credentials through manipulation of AD data.",
+        "Without knowing the contents of the variables pointed to by the addresses (e.g., `0x403000`, `0x404044`, `0x404000`, `0x404048`), a more precise mapping to MITRE techniques is difficult. The",
+        "above is based solely on the observable actions within the assembly code itself.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows several function calls and stack manipulation, but without knowing the functionality of `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and",
+        "`sub_0x00000500C`, we can only make educated guesses about the MITRE ATT&CK techniques involved. The code strongly suggests a potential for **process injection** or **execution of arbitrary",
+        "code**.",
+        "Based on the observable actions, here are some *potential* MITRE ATT&CK techniques. It's crucial to understand these are *hypotheses* without more context about the called functions:",
+        "* **T1055.001 - Process Injection: CreateRemoteThread:** If `sub_0x000005004` or other functions create threads in another process's context, this technique is likely. The pushing of numerous",
+        "arguments before calls suggests parameters for thread creation.",
+        "* **T1055.002 - Process Injection: QueueUserAPC:** Similar to the above, if the functions use asynchronous procedure calls to inject code, this is a possibility.",
+        "* **T1546.007 - Process Injection: Shared Memory Injection:** Using shared memory to inject code is possible, but this is less clearly suggested by the code than the thread creation methods.",
+        "* **T1055.005 - Process Injection: Reflective DLL Injection:** While not explicitly shown, if the injected code is a DLL that loads itself reflectively (without writing to disk), this technique",
+        "might be in use. This would require further analysis of the called functions.",
+        "* **T1547.001 - Process Injection: DLL Search Order Hijacking:** Potentially, if the code manipulates the DLL search order to load a malicious DLL, it's relevant.",
+        "**Missing Information:**",
+        "To accurately map these actions to MITRE ATT&CK techniques, we critically need the following:",
+        "* **Disassembly of the called functions:** Understanding the code within `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` is essential. They hold the core logic for",
+        "any process injection or code execution. * **Context of execution:** Knowing the program and its overall behavior provides invaluable context.",
+        "**In summary:** The assembly code is suggestive of process injection, but definitive assignment of MITRE ATT&CK techniques requires deeper analysis of the called subroutines. The listed",
+        "techniques are the *most probable candidates*, but other techniques might be involved.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code shows the creation and management of a process. Let's break down the MITRE ATT&CK techniques involved:",
+        "* **T1547.001: Create Process:** The `CreateProcessA` call is the most significant indicator. This function is used to create a new process, directly matching this sub-technique.",
+        "* **T1547.002: Create Remote Thread:** While not explicitly shown, the possibility exists depending on the contents of `0x403000` (lpCommandLine). If the command line invokes a process that",
+        "creates a remote thread, this sub-technique could also be relevant. This needs further analysis of the `0x403000` memory location.",
+        "* **T1055.005: Process Injection:** Again, the possibility exists depending on the command line argument and the target process. This requires further analysis of `0x403000`.",
+        "* **T1056.001: Create or Modify System Process:** If the created process is a critical system process, this might apply. This depends on what `0x403000` points to.",
+        "* **T1070.001: Process Discovery:** The `WaitForSingleObject` and subsequent `CloseHandle` calls show interaction with a process after its creation. Process Discovery might be used before",
+        "choosing the target process, although not explicitly shown here.",
+        "**Important Note:** The exact MITRE ATT&CK techniques involved cannot be definitively determined without more context. Specifically, the content of the memory addresses referenced (`0x403000`,",
+        "`0x404000`, etc) are crucial. These addresses likely contain command-line arguments, process information, and other relevant data. Examining these memory locations would allow a more precise",
+        "determination of the involved techniques and potentially reveal additional ones. The current analysis is based solely on the observable functions. The code only *might* be used for malicious",
+        "purposes. Without analyzing the invoked process, and the data used in the call, assigning MITRE ATT&CK techniques remains speculative.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code snippet appears to be performing actions associated with process execution and manipulation. From the assembly code, the following techniques from MITRE ATT&CK",
+        "might be relevant:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The code involves executing a command using `CreateProcessA` with `wmic` and `cmd.exe`, suggesting the use of Windows",
+        "command shell scripting to perform operations.",
+        "2. **T1106 - Execution: Native API**: The usage of `CreateProcessA` and other Windows API calls (`WaitForSingleObject`, `CloseHandle`) is indicative of using native Windows API for execution.",
+        "3. **T1203 - Exploitation for Client Execution**: If the assembly is part of a larger exploit, calling external processes or scripts could be part of an exploitation technique.",
+        "4. **T1083 - File and Directory Discovery** / **T1005 - Data from Local System**: The specifics are not fully clear, but if `msadcs.exe` or related file actions are indeed accessing or",
+        "manipulating files such as `NTDS.dit`, these could be relevant.",
+        "In summary, the primary technique is the use of Windows API to create a process and execute commands, hence T1106 is directly relevant, and T1059.003 for the use of command line execution. The",
+        "coding pattern itself does not inherently reveal other techniques without further context of what `msadcs.exe` or other strings signify in the broader attack context.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code you provided makes several function calls and interacts with memory locations, which might suggest behaviors associated with certain MITRE ATT&CK techniques. However, without",
+        "specific context or knowledge of what `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` are doing, it is difficult to assign exact MITRE techniques. Generally,",
+        "assembly code analysis allows us to hypothesize possible techniques based on common behaviors. Below are some potential techniques based on typical patterns found in such code:",
+        "1. **Process Injection (T1055)**: If the code is part of a process injection routine, especially if `sub_0x000005004` is creating or managing threads or processes in a way that injects code into",
+        "another process space, it might be indicative of this technique.",
+        "2. **Dynamic Link Libraries (DLL) Injection (T1055.001)**: If any of the `sub_*` functions load a DLL into the process space, it may relate to DLL injection.",
+        "3. **In-memory Execution (T1620)**: If the instructions are related to executing code directly from memory without writing it to disk, this might suggest this technique.",
+        "4. **Application Programming Interface (API) Manipulation (T1574)**: The code uses multiple `call` instructions, which could indicate a pattern of API calls. If obfuscated or manipulated, it",
+        "might relate to API manipulation.",
+        "To provide a more accurate mapping, additional analysis of the specific functions being called (`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`) would be necessary.",
+        "This would involve understanding their implementations and the context in which this assembly code is executed. Each of these functions could be performing actions relevant to different MITRE",
+        "techniques depending on their roles in the system.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code you've provided creates a new process using the `CreateProcessA` function and appears to perform some cleanup with `CloseHandle` and synchronization with `WaitForSingleObject`.",
+        "The relevant MITRE ATT&CK techniques that could be associated with this code are:",
+        "- **T1059.006 - Command and Scripting Interpreter: Windows Command Shell:** This technique covers the creation of new processes using command-line interfaces such as the Windows Command Shell.",
+        "Since the code uses `CreateProcessA` to start a new process, it can be related to this technique if the intention is to execute commands or scripts.",
+        "- **T1106 - Execution: Native API:** This technique involves using APIs such as `CreateProcessA`, `CloseHandle`, and `WaitForSingleObject` for process execution and control. The assembly code",
+        "directly calls these Windows API functions, fitting this technique.",
+        "- **T1569.002 - System Services: Service Execution:** If the `CreateProcessA` function is used specifically to start a service, this technique could also be applicable. However, without",
+        "additional context about what's being executed, this is speculative.",
+        "If more context was provided about what `CreateProcessA` executes via `lpCommandLine`, additional techniques might be relevant, particularly related to the nature of that execution or potential",
+        "payload.",
+        "Close"
+    ]
+}

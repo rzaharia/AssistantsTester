@@ -1,0 +1,168 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.001",
+                "T1056",
+                "T1003",
+                "T1552.003"
+            ],
+            "valid": [
+                "T1003",
+                "T1003"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1064.002",
+                "T1566.002",
+                "T1055.001",
+                "T1006"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.001",
+                "T1055",
+                "T1040.002",
+                "T1040.002",
+                "T1040"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055.001",
+                "T1055",
+                "T1056",
+                "T1105",
+                "T1055.001",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1027",
+                "T1027.009",
+                "T1623.001",
+                "T1203",
+                "T1027"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "Based on the provided assembly code, the MITRE ATT&CK techniques involved are:",
+        "* **T1055.001: Process Injection - Process Hollowing:** The code attempts to open a process (likely lsass.exe), read its memory, and potentially inject malicious code. The use of `OpenProcess`,",
+        "`VirtualQueryEx`, and `ReadProcessMemory` strongly suggests this technique. The code finds a region of memory within the target process and then potentially reads that region into its own",
+        "address space. While not explicitly showing code injection, the setup for injection is clearly present.",
+        "* **T1056: Exfiltration Over C2:** While not explicitly shown in the snippet, the code likely exfiltrates the data read from the target process. The calls to functions like `sub_0x000000405`,",
+        "`sub_0x000000419`, and `sub_0x00000040A` (which operate on \"lsass.exe\") strongly suggest network communication or other means of data exfiltration to a command-and-control server (C2). The",
+        "addresses suggest these are external functions handling the data exfiltration.",
+        "* **T1003: Data Staged:** The code reads data from the target process into a buffer (`ReadProcessMemory`). This staged data is a likely precursor to further actions, like exfiltration or",
+        "analysis.",
+        "* **T1552.003: Process Discovery - Process ID:** The code retrieves the process ID of lsass.exe (though not explicitly stated, the string points to this). This is a clear indicator of process",
+        "discovery, a precursor to targeting that process.",
+        "It's important to note that these are inferences based on the code snippet. Without knowing the exact functionality of the `sub_xxxx` functions, a precise attribution to specific sub-techniques",
+        "within these categories might not be entirely accurate. The code only shows the setup for a likely process injection attack but doesn't demonstrate the full execution of injecting shellcode.",
+        "Further analysis is required for complete determination.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code exhibits characteristics of several MITRE ATT&CK techniques. However, without more context (the functions' actual behavior, strings, system calls, etc.), we can only",
+        "make educated guesses based on the code snippets. The most likely candidates are:",
+        "* **T1064.002: Command and Scripting Interpreter:** The `int3` instruction (breakpoint) is often used in malware to halt execution, potentially waiting for external commands or to evade",
+        "analysis. The sheer number of `int3` instructions points towards an attempt to obfuscate or slow down reverse engineering. While not definitive proof, it strongly suggests an attempt to execute",
+        "commands or scripts indirectly.",
+        "* **T1566.002: External Remote Services:** The numerous jumps (`jmp`) to different memory addresses (e.g., `jmp offset_0x000000490`, `jmp offset_0x0000005F0`, etc.) suggest communication or",
+        "interaction with external resources. The calls to `sub_0x000000419` hint at modularity",
+        "* **T1055.001: Process Injection:** Although not explicitly shown, the function `sub_0x000000450` with standard function prologue (`push ebp`, `mov ebp, esp`, etc.) and call to `sub_0x000000419`",
+        "could indicate code injection. The allocation of stack space (`sub esp, 0x40`) might be used to inject malicious code into another process. More analysis is required to confirm this.",
+        "* **T1006: Network Service Scanning:** While not directly evident, if `sub_0x000000419` (and related functions) interacts with network sockets, it might be indicative of scanning for vulnerable",
+        "services.",
+        "**Important Note:** This analysis is based on limited information. To definitively assign MITRE ATT&CK techniques, a comprehensive analysis of the entire program, including data sections,",
+        "strings, and function calls, is necessary. The presence of specific system calls would significantly aid in a more accurate categorization.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques are likely involved:",
+        "* **T1055.001: Process Injection - Shared Libraries:** The code uses `OpenProcess`, `VirtualQueryEx`, and `ReadProcessMemory` to access and potentially read memory from another process. While it",
+        "doesn't explicitly load a DLL, the retrieval of memory regions strongly suggests an attempt to inject code or data into the target process's memory space indirectly. This could involve mapping a",
+        "shared library or injecting shellcode. The lack of explicit DLL loading makes T1055.001 a more fitting sub-technique than others in T1055.",
+        "* **T1040.002: Exfiltration Over C2:** The code's purpose is unclear beyond process memory access. The calls to functions like `sub_0x000000405`, `sub_0x000000419`, and `sub_0x00000040A` (whose",
+        "functionality isn't shown) might be used to exfiltrate the data read from memory, potentially to a command and control (C2) server. Without more context about these functions, this is",
+        "speculative but a reasonable possibility. The use of a custom communication method would lead to T1040.002 rather than more specific sub-techniques within T1040.",
+        "**Important Note:** The provided assembly is a snippet; the functions `sub_0x000000405`, `sub_0x000000419`, and `sub_0x00000040A` are crucial for accurate determination of the full extent of the",
+        "attack techniques. Their implementation would clarify the goal (data theft, code execution etc.) and the exact methods employed. Without knowing their functionality, the mapping to MITRE",
+        "techniques remains partially speculative.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code provided showcases a sequence of operations that interact with processes and memory in a Windows environment. Notably, it includes interactions such as opening a process by",
+        "name, querying information about the process's memory, and reading from the memory of another process. This behavior is typically associated with certain MITRE ATT&CK techniques that involve",
+        "process and memory manipulation.",
+        "Here are the relevant MITRE ATT&CK techniques exemplified by this code:",
+        "1. **T1055.001 - Process Injection: DLL Injection** - The code involves reading the memory of another process (specifically mentioning `lsass.exe`). Such techniques can be part of a broader",
+        "strategy to inject code into processes for malicious purposes, although direct DLL injection isn't explicitly shown here, reading memory is often used in conjunction with other steps to perform",
+        "injection.",
+        "2. **T1055 - Process Injection** - More generally, the operation of interacting with another process's memory aligns with the broader technique of process injection. This includes various",
+        "methods to execute malicious code in the address space of a different live process.",
+        "3. **T1056 - Input Capture** - If exploring further for potentially capturing data, techniques could potentially be extended to capturing input or data flows, but there is no direct evidence of",
+        "this from the code provided.",
+        "4. **T1105 - Ingress Tool Transfer** - Indirectly, reading another process's memory to potentially extract sensitive information or to facilitate the transfer of code for execution elsewhere",
+        "could fall under ingress tool transfer.",
+        "Given the focus on `OpenProcess`, `VirtualQueryEx`, and `ReadProcessMemory`, the provided code is more directly aligned with process injection activities, particularly inspecting and",
+        "manipulating the memory of other processes.",
+        "Therefore, the primary relevant MITRE technique is: - **T1055.001 - Process Injection: DLL Injection** - **T1055 - Process Injection**",
+        "If the intent of the code were to further process the memory data, additional techniques might be involved depending on the context and subsequent actions not displayed in the current code",
+        "snippet.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing the provided x86 assembly code, we can infer a potential MITRE ATT&CK technique based on the operations and instructions being used. Here are some observations:",
+        "1. **Function Calls and Stacks**: The use of `push`, `call`, and `mov` instructions, along with the manipulation of the stack, is typical of function call sequences and stack frame setups.",
+        "2. **Conditional Jumps and Comparisons**: There are several `cmp` and `jne` instructions, which suggest conditional execution, a common characteristic in both control flow obfuscation and",
+        "decision-making processes.",
+        "3. **Memory Manipulation**: Instructions like `mov`, `push`, and `lea` suggest manipulation and retrieval of data from specific memory locations.",
+        "4. **Possible Use of Sub-functions**: The calls to functions like `sub_0x000005000` might indicate functionality abstraction or execution of specific tasks.",
+        "5. **Registers and Data Interpretation**: The operations involving data such as `0x1000`, `0x20000`, and `0x1000000` may indicate manipulation or interpretation of data that could be",
+        "configuration data, offsets, or constants used for logical conditions.",
+        "6. **No explicit malicious behavior** or operations directly tied to other TTPs like obvious encryption routines, process injection, or disk operations based on the given snippet.",
+        "Based on the generic nature of the code, it doesn",
+        "operations like data collection, manipulation, or command execution, it might be indicative of certain techniques. Without those details, it's speculative beyond noting the general process",
+        "manipulation.",
+        "Given these operations are common with function handling and checks, one possible and generic association might be basic **Process Injection** (T1055), particularly if sub-functions interact",
+        "with other processes. If there's any indication that these functions deal with code injection or execution within another process context, it would indeed fit this technique.",
+        "If the assembly was part of a routine interacting with system processes or making system calls indicative of evasion or execution tactics (like API hooking, DLL injection), it would then be",
+        "indicative of the specific sub-technique related.",
+        "To precisely map this assembly to a specific MITRE technique or sub-technique, details about the contents of `sub_*` functions are crucial, as they will define the context and purpose of these",
+        "operations (e.g., file operations, process creation, system/network interaction, etc.). The current assembly snippet alone does not explicitly map directly onto one without these details.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet features a few interesting patterns and behaviors that align with certain MITRE ATT&CK techniques. Let's analyze the key features:",
+        "1. **Obfuscation/Anti-Analysis Techniques:** - The repeated `int3` instructions are often used as padding or breakpoints to thwart reverse engineering efforts. This can align with anti-debugging",
+        "or code obfuscation techniques. - Multiple `jmp` instructions that don't appear to form a simple, linear control flow could suggest control flow obfuscation.",
+        "2. **Function Calls and Stack Behavior:** - The use of `push` and `pop` instructions for saving and restoring register state across function calls is normal, but it indicates control over",
+        "function flow and stack manipulation, often used in function hooking/manipulation. - The `call` to `sub_0x000000419` suggests a direct jump to a position that could have conditional behavior,",
+        "potentially part of inline hooking or API hooking.",
+        "Given these observations, here are some MITRE techniques that could be applicable:",
+        "1. **Obfuscated Files or Information (T1027):** The use of repeated `int3` instructions is suggestive of anti-analysis techniques designed to obfuscate program behavior. 2. **Control Obfuscation",
+        "Techniques (T1027.009):** The `jmp` sequences and overall control flow may imply code obfuscation.",
+        "3. **Software Breakpoint (T1623.001) - for the `int3`s if found in certain contexts indicative of debugging traps.**",
+        "4. **Indirect Command Execution (T1203):** The use of function pointers, particularly with `jmp`, can suggest indirect execution paths.",
+        "The best match from the provided assembly code context with MITRE's ATT&CK framework would be something within the realm of Obfuscation. However, without more detailed context or exact matches",
+        "to specific program logic, precise mapping can be challenging. Given the observed patterns:",
+        "- **T1027** - Obfuscated Files or Information, generally applicable. - Depending on context, specific sub-techniques for anti-analysis or debugging evasion could be more precise.",
+        "Close"
+    ]
+}

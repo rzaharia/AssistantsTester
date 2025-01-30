@@ -1,0 +1,167 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1053.005",
+                "T1547.001",
+                "T1053",
+                "T1548.002",
+                "T1053",
+                "T1060.002"
+            ],
+            "valid": [
+                "T1053.005",
+                "T1053",
+                "T1053",
+                "T1053",
+                "T1053"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.002",
+                "T1548.002",
+                "T1047",
+                "T1027",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1543.003",
+                "T1055.001",
+                "T1071"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1053.005",
+                "T1569.002"
+            ],
+            "valid": [
+                "T1053.005"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055",
+                "T1140",
+                "T1082",
+                "T1106",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code shows the creation and management of a process using the `CreateProcessA` Windows API call. The command line passed to `CreateProcessA` strongly suggests a scheduled",
+        "task creation (\"schtasks /create ...\"). Let's break down the MITRE ATT&CK techniques involved:",
+        "* **T1053.005: Scheduled Task/Job:** This is the primary technique. The code explicitly uses `schtasks` to create a scheduled task that will execute `C:\\x.exe` upon user logon. The use of",
+        "`CreateProcessA` to run `schtasks` is the mechanism.",
+        "* **T1547.001: Create or Modify System Process:** While T1053 is more specific, the act of using `CreateProcessA` to launch a new process (even `schtasks`) falls under this broader technique.",
+        "The created scheduled task itself will later create a system process.",
+        "* **T1548.002: Abuse Execution Authority:** The scheduled task is configured to run as \"System\" (`/ru \"System\"`), which represents abuse of elevated privileges. This is a consequence of the",
+        "primary technique (T1053).",
+        "* **T1060.002: Scheduled Task (Windows): Run Once:** This is likely, but not explicitly proven. The exact behavior of `/sc ONLOGON` in `schtasks` could mean the task only runs once. Further",
+        "analysis is required for certainty.",
+        "It's important to note that these are the likely MITRE ATT&CK techniques based on the provided code snippet. A complete analysis would require examining `C:\\x.exe` to determine the full impact",
+        "and potentially reveal additional techniques. The `sub_0x00000040A` function call, whose contents are unknown, could also introduce additional techniques. There's not enough evidence to pinpoint",
+        "other techniques with confidence.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet doesn't definitively point to specific MITRE ATT&CK techniques without more context about the functions `sub_0x00000040A`, `sub_0x000005004`,",
+        "`sub_0x000005000`, and `sub_0x00000500C`. The code shows function calls and memory manipulation, which are common to many techniques. However, we can speculate based on the observable actions:",
+        "* **T1055.001 - Process Injection:** The code performs function calls (`call sub_0x...`), and pushes arguments (likely process handles, memory addresses, or other parameters). This is strongly",
+        "suggestive of process injection, although we cannot definitively say what kind (e.g., thread injection, process hollowing, etc.) without knowing what the called functions do. This is a strong",
+        "candidate.",
+        "* **T1055.002 - Thread Injection:** This is possible, depending on the actions within `sub_0x...` functions. If those functions create and manipulate threads, this becomes a better fit than",
+        "general process injection.",
+        "* **T1548.002 - Create or Modify System Process:** This might be relevant if the `sub_0x...` functions create or manipulate system processes. This is less likely based purely on the provided",
+        "code snippet.",
+        "* **T1047 - Windows Management Instrumentation (WMI):** While not explicitly shown, WMI is often used for process injection, so it's possible this is involved if `sub_0x...` utilizes WMI to",
+        "perform actions. This is highly speculative.",
+        "* **T1027 - Obfuscated Files or Information:** The lack of easily understandable function names and use of hexadecimal values might be considered obfuscation; however, this is a very general",
+        "observation. It is more indicative of code style rather than a clear malicious technique.",
+        "**In summary:** The most likely MITRE ATT&CK technique based solely on the provided assembly is **T1055.001 - Process Injection**. However, the lack of information about the called functions",
+        "makes other techniques possible, but less certain. To accurately assign the technique(s), the functionality of the subroutines must be known.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code shows the creation and management of a process. Based on the `CreateProcessA` call and subsequent handle manipulation, the following MITRE ATT&CK techniques are",
+        "relevant:",
+        "* **T1547.001: Process Injection - CreateRemoteThread:** While the code doesn't directly use `CreateRemoteThread`, the creation of a new process using `CreateProcessA` is a common precursor to",
+        "techniques like CreateRemoteThread. An attacker might use the newly created process as a target for injecting malicious code via a different method later.",
+        "* **T1543.003: Create or Modify System Process - Create a process:** The code explicitly uses `CreateProcessA` to create a new process. This directly maps to this sub-technique.",
+        "* **T1055.001: Process Injection - Shared Libraries:** This is a *possible* technique, depending on the contents of `0x403000` (lpCommandLine) which is the command line argument to the process.",
+        "If this argument points to a DLL, it could indicate an attempt to inject a malicious DLL. However, this cannot be definitively determined from the provided code alone.",
+        "* **T1071: Command and Scripting Interpreter:** The `CreateProcessA` function is used to execute a process based on the command line argument which might involve executing a command or script",
+        "(though not apparent in this snippet).",
+        "**Important Note:** Without knowing the content of the memory locations referenced (particularly `0x403000`",
+        "remains incomplete. The code shows the creation of a process, but the *method* of potential exploitation (e.g., injecting malicious code via shared library or executing a malicious script)",
+        "can",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code suggests techniques related to process execution. Specifically, the code uses the WinAPI function `CreateProcessA` to create a new process with a specified command",
+        "line. The command line shown is `schtasks /create /tn \"abc\" /tr C:\\x.exe /sc ONLOGON /ru \"System\"`, which is indicative of creating a scheduled task to execute `C:\\x.exe` at logon under the",
+        "\"System\" account.",
+        "The MITRE ATT&CK techniques associated with this behavior are:",
+        "- **T1053.005 - Scheduled Task/Job: Scheduled Task**: The assembly code uses the `schtasks` utility to create a scheduled task, which is a common method for establishing persistence or executing",
+        "a process at a particular time or event.",
+        "- **T1569.002 - System Services: Service Execution**: The use of `schtasks` to run a process under the \"System\" account effectively executes a process as a service with high privileges.",
+        "These techniques are used by adversaries to automate the execution of code at specified times or events and to execute code with elevated privileges.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code snippet contains various instructions that are typical in certain kinds of malicious activities and techniques. To accurately associate MITRE ATT&CK techniques",
+        "with this code, we need to infer the intent and functionalities from the particular instructions used.",
+        "Based on the code:",
+        "1. **Function Prologue and Epilogue:** The presence of instructions like `push ebp`, `mov ebp, esp`, and their counterparts for cleanup (`mov esp, ebp`, `pop ebp`) are standard for setting up",
+        "and tearing down stack frames in function calls. These are common in any structured program and do not point to a specific attack technique.",
+        "2. **Stack Manipulation and Calls to Subroutines:** The code contains several `push` instructions followed by `call` instructions. These suggest that functions are being called with parameters",
+        "passed on the stack, possibly related to API calls that may perform specific actions.",
+        "3. **Memory Manipulation:** The instruction `mov dword ptr [0x404000], 0x44` and similar lines suggest manipulation of memory locations. If these memory locations pertain to writable sections or",
+        "specific system addresses, this can indicate technique T1055 - Process Injection, especially if the manipulated memory is part of a code injection or shellcode.",
+        "4. **Conditional Execution:** The instruction `test eax, eax` followed by `je offset_0x0000004B1` tests the return value from a function call for a condition, possibly error or success handling,",
+        "which could relate to decision-making logic in malware operations.",
+        "5. **Use of NOP (No Operation):** The presence of `nop` might indicate padding or alignment adjustments, common in exploits or shellcode.",
+        "Taking into consideration these details, without specific context on what the subroutines (e.g., `sub_0x00000040A`, `sub_0x000005004`, etc.) achieve, it can be challenging to pinpoint exact",
+        "ATT&CK techniques definitively.",
+        "However, based on the structure and common purposes associated with these patterns, we can suggest the following MITRE ATT&CK techniques that might be applicable:",
+        "- **T1055:** Process Injection if the memory manipulation is intended for injection purposes. - **T1140:** Deobfuscate/Decode Files or Information if the functions decode or prepare encoded",
+        "payload. - **T1082:** System Information Discovery if any function checks or collects system properties. - **T1106:** Native API if the function calls involve using low-level system APIs. -",
+        "**T1027:** Obfuscated Files or Information if the overall purpose seems to hide or obfuscate data.",
+        "Careful analysis of the code and its behavior at runtime, as well as a deeper look into the invoked subroutines, would be necessary to ascertain the accurate mapping to MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet includes indicators of process creation, and potentially indicates an instance where malware might be attempting to execute additional payloads or spawn new",
+        "processes. The specific MITRE ATT&CK technique and sub-technique related to this behavior is:",
+        "**T1059.001",
+        "The code shows the use of the `CreateProcessA` function, which is commonly associated with spawning new processes. This is associated with the initial access and execution of commands or",
+        "scripts.",
+        "Other techniques that may be potentially relevant based on this pattern:",
+        "**T1106 (Execution through API):** This technique involves execution through the Windows API, as demonstrated in the provided code snippet.",
+        "**T1055",
+        "However, the snippet does not fully illustrate an injection, just observed process creation.",
+        "Additionally, there might be some significance to the sequence involving closing handles and waiting for processes to complete with `WaitForSingleObject`, indicative of process control or",
+        "cleanup.",
+        "However, the insight into the exact nature of execution relies on additional context and behaviors, particularly what it does post-creation. Without more specific details about the executed",
+        "process or broader malicious patterns alongside this behavior, it is challenging to discern more granular sub-techniques.",
+        "Close"
+    ]
+}

@@ -1,0 +1,148 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1053.005",
+                "T1047",
+                "T1547.001",
+                "T1053.005",
+                "T1047"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1053.005",
+                "T1566.002",
+                "T1574.001",
+                "T1047"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1112.002",
+                "T1012",
+                "T1110.002",
+                "T1005"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1082",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1027"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        }
+    },
+    "gemini": [
+        "The provided assembly code performs registry manipulation to add a Run key. This maps to the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Registry Run Keys / RunOnce:** The code explicitly uses `RegOpenKeyExA` to open the `Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce` registry key and `RegSetValueExA` to add a",
+        "value, indicating the creation of a RunOnce key. The `lpData` value (\"c:\\data\\abc.exe\") points to an executable to be run at the next system startup.",
+        "* **T1053.005: Scheduled Task/Job: Run Registry Run Keys/Startup Folder:** While the code doesn't directly create a scheduled task, it achieves a similar outcome by leveraging the RunOnce",
+        "registry key which effectively schedules the execution of the specified program.",
+        "* **T1047: Windows Management Instrumentation:** Although not directly evident in the provided snippet, the underlying process creating this code might utilize WMI to achieve persistence or",
+        "other malicious operations. This is an *inference* and not directly shown in the code.",
+        "Therefore, the primary MITRE techniques are **T1547.001** and **T1053.005**. The inclusion of **T1047** depends on the broader context of the malware's operation.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided x86 assembly code, we can infer several potential MITRE ATT&CK techniques. The code shows function calls (`call`) to external functions (`sub_0x00000040A`,",
+        "`sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`), which makes precise technique identification impossible without knowing the functionality of those functions. However, we can make",
+        "educated guesses based on common patterns.",
+        "The code strongly suggests the use of one or more of the following techniques, depending on what `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` actually do:",
+        "* **T1053.005 - External Remote Services:** If the called functions (`sub_0x000005000`, etc.) interact with external services (e.g., a command and control server, a cloud service, or a remote",
+        "procedure call), this technique is likely involved. The passing of parameters (particularly `0x403000` and `0x40303c` which look like memory addresses) supports this possibility.",
+        "* **T1566.002 - Exfiltration Over C2 Channel:** Similar to the above, if the external calls are used to transmit data exfiltrated from the system, this technique applies. The conditional jump",
+        "(`je offset_0x000000477`) suggests the exfiltration might only occur if a certain condition is met.",
+        "* **T1574.001 - External Command Execution:** If the functions execute arbitrary commands received from a remote source, this technique would be relevant. Again, this depends entirely on the",
+        "unknown functions.",
+        "* **T1047 - Windows Management Instrumentation:** It is *possible* but far less likely given the lack of direct WMI calls. However, if one of the subroutines interacted with WMI behind the",
+        "scenes (e.g., to perform system reconnaissance or other actions), this could apply.",
+        "**Important Considerations:**",
+        "* **Lack of Context:** Without knowing what the called functions (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) do, the above are only *potential* matches. The",
+        "actual techniques used could be entirely different. * **Obfuscation:** The code could be obfuscated to hide its true purpose. * **Multiple Techniques:** It's entirely possible that multiple",
+        "techniques are being used in combination.",
+        "To accurately determine the MITRE ATT&CK techniques used, you need to analyze the functionality of the called subroutines. Reverse engineering the binary that contains this code is required.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code performs registry operations using the `RegOpenKeyExA` and `RegSetValueExA` functions. This strongly indicates the following MITRE ATT&CK techniques:",
+        "* **T1112.002: Registry Run Keys / Run Once:** While not explicitly creating a run key, the code's ability to write to the registry (`RegSetValueExA`) could be used to achieve this. The specific",
+        "registry key being targeted (`0x403000` and `0x403050` are likely strings which resolve to registry paths at runtime) is unknown, but if it's a run key, this technique applies. Further analysis",
+        "of the strings at those addresses is needed to confirm.",
+        "* **T1012: Query Registry:** The code opens a registry key (`RegOpenKeyExA`), indicating an attempt to query registry information. Even if the primary goal is to *set* a value, opening the key",
+        "inherently involves querying its existence.",
+        "* **T1110.002: Create or Modify System Process:** Although not directly creating a new process, modifying the registry (as suggested by `RegSetValueExA`) can be used to create a mechanism for",
+        "persistence or modifying system behavior, eventually leading to this. Again, requires further analysis to verify intent.",
+        "* **T1005:001: Data Encrypted at Rest (Via Registry):** It is possible (though not definitively indicated by the code alone) that the data written to the registry could be encrypted. This would",
+        "be speculative without more context.",
+        "**Important Note:** The provided code snippet is incomplete; the exact registry keys and values involved are not readily apparent from the hexadecimal addresses. To definitively assign MITRE",
+        "ATT&CK techniques, a full reverse engineering effort is required, including resolving the hexadecimal values to their corresponding strings (the addresses prefixed with `0x`) in order to",
+        "determine the target registry keys and values. The absence of strings within the code snippet limits our certainty.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code performs operations related to the Windows Registry, specifically creating or modifying a registry key under \"Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\". The",
+        "purpose of this is typically to achieve persistence by ensuring that a certain executable, in this case \"c:\\data\\abc.exe\", is executed each time the system starts.",
+        "The MITRE ATT&CK techniques associated with this behavior are:",
+        "- **T1547.001: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**",
+        "This technique involves the use of registry keys for persistence, particularly placing entries in keys that will cause an executable to run when a user logs on. The Run and RunOnce keys are",
+        "commonly targeted for this purpose.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code you provided includes several indicators that suggest potential MITRE ATT&CK techniques. However, it is important to note that the information provided by a snippet of assembly",
+        "code is limited and does not necessarily imply malicious behavior without further context. Here are some observations from the code and the potential MITRE ATT&CK techniques that might relate to",
+        "some of these actions:",
+        "1. **Stack Manipulation and Function Calls** - The code manipulates the call stack and makes calls to subroutine addresses (`call sub_0x00000040A`, `call sub_0x000005000`, etc.). This can be a",
+        "common characteristic of many techniques where the goal is to execute specific functionality. - If these subroutine addresses point to malicious activities such as creating or modifying",
+        "processes, these could fall under a variety of MITRE ATT&CK techniques.",
+        "2. **Use of Pointers and Manipulation of Registers** - The `LEA` (Load Effective Address) instruction is calculating the address of a variable on the stack and using it later. - This could",
+        "potentially correspond to attempts to manipulate memory directly (perhaps preparing for shellcode execution or altering code/data in memory).",
+        "3. **Conditional Jump and Operations** - The code snippet contains conditional logic (`je` and `jmp`), which is used to branch execution flow based on certain conditions. This may be indicative",
+        "of control flow manipulation, which can be used to evade detection. 4. **Potential Functionality Indicated by Comments and Pseudocode** - Without seeing the actual actions performed by calls to",
+        "`sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008`, it's difficult to map specific ATT&CK techniques accurately. If these functions correspond to behaviors such as file creation,",
+        "network communication, or persistence, they could represent more specific techniques.",
+        "Given these observations, the closest, most generalized MITRE ATT&CK techniques that this code could potentially relate to might include:",
+        "- **T1055: Process Injection** if the calls and memory manipulation suggest injecting code into other processes. - **T1082: System Information Discovery** if any subroutine gathers system data.",
+        "- **T1140: Deobfuscate/Decode Files or Information** if the code represents or leads to decryption routines or unpacking algorithms.",
+        "It's important to analyze the entire context and behavior of the program to accurately align with MITRE ATT&CK techniques. The precise actions occurring during the execution of the subroutines",
+        "(`sub_0x...`) would significantly affect this classification.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code demonstrates interactions with the Windows Registry using several actions that can be associated with different techniques from the MITRE ATT&CK framework. Based on",
+        "the code, which includes calls to `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`, the applicable MITRE ATT&CK technique could be:",
+        "- **T1547.001: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**",
+        "Although the specifics of which key is being modified are not given, interacting with the registry in this manner can be related to persistence techniques like this one.",
+        "- **T1027: Obfuscated Files or Information**",
+        "Here, since `RegSetValueExA` is called after opening a registry key and before closing it, these interactions could be used in scenarios like setting persistence mechanisms using the registry.",
+        "However, without additional context or the exact registry paths and values being modified, the exact sub-techniques cannot be precisely determined. If specific keys related to startup or",
+        "configuration changes are modified, then recognizing the technique would require that context.",
+        "Close"
+    ]
+}

@@ -1,0 +1,176 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1003.001",
+                "T1547.001",
+                "T1543.001",
+                "T1047",
+                "T1562.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1055.001",
+                "T1053.005",
+                "T1047"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1071.001",
+                "T1102",
+                "T1543.003",
+                "T1047",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1543",
+                "T1565.001",
+                "T1055",
+                "T1059.003",
+                "T1124",
+                "T1055"
+            ],
+            "valid": [
+                "T1124",
+                "T1124"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1059.006",
+                "T1106",
+                "T1218",
+                "T1574.002",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1055",
+                "T1105",
+                "T1569.002",
+                "T1047"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "Based on the provided assembly code, the most relevant MITRE ATT&CK techniques are:",
+        "* **T1003.001 - System Network Configuration Discovery:** The code interacts with `net time` command to set the time from a remote host (192.168.1.3). This strongly indicates an attempt to",
+        "discover and potentially manipulate network configuration.",
+        "* **T1547.001 - Process Injection:** While not explicitly shown as a direct injection technique (like Process Hollowing or Reflective DLL Injection), the code's use of `CreateProcessA` coupled",
+        "with the subsequent file writes and `WaitForSingleObject`, suggests potential for process injection. The multiple calls to `(null)` are suspicious and could indicate obfuscation of the actual",
+        "injection mechanism. Further analysis would be needed to definitively confirm this.",
+        "* **T1543.001 - Create or Modify System Process:** The code uses `CreateProcessA` to create a new process (`cmd.exe`). This directly aligns with this technique.",
+        "* **T1047 - Windows Management Instrumentation:** The presence of multiple function calls without clear context (several `call (null)`) raises suspicion for the use of WMI, as it is often used",
+        "for lateral movement and obfuscation. Further analysis is required to verify this.",
+        "* **T1562.001 - Impair Defenses:** Altering system time (using `net time`) could be done to manipulate log timestamps and hinder security analysis.",
+        "**Important Note:** The `call (null)` instructions are highly suspicious. They represent calls to functions that aren't readily identifiable from the provided snippet. This obfuscation is a",
+        "common tactic used by attackers, and these calls could be used for many additional techniques. Further analysis (debugging, disassembling with symbols, etc.) is crucial to precisely determine",
+        "the function of these calls. Without knowing what these functions do, the full list of associated MITRE ATT&CK techniques cannot be definitively determined.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based solely on the provided assembly code, and without knowing the functionality of the called subroutines (`sub_0x...`), we can only make educated guesses about the MITRE ATT&CK techniques",
+        "involved. The code strongly suggests actions related to process creation and memory manipulation, but definitive technique assignment requires understanding what the subroutines do.",
+        "However, we can hypothesize some possibilities:",
+        "* **T1547.001: Process Injection:** The code repeatedly calls functions (`sub_0x000005010`, `sub_0x00000500C`, `sub_0x000005018`, etc.) which likely inject code into other processes. The",
+        "parameters passed to these functions suggest that memory regions are being set up and possibly data written to them before the calls. The fact that the code sets up multiple memory locations",
+        "(`0x404000`, `0x404008`, `0x404004`, etc.) and then calls functions with pointers to these locations points further to process injection. This is a strong candidate given the repeated function",
+        "calls and memory manipulations.",
+        "* **T1055.001: Process Hollowing:** This is also a possibility, as process hollowing involves creating a process, clearing its memory, and then injecting malicious code. The structure of the",
+        "code with memory allocation and function calls suggests this could be the case, but without reverse engineering the called functions, it's not definitively clear.",
+        "* **T1053.005: Scheduled Task/Job:** This is a less likely candidate based only on this code snippet, but the creation of tasks or jobs is often done using API calls that manipulate process",
+        "creation and memory regions, so it cannot be completely ruled out without further analysis.",
+        "* **T1047: Windows Management Instrumentation (WMI):** This is also possible if some of the called functions interact with WMI. The `sub_0x000005018` function call, with its multiple arguments,",
+        "could be invoking a WMI command. It's a guess without the subroutine's details.",
+        "**Important Disclaimer:** The above are *potential* MITRE ATT&CK techniques. To accurately map the code to specific techniques, one must reverse-engineer the called subroutines",
+        "(`sub_0x000005000`, `sub_000005004`, `sub_0x000005008`, etc.) to determine their exact functions. Only then can a confident and precise mapping be done. Without that crucial information, these",
+        "remain educated guesses based on patterns observed in malicious software.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "Based on the provided assembly code, several MITRE ATT&CK techniques are potentially involved. The code snippet strongly suggests process creation and file writing, with some ambiguity due to",
+        "the presence of `(null)` function calls. We cannot definitively assign sub-techniques without knowing the exact functionality of these unknown calls.",
+        "Here's a possible interpretation, keeping in mind the limitations:",
+        "* **T1547.001: Create Remote Thread:** The code seems to spawn a process (`CreateProcessA`), which aligns with this technique. The use of `CreateProcessA` is a strong indicator.",
+        "* **T1071.001: Application Layer Protocol:** The code uses `WriteFile`, which suggests data is being written to a file. Without context of *what* is being written, it's difficult to narrow down",
+        "further. The data could be configuration for the created process, a payload, or logging information. The sub-technique is dependent on the file's contents.",
+        "* **T1102: Pass the Hash:** The provided code is insufficient to confirm or deny. This technique requires examining the credentials used to create the process.",
+        "* **T1543.003: Create or Modify System Process:** The `CreateProcessA` call implies the creation of a process. However, more details are needed to confirm if it's a system process or whether",
+        "modification is involved.",
+        "* **T1047: Windows Management Instrumentation (WMI):** Not directly seen in this code. WMI is often used to create processes, and could be invoked by the missing `(null)` calls.",
+        "* **T1055.001: Process Injection:** The repeated `call (null)` calls are suspicious. These could indicate process hollowing or other process injection techniques. More analysis is needed.",
+        "**Important Note:** The `(null)` calls are a significant hurdle. They represent unknown functions. The actual techniques used may be different or more complex than this preliminary assessment",
+        "suggests. A proper analysis requires knowing the content of those function calls and the ultimate behavior of the program. The suggested MITRE ATT&CK techniques are only possible correlations",
+        "based on the partial information available.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you've provided seems to be related to process creation and potentially process injection or manipulation, as indicated by the `CreateProcessA` call and some other behaviors.",
+        "Here are the MITRE ATT&CK techniques that are likely associated with this code:",
+        "1. **CreateProcess**: The use of `CreateProcessA` is a typical technique used for process creation in Windows: - **Technique**: **Create or Modify System Process** - **ID**: `T1543`",
+        "2. **WriteFile**: Writing data to a file or a handle that could potentially be part of a malicious operation (like tampering with a process or a file) might be attributed to data manipulation",
+        "techniques: - **Technique**: **Data Manipulation** - **ID**: `T1565.001` (Stored Data Manipulation)",
+        "3. **CloseHandle**: While `CloseHandle` itself is a benign API call, it's often seen in cleanup operations after certain actions such as process injection or process creation have been",
+        "completed: - **Technique**: As a standalone, it wouldn't map directly to a specific MITRE technique but is used in conjunction with others.",
+        "4. **Process Injection** (implied, if any injection is happening based on manipulation): - **Technique**: **Process Injection** - **ID**: `T1055`",
+        "5. **Command Line Interface**: Executing commands using `cmd.exe`: - **Technique**: **Command and Scripting Interpreter** - **ID**: `T1059.003` (Windows Command Shell)",
+        "6. **Network Time Protocol**: If the command \"net time \\192.168.1.3 /set /yes\" is indeed executed, this might imply manipulating system time: - **Technique**: **System Time Discovery** - **ID**:",
+        "`T1124`",
+        "7. **Process Injection**: If the null calls suggest function pointers being manipulated for injection or hijacking: - **Technique**: **Process Injection** - **ID**: `T1055`",
+        "This assembly sequence is dealing with process manipulation and execution, and likely some form of command execution, which aligns with tactics related to execution and persistence. The provided",
+        "code hints at commands, but without running this in a dynamic analysis environment or having the full context of what's in `call (null)`, some assumptions must be made based on typical malware",
+        "patterns.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "To determine the MITRE ATT&CK technique associated with the given assembly code, we should analyze the code and API calls made by the function. The specific techniques often depend on the intent",
+        "and context of what the assembly instructions do. Based on the provided assembly code snippet, we can identify several relevant techniques or patterns:",
+        "1. **API Calls**: This code snippet makes several `call` operations, which can be indicative of making system-level API calls. This pattern is often seen in the context of gaining execution",
+        "capabilities, particularly for tasks like process injection or invoking specific system functionalities.",
+        "2. **Memory Manipulation**: The code involves several memory operations (like moving data into specific memory addresses). Such techniques often relate to modifying configurations or injecting",
+        "code into memory.",
+        "3. **Indirect Execution**: The use of function calls via indirect registers could suggest techniques that execute code in an obfuscated or indirect manner, possibly for evading detection.",
+        "4. **Conditional Jumps**: There are `test` and `jne` instructions, which check conditions and branch execution. This pattern is indicative of techniques that perform conditional execution based",
+        "on system or process states.",
+        "5. **Use of Push/Call Sequences**: Sets up stack arguments for function calls. The result of these operations could be the launching of a secondary process or injecting code into another",
+        "process.",
+        "Without precise mappings of the API calls to specific Windows APIs (since only pseudo-assembly names for the calls were given), it might be challenging to exactly identify the MITRE ATT&CK",
+        "technique ID. However, based on the observed patterns, the following MITRE ATT&CK techniques may be applicable:",
+        "- **T1059.006** - PowerShell: If this assembly executes or injects shellcode or script code. - **T1106** - Native API: Usage of native system APIs for various capabilities. - **T1218** - Signed",
+        "Binary Proxy Execution: If legitimate executables were used for indirect execution. - **T1574.002** - DLL Side-Loading: If involving DLL manipulation or hijacking through these calls. -",
+        "**T1055** - Process Injection: If the code is intended for injecting or modifying another process.",
+        "This assembly code could potentially represent part of a broader attack requiring context to identify the exact MITRE ATT&CK technique accurately. Without details of the specific API calls",
+        "(represented here as `sub_` calls) or the context in which this code runs, precise identification is speculative. If you can provide the specific API names instead of the `sub_` functions, that",
+        "would greatly aid in narrowing down the applicable MITRE techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code snippet includes various operations and API calls that can be associated with different MITRE ATT&CK techniques. One of the notable API calls is `CreateProcessA`,",
+        "which is typically associated with process injection or creating new processes, potentially indicative of Execution techniques. Additionally, the use of `WriteFile` might indicate attempts to",
+        "write data to files, which can be related to data exfiltration or similar activities.",
+        "Based on the assembly code and API calls in the snippet, here are some possible MITRE ATT&CK techniques:",
+        "1. **T1059/Execution - Command and Scripting Interpreter**: The use of `CreateProcessA` to launch processes can fall under this category if a command or script is being executed.",
+        "2. **T1055 - Process Injection**: The code may indicate manipulation or interaction with process memory space, especially with the setup before the `CreateProcessA` call.",
+        "3. **T1105 - Ingress Tool Transfer**: If the `WriteFile` function is used to write payloads to disk.",
+        "4. **T1569.002 - Command and Scripting Interpreter: Windows Command Shell**: If `CreateProcessA` is used to execute command-line instructions.",
+        "5. **T1047 - Windows Management Instrumentation**: If the purpose of the process creation is to execute WMI commands.",
+        "Furthermore, the `WaitForSingleObject` and `CloseHandle` calls are often observed in the context of managing process execution and synchronization, which could be part of the broader execution",
+        "and system behavior organization by malware.",
+        "Unless specific indicators within the assembly code provided show otherwise, these are some generic assumptions you could make based on the function calls and flow. For exact mapping, a more",
+        "detailed contextual analysis involving the specific binary and behavioral analysis might be necessary.",
+        "Close"
+    ]
+}

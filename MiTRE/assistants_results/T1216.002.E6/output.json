@@ -1,0 +1,169 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.001",
+                "T1055.011",
+                "T1547.001",
+                "T1548.002",
+                "T1047",
+                "T1035"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1071.001",
+                "T1040.001",
+                "T1040.002",
+                "T1574.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1047.001",
+                "T1055.001",
+                "T1027",
+                "T1574.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055",
+                "T1059",
+                "T1059.003",
+                "T1106",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1059.005",
+                "T1106",
+                "T1014",
+                "T1027",
+                "T1027",
+                "T1082",
+                "T1057"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1059.005",
+                "T1055",
+                "T1574.001"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "Based on the provided x86 assembly code, the MITRE ATT&CK techniques involved are:",
+        "* **T1055.001: Process Injection:** The code uses `CreateProcessA` to launch a new process (`wscript.exe`), indicating process injection. The subsequent calls to functions retrieved via",
+        "`GetProcAddress` (likely related to thread manipulation within the created process) further strengthens this assessment.",
+        "* **T1055.011: Thread Injection:** The code attempts to get the address of `NtCreateThreadEx` from `ntdll.dll`. This strongly suggests thread injection, a more sophisticated form of process",
+        "injection. The function call `call dword ptr [ebp - 8]` after obtaining the address of `NtCreateThreadEx` is the likely point where the thread injection occurs.",
+        "* **T1547.001: Process Discovery:** The code retrieves the handle of `ntdll.dll` and `kernel32.dll` using `GetModuleHandleA`. This is consistent with process discovery to identify relevant DLLs",
+        "for further actions.",
+        "* **T1548.002: API Call Usage:** The code uses `GetModuleHandleA` and `GetProcAddress` to obtain addresses of functions dynamically, instead of directly calling them. This is indicative of API",
+        "call usage and an attempt to bypass static analysis.",
+        "* **T1047: System Services Abuse:** The use of `NtCreateThreadEx` is a system service to create a thread. While not inherently malicious, it's abused here for the purpose of injecting code.",
+        "* **T1035: DLL Hijacking:** While not explicitly stated, the use of `wscript.exe` makes DLL hijacking possible if a malicious DLL with the same name is placed within the path of `wscript.exe`.",
+        "However the code is not sufficiently complete to definitely assign this.",
+        "It's crucial to note that this analysis is based on a snippet of assembly code. A complete and static analysis would provide a higher confidence assessment of the techniques being used,",
+        "specifically uncovering what data is written to memory locations such as `0x404000`, `0x404044`, and the purpose of several of the null-calls. The strings \"ntdll.dll\", \"NtCreateThreadEx\",",
+        "\"wscript.exe\", and \"WinExec\" are strong indicators. The \"null\" calls indicate likely additional, yet unknown, actions.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, which heavily suggests interaction with external functions (indicated by numerous `call` instructions to addresses like `sub_0x000005020`, `sub_0x000005010`,",
+        "etc.), pinpointing precise MITRE ATT&CK techniques is difficult without knowing the functionality of those external functions. The code shows conditional logic and multiple function calls, but",
+        "the *purpose* of those calls is unknown.",
+        "However, we can infer some *potential* techniques based on the observable behaviors:",
+        "* **T1547.001: Data from Local System:** The code appears to read data from memory locations (`dword ptr [ebp - 4]`, `dword ptr [0x404044]`, etc.), suggesting data collection from the local",
+        "system. This is a very broad technique.",
+        "* **T1071.001: Application Layer Protocol:** The numerous calls to external functions (`sub_0x...`) strongly suggest the use of application layer protocols. Again, without knowing what those",
+        "functions do, this is a highly speculative assignment. These functions could be involved in network communication (e.g., T1040.001, T1040.002), but this is pure conjecture at this stage.",
+        "* **T1574.001: Command and Scripting Interpreter:** If any of the `sub_0x...` functions execute external commands or scripts (e.g., via a shell), this technique could be involved. This is highly",
+        "speculative.",
+        "**Important Note:** The lack of context makes it impossible to definitively assign MITRE ATT&CK techniques. The code shows actions that *could* be part of various attack techniques, but without",
+        "knowing the behavior of the external functions, these are only educated guesses. To accurately map this code to MITRE ATT&CK techniques, you need to reverse engineer or obtain the functionality",
+        "of the functions called (`sub_0x...`). A full static or dynamic analysis is required.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "Based on the provided x86 assembly code, the MITRE ATT&CK techniques involved are:",
+        "* **T1047.001 - Process Injection: Process Hollowing:** The code uses `CreateProcessA` to create a suspended process, then likely overwrites its memory with the malicious code before resuming",
+        "execution. The subsequent calls to functions obtained via `GetProcAddress` and the manipulation of process memory strongly suggest this technique. The calls to `lstrlenA` and the numerous",
+        "undefined (`(null)`) function calls after `CreateProcessA` further support this hypothesis, as they likely involve writing data to and manipulating the newly created process.",
+        "* **T1055.001 - Process Injection: Shared Libraries:** While less explicit than process hollowing, the code's use of `GetModuleHandleA` and `GetProcAddress` to obtain a function address from a",
+        "loaded module leaves open the possibility of injecting code through a shared library. If the obtained function is used to perform malicious activity within the context of the main process, this",
+        "would also apply. More information is needed about the targeted function to confirm this.",
+        "* **T1027 - Obfuscated Files or Information:** The code's use of hardcoded addresses and numerous `(null)` function calls obfuscates the intended behavior, making analysis more difficult. The",
+        "lack of clear names for many variables and functions contributes to this obfuscation.",
+        "* **T1574.001 - Side-Loading:** The use of `GetModuleHandleA` and `GetProcAddress` points towards the potential use of side-loading. If the code loads a legitimate library and then calls a",
+        "function within that library in a way not intended by the library developer (e.g., indirectly through a specially crafted function pointer), side-loading could be employed.",
+        "**Important Note:** The exact sub-techniques and the precise methods used are difficult to pinpoint definitively without more context. The \"null\" function calls indicate the presence of",
+        "additional malicious code or API calls which are not readily apparent. A full reverse engineering analysis, potentially including debugging and dynamic analysis, is needed to determine the full",
+        "extent of the malicious activities. The analysis above is based solely on the assembly code provided and its likely use of several standard Windows APIs.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you've provided involves multiple MITRE ATT&CK techniques. Here's an analysis of some key techniques based on the operations observed:",
+        "1. **Process Injection**: - The code calls `NtCreateThreadEx` to create a thread in another process, which is a known technique for process injection. - MITRE ATT&CK ID for Process Injection is",
+        "T1055. 2. **Create or Modify System Process**: - The code uses `CreateProcessA` to launch another process (in this case, \"wscript.exe\"). - This can be associated with process creation",
+        "manipulation. - MITRE ATT&CK ID for this activity is T1059.",
+        "3. **Dynamic Resolution of API Functions**: - The code dynamically retrieves the addresses of functions like `NtCreateThreadEx` and `WinExec` using `GetProcAddress`. - This is associated with",
+        "API function resolution, a sub-technique of dynamic API calls. - MITRE ATT&CK ID for this is T1059.003 (OS Credential Dumping: API).",
+        "4. **Execution through API**: - The use of functions such as `WinExec` can be associated with executing processes through API calls. - MITRE ATT&CK ID for this is T1106.",
+        "5. **Indirect Command Execution**: - By pushing commands to execute processes indirectly (ex: `wscript.exe`), it is executing commands via other processes. - Related MITRE ATT&CK technique is",
+        "T1059.003 (Command and Scripting Interpreter: Windows Command Shell).",
+        "The provided code seems to embody multiple techniques for stealth and persistence, attempting code injection, process creation, and execution via API calls. Be aware that these types of",
+        "activities, especially in combination, are often hallmarks of malicious behavior.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "To analyze the given assembly code and identify possible MITRE ATT&CK techniques, we need to understand the operations being performed. Let's break down the code:",
+        "1. **Function Prologue and Local Variable Setup:** - The function saves `ebp` and prepares the stack for local variables (common function setup).",
+        "2. **API Calls and Function Calls:** - The code uses several `call` instructions to call what appear to be subroutines and APIs. - Specific addresses (e.g., `0x403000`, `0x404000`) are pushed to",
+        "the stack, likely passing arguments/parameters.",
+        "3. **Conditional Branching and Checks:** - The program makes comparisons (e.g., `cmp` and `jne`/`jmp` commands). - There are checks on success or failure, with error handling by manipulating",
+        "`eax`.",
+        "4. **Memory and Register Handling:** - There are several operations that read from and write to addresses and registers. - Potentially involves setting up and using memory structures.",
+        "5. **API Call Functionality:** - The named function calls (e.g., `sub_0x000005020`) are crucial in understanding what the program does. - Without specifics, it's speculative; they could involve",
+        "various interaction methods with the underlying operating system or processes.",
+        "### Possible MITRE ATT&CK Techniques:",
+        "Given that we have incomplete information about what each subroutine does, the following are potential techniques based on common patterns:",
+        "- **T1055 - Process Injection:** - The code could be performing various forms of process injection, given it makes several calls, manipulates memory, and potentially interacts with other",
+        "processes.",
+        "- **T1059.005 - Command and Scripting Interpreter: Visual Basic:** - If some of these functions are wrapping command execution or script engine functionalities.",
+        "- **T1106 - Native API:** - Since there are API calls that are not specified here but hinted at, this could involve the Native API to perform system-level or process-related operations.",
+        "- **T1014 - Rootkit:** - Due to the potential manipulation of low-level operations, if the behavior is intact with stealth or hooking techniques.",
+        "- **T1027 - Obfuscated Files or Information:** - If the routine involves packing, encrypting, or encoding to mask intent.",
+        "Without more semantic understanding or knowledge of specific lower-level API calls/subroutine implementations, these are speculative and broad categorizations based on observed patterns in",
+        "assembly:",
+        "- **T1027 - Obfuscation for using indirect calls.** - **T1082 - System Information Discovery if calls involve querying system info.** - **T1057 - Process Discovery if interacting with",
+        "processes.**",
+        "It's critical for accurate techniques identification to understand the exact behavior of each custom `sub_*` function call in relation to system API functionality.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code showcases various techniques that align with different MITRE ATT&CK techniques. Here's a breakdown of the relevant techniques identified in the code:",
+        "1. **Dynamic Link Library (DLL) Injection** - The code uses `GetProcAddress` and `GetModuleHandleA` to locate and execute functions within another process. This behavior aligns with: -",
+        "**T1055.001 - Process Injection: Dynamic-link Library Injection**",
+        "2. **Process Creation** - The use of `CreateProcessA` to spawn a new process or execute a program can be associated with: - **T1059.005 - Command and Scripting Interpreter: Visual Basic**",
+        "3. **Process Injection** - The repeated `call` instructions using indirect pointers `(null)` suggest process injection techniques, often used to manipulate or execute code in the context of",
+        "another process: - **T1055 - Process Injection**",
+        "4. **Load Modules** - The use of `GetModuleHandleA` and `GetProcAddress` retrieve handles and addresses of functions within a loaded module: - **T1574.001 - Hijack Execution Flow: DLL Search",
+        "Order Hijacking**",
+        "Given this assembly snippet, the outlined procedures provide insights into potential adversarial behaviors based on context and usage patterns in the code. However, exact mappings may vary based",
+        "on specific details and intentions within a full program context.",
+        "Close"
+    ]
+}

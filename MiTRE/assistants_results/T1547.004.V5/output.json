@@ -1,0 +1,143 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1012.002",
+                "T1005",
+                "T1112",
+                "T1547.001",
+                "T1012.002"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1059.002",
+                "T1071.001",
+                "T1547.001",
+                "T1550.002"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1112.002",
+                "T1112.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1059",
+                "T1041",
+                "T1071",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547",
+                "T1547.001",
+                "T1547.001",
+                "T1112",
+                "T1112"
+            ],
+            "valid": [
+                "T1547",
+                "T1547.001",
+                "T1547.001",
+                "T1547"
+            ]
+        }
+    },
+    "gemini": [
+        "The provided assembly code performs registry manipulation to set a value. Based on this, the associated MITRE ATT&CK techniques are:",
+        "* **T1012.002: Registry Run Keys / RunOnce:** The code opens the `Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon` registry key. While it doesn't directly modify Run or RunOnce keys, the",
+        "path suggests an attempt to modify a key frequently targeted for persistence. The `Notify` value name further strengthens this suspicion. This is not definitive without knowing the content of",
+        "`sub_0x00000040A`, but is a strong indicator.",
+        "* **T1005:001: Data Encrypted for Network Communication:** Though not explicitly shown, it's plausible the `sub_0x00000040A` subroutine might perform some kind of encryption to protect the data",
+        "before writing it to the registry. This is speculative without more context, but a common tactic.",
+        "* **T1112: Modify Registry:** This is directly evident from the use of `RegOpenKeyExA` and `RegSetValueExA` functions to manipulate the registry. The code is clearly altering the registry",
+        "settings.",
+        "* **T1547.001: Registry Key Run:** Similar to T1012.002, this is also a possibility depending on what `sub_0x00000040A` does. If it modifies a run key, this would be appropriate.",
+        "It is important to note that `sub_0x00000040A` is a crucial missing piece. Its function significantly affects the accuracy of the technique mapping. If it handles encryption, performs network",
+        "communication, or retrieves/generates malicious data, additional techniques would apply. The analysis is limited due to this unknown subroutine.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows a function that makes several function calls (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`). Without knowing the",
+        "functionality of these subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on the structure, we can make some educated guesses.",
+        "The code performs actions suggestive of several potential techniques:",
+        "* **T1059.002: Command and Scripting Interpreter:** The code calls external subroutines (`sub_0x...`). If these subroutines execute commands or scripts (e.g., via system calls or interaction",
+        "with a scripting engine), this technique would apply. This is a strong possibility given the parameters passed to some of the functions.",
+        "* **T1071.001: Application Layer Protocol:** This is a possibility if the called subroutines interact with network services or protocols. The presence of potentially network-related data within",
+        "the function arguments (`0x403000`, `0x403040`, `0x403054` could be pointers to network data, but more context is required).",
+        "* **T1547.001: Process Injection:** This is less likely based only on this code snippet. Process injection usually involves more complex manipulation of process memory and threads, which are not",
+        "directly apparent here. However, if `sub_0x000005000`, `sub_0x000005004`, or `sub_0x000005008` perform process injection, then this would apply.",
+        "* **T1550.002: Use of Native API:** The use of system calls (likely through the called subroutines) is a general technique. This is a high probability, but not particularly specific.",
+        "**Important Note:** The precise MITRE ATT&CK techniques cannot be definitively determined without knowing the functions called (`sub_0x...`). The provided assembly only shows the function calls",
+        "and their arguments; the *actual* actions performed within those subroutines are unknown and critical for accurate technique attribution. Reverse engineering of those subroutines is necessary",
+        "for a complete and accurate assessment.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code performs registry operations using the `RegOpenKeyExA` and `RegSetValueExA` functions. This strongly indicates the use of **T1112.002: Modify Registry**.",
+        "Specifically:",
+        "* **`RegOpenKeyExA`:** Attempts to open a registry key (at `0x403000`). Failure jumps to a path that sets an error code. Success continues to the next step. * **`RegSetValueExA`:** If",
+        "`RegOpenKeyExA` succeeds, this function attempts to set a value within the opened registry key. The value's name is at `0x403054`, its data is at `0x403040`, and its size is 0x12 bytes.",
+        "Therefore, the MITRE ATT&CK technique is: **T1112.002: Modify Registry**",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code appears to interact with the Windows registry, specifically targeting the Winlogon registry key, which affects user log on processes. This kind of modification is",
+        "commonly associated with persistence mechanisms used by adversaries to maintain access to a compromised system across reboots.",
+        "The relevant MITRE ATT&CK technique for this activity is:",
+        "- **T1547.001**: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder",
+        "This sub-technique involves using registry keys to execute programs during the system or user logon process. The specific section of the code where `RegOpenKeyExA` and `RegSetValueExA` are used",
+        "to write to \"Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\" suggests that this technique is being employed for persistence.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code you've provided seems to be part of a function that utilizes stack-based manipulation and makes several function calls. From this code, there are a few techniques from the",
+        "MITRE ATT&CK framework that could be associated with some common patterns in malicious software:",
+        "1. **T1055 - Process Injection**: This technique involves injecting code into another process's address space. The use of certain API calls (suggested in the provided assembly with calls to",
+        "subroutines which could potentially map to functions like `CreateRemoteThread` or `VirtualAllocEx`) may indicate an injection technique.",
+        "2. **T1059/001 - Command and Scripting Interpreter: PowerShell**: While the provided code is assembly, it's common for malware to execute scripts or shell commands. If the calls are to functions",
+        "that eventually execute shell commands, this could be relevant.",
+        "3. **T1041 - Exfiltration Over C2 Channel**: If one of the called subroutines includes network operations, such as exfiltration of data, this technique would apply.",
+        "4. **T1071 - Application Layer Protocol**: This technique relates to using standard application layer protocols for communication. If any network functionality is present in the subroutines, it",
+        "might relate to this technique.",
+        "5. **T1106 - Native API**: The code calls several library functions and APIs, which is indicative of this technique, as it uses direct API function calls to perform tasks.",
+        "Without more information about what the called subroutines (`sub_0x00000040A`, `sub_0x000005000`, etc.) do, it's challenging to map the assembly to other specific techniques accurately. If those",
+        "subroutine references correspond to functions or operations with known malicious purposes (e.g., network communication, memory conflict), more specific techniques could be identified.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet involves registry operations using Windows API functions. Specifically, the code calls `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey` to interact with",
+        "Windows Registry keys. Based on the MITRE ATT&CK framework, modifying the registry is associated with the following technique:",
+        "- **Technique ID**: T1547 - **Sub-technique ID**: T1547.001",
+        "This corresponds to:",
+        "- **T1547.001**: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder",
+        "However, since this function can generally correspond to interactions with the registry without specifically knowing the context (e.g., for persistence), a more appropriate general technique",
+        "might be:",
+        "- **Technique ID**: T1112",
+        "This corresponds to:",
+        "- **T1112**: Modify Registry",
+        "This technique is used for identifying registry manipulation tasks. The exact use would depend on the context of this code within a larger binary or malware sample.",
+        "Close"
+    ]
+}

@@ -1,0 +1,161 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1070.001",
+                "T1003.002",
+                "T1047",
+                "T1546.001",
+                "T1040.001",
+                "T1546.001"
+            ],
+            "valid": [
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.011",
+                "T1055",
+                "T1040.002",
+                "T1071.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1055.001",
+                "T1055.002",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1179",
+                "T1055.012",
+                "T1548"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1569.002",
+                "T1055",
+                "T1105"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code uses the `CreateProcessA` function to launch a new process. The command line passed to `CreateProcessA` suggests the creation of a memory dump. Let's break down the",
+        "MITRE ATT&CK techniques involved:",
+        "* **T1070.001: Indicator Removal on Host - Clear Windows Logs:** While not explicitly present in the code, the act of creating a memory dump and potentially using it to retrieve information",
+        "about running processes could be used to cover tracks related to other actions. Therefore, this is a plausible secondary technique, depending on the overall context.",
+        "* **T1003.002: System Information Discovery - Process Discovery:** The code obtains information about processes through obtaining the process ID and creating the process. However, the given code",
+        "snippet focuses on creating the process; it doesn't directly show information discovery. The inference is that the memory dump will later be used for discovery purposes. This is an indirect",
+        "association, but important to note.",
+        "* **T1047: Process Injection:** The code itself does *not* perform process injection. However, the creation of a potentially malicious process (by using `rundll32.exe` with unusual parameters)",
+        "*could* be a precursor to process injection techniques used by other malware not shown here. It is crucial to emphasize the code *itself* does not inject. This is inferential.",
+        "* **T1546.001: Data Staged:** The code creates a memory dump (\"lsass.dmp\"). The dump file is data staged for subsequent exfiltration or analysis, if the malicious actor had subsequent code to do",
+        "so. (The code only creates the process, and doesn't show the exfiltration).",
+        "* **T1040.001: Exfiltration Over C2:** Not directly present, but strongly implied. The memory dump contains sensitive information, which would likely be exfiltrated back to the attacker's",
+        "command-and-control (C2) server if this is part of a wider attack. This is a *highly inferential* association.",
+        "**Important Considerations:**",
+        "* **Context is Crucial:** The provided code snippet is only a small piece of a larger attack. The MITRE ATT&CK techniques are inferred based on what the code *does* and what it *could* be used",
+        "for. The full context (the rest of the malware) is needed for definitive attribution.",
+        "* **Inference vs. Direct Observation:** Several techniques are inferred because they are commonly associated with actions similar to those in the code. The code's functions aren't directly",
+        "performing these attacks.",
+        "In summary, while the code directly facilitates **T1546.001 (Data Staged)**, other techniques are plausible, highly probable, or implied based on the potential use of the generated memory dump.",
+        "The other listed techniques are mainly inferences related to the broader picture of potential actions of which this code is only a part. A complete picture of the malicious behavior requires",
+        "further analysis of the complete code and its environment.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, and sub_0x00000500C). Without knowing the",
+        "functionality of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code's structure and actions, we can make some educated guesses.",
+        "The most likely techniques are:",
+        "* **T1055.001: Process Injection:** The calls to `sub_0x000005000`, `sub_0x00000500C`, and potentially `sub_0x000005004` strongly suggest process injection. The code pushes addresses and values",
+        "onto the stack before these calls, indicative of passing arguments related to memory locations and data that could be used to inject code into another process. The fact that this is repeated",
+        "with different addresses strengthens this hypothesis.",
+        "* **T1055.011: DLL Injection:** This is a possible sub-technique of T1055. The data passed to the subroutines could contain DLL path information or a mechanism for loading and executing",
+        "malicious code from a DLL. However, confirmation would require analyzing the called subroutines.",
+        "* **T1040.002: Create/Modify System Process:** If the process injection attempts to alter a critical system process or create a new one, this would be relevant. This again depends on the",
+        "functionality of the called subroutines.",
+        "* **T1071.001: Application Layer Protocol:** If `sub_0x00000040A` interacts with a network, this could indicate communication to a command-and-control (C2) server. This is pure speculation",
+        "without knowing its function.",
+        "**Important Note:** The lack of context around the called subroutines makes definitive MITRE ATT&CK technique assignment impossible. The analysis above represents probable techniques *if* the",
+        "called functions perform actions consistent with the described sub-techniques. A thorough reverse engineering of the entire binary is needed for accurate categorization. The `mov dword ptr",
+        "[0x404000], 0x44` could indicate data manipulation or other preparatory actions, but isn't directly indicative of any specific technique on its own.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code shows the creation and management of a process, indicating the use of the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Create Process:** The `CreateProcessA` call directly implements this technique. The code pushes arguments for creating a new process, including command line (`lpCommandLine`),",
+        "application name (`lpApplicationName`), and other process creation parameters.",
+        "* **T1055.001: Process Injection (CreateRemoteThread):** While not explicitly shown, the presence of process creation and subsequent handle manipulation (WaitForSingleObject and CloseHandle)",
+        "*suggests* the possibility of Process Injection via CreateRemoteThread. This is an inference; the code alone doesn't definitively prove it. More context or disassembly of `sub_0x00000040A` would",
+        "be needed to confirm.",
+        "* **T1055.002: Process Injection (QueueUserAPC):** Similarly, this is possible but not explicitly demonstrated. Further analysis is needed.",
+        "* **T1027: Obfuscated Files or Information:** The presence of the `sub_0x00000040A` function call without further detail suggests possible obfuscation. The code's functionality within this",
+        "sub-routine would determine if this is the case.",
+        "It's crucial to note that these are *potential* techniques. A definitive attribution requires deeper analysis of the function `sub_0x00000040A` and the data referenced by the various memory",
+        "addresses. The code only reveals the creation and cleanup of a process. The *purpose* of the created process remains unclear, hence the tentative association with process injection techniques.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code attempts to create a process using the `CreateProcessA` function with a command pointing to `rundll32.exe` to execute `MiniDump` from `comsvcs.dll`, targeting",
+        "`lsass.exe`. This is indicative of a technique used to create a memory dump of the LSASS process, which can be indicative of credential dumping.",
+        "The most relevant MITRE ATT&CK technique for this activity is:",
+        "- **T1003.001**: Credential Dumping: LSASS Memory",
+        "This technique is used by adversaries to obtain credentials and other sensitive information from memory, and LSASS (Local Security Authority Subsystem Service) is a common target for this kind",
+        "of attack because it handles security-related processes such as authentication.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code appears to include operations that could be indicative of several techniques commonly seen in malware and adversarial activity. Here's a breakdown of some",
+        "potential MITRE ATT&CK techniques that could be associated with this code:",
+        "1. **Process Injection** (T1055): The code is performing multiple push operations followed by calls to subroutines, which is typical of setting up arguments for APIs related to process injection",
+        "(e.g., using Windows API functions to inject code into another process).",
+        "2. **API hooking or Inline Hooking** (T1179): The series of `push` and `call` instructions might be leveraging Windows API calls to manipulate process behavior, possibly intercepting or",
+        "modifying their normal execution paths.",
+        "3. **Memory Manipulation**: - **Virtual Memory Manipulation** (T1055.012): Allocation and manipulation of memory regions, possibly using Windows API functions like `VirtualAlloc`,",
+        "`WriteProcessMemory`, etc., which could be related to injecting code into a process or modifying its memory space.",
+        "4. **Abuse Elevation Control Mechanism** (T1548): The code setup with stack management and potential API calls that could involve privilege escalation or unauthorized access to secured memory",
+        "areas.",
+        "These suggested techniques are inferred based on common patterns of assembly code used for malicious purposes. To make a definitive identification, further context on specific functions being",
+        "called, target API use, or a detailed disassembly with symbol resolution would be required.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code includes a sequence of instructions that suggest the creation and management of a process using the Windows API. Specifically, it:",
+        "- Calls the `CreateProcessA` function to start a new process. - Uses `WaitForSingleObject` to wait for the newly created process to exit. - Calls `CloseHandle` to close handles associated with",
+        "the process.",
+        "Based on these observations, the relevant MITRE ATT&CK technique is associated with process creation:",
+        "**T1059.001 - Command and Scripting Interpreter: PowerShell**",
+        "However, PowerShell is not directly involved here. The sample creates processes directly using the Windows API. Thus, a more accurate MITRE ATT&CK technique would be for using Native API for",
+        "process execution, such as:",
+        "**T1106 - Native API**",
+        "Moreover, indirect techniques like creating processes for execution purposes can map to:",
+        "**T1569.002 - System Services: Service Execution**",
+        "But specifically for this kind of manual process creation and attribute manipulation in malware or offensive security contexts:",
+        "**T1055 - Process Injection**",
+        "Considering the continuous process control with API calls, this might relate more broadly to:",
+        "**T1105 - Ingress Tool Transfer**",
+        "The initial focus remains around process creation and the handling of input/output by API as the closest representation.",
+        "Close"
+    ]
+}

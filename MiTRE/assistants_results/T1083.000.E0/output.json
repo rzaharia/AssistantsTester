@@ -1,0 +1,150 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.001",
+                "T1547.001",
+                "T1547.001",
+                "T1081",
+                "T1081",
+                "T1059.001",
+                "T1547.001",
+                "T1081"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1047.001",
+                "T1053.005",
+                "T1547.001",
+                "T1071.001",
+                "T1081",
+                "T1055.001",
+                "T1546.001",
+                "T1548.002",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.002",
+                "T1548.002",
+                "T1547.002",
+                "T1548.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1064",
+                "T1203",
+                "T1059.001",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1203",
+                "T1059"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code uses the `ShellExecuteA` function to execute a command. This indicates the following MITRE ATT&CK techniques:",
+        "* **T1059.001 - Command and Scripting Interpreter: Command Shell:** The code directly uses `cmd.exe` via `ShellExecuteA`, a common method for executing commands from a shell.",
+        "* **T1547.001 - T1547.001 - Data Staged: Staging to File System:** While not explicitly shown in the code snippet, the `lpParameters` argument (\"dir \"c:\\Program Files\\\" >> %temp%\\exported_data\")",
+        "suggests that data is being staged to the file system. The command redirects the output of `dir` to a file in the temporary directory. This is an inference based on the parameter and warrants",
+        "further investigation of the `0x403000` memory location.",
+        "* **T1081 - Command Injection (potentially):** While the provided `lpParameters` argument shows a static command, the possibility remains that this is constructed dynamically from user input",
+        "elsewhere in the program (not shown). If the `0x403000` memory address comes from user input, this would be a classic command injection scenario.",
+        "**Important Note:** The assessment of T1081 is conditional, depending on the origin of the `lpParameters` string. The presented code alone does not definitively prove command injection. Further",
+        "analysis of how `0x403000` is populated is needed to confirm.",
+        "Therefore, the MITRE ATT&CK techniques with confidence levels are:",
+        "* **T1059.001 - Command and Scripting Interpreter: Command Shell** (High Confidence) * **T1547.001 - Data Staged: Staging to File System** (Medium Confidence) * **T1081 - Command Injection**",
+        "(Low Confidence - requires further analysis)",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows a function call to `sub_0x00000040A` and then another to `sub_0x000005030`. Without knowing the functionality of these subroutines, we can only speculate",
+        "on the MITRE ATT&CK techniques involved. However, based on the general structure, we can make some educated guesses.",
+        "The initial stack frame setup (`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi`) is standard function prologue, not indicative of a specific technique. The same is",
+        "true for the epilogue.",
+        "The calls themselves are suspicious:",
+        "* **`call sub_0x00000040A`:** This could be a variety of things. Without knowing what `sub_0x00000040A` does, we cannot assign a specific MITRE technique. However, if this function performs any",
+        "sort of system call or interacts with external resources, it *could* be related to:",
+        "* **T1047.001 - Windows Management Instrumentation (WMI):** If the function interacts with WMI to perform actions such as enumeration or execution. * **T1053.005 - Scheduled Task/Job:",
+        "Creation:** If the function creates a scheduled task. * **T1547.001 - System Information Discovery:** If it gathers system information. * **T1071.001 - Application Layer Protocol:** If this",
+        "accesses a network resource using a protocol like HTTP. * **T1081 - Disabling Security Tools:** (Less likely without more context)",
+        "* **`call sub_0x000005030`:** This call pushes several addresses (`0x403000`, `0x40303c`, `0x403048`), which strongly suggests it's working with data loaded from memory. These could be function",
+        "pointers, code sections, or data structures. It's difficult to assign a specific technique without reverse engineering the subroutine. However, potential candidates, depending on the function's",
+        "action, include:",
+        "* **T1055.001 - Process Injection:** If it injects code into another process. * **T1546.001 - Data from Local System:** If it processes data from the local system. * **T1548.002 - Memory",
+        "Scraping:** If it extracts data from memory. * **T1027 - Obfuscated Files or Information:** If the data being processed is obfuscated.",
+        "**In summary:** The provided code snippet alone is insufficient to assign definite MITRE ATT&CK techniques. The calls to `sub_0x00000040A` and `sub_0x000005030` are crucial, and their",
+        "disassembly and analysis are necessary for accurate attribution. The potential techniques listed are broad possibilities based on common malicious behaviors. Further investigation is required.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code uses the `ShellExecuteA` function, indicating the use of **T1547.002: External Remote Services** and likely **T1548.002: Command and Scripting Interpreter**.",
+        "Let's break down why:",
+        "* **T1547.002: External Remote Services:** `ShellExecuteA` is a Windows API function that executes a file or opens a URL. This directly falls under the External Remote Services technique as it",
+        "interacts with an external program (the one specified by the `lpFile` argument). The adversary might use this to execute a malicious program downloaded from a remote server or to perform actions",
+        "on a remote system.",
+        "* **T1548.002: Command and Scripting Interpreter:** While not explicitly using a command interpreter like `cmd.exe` or `powershell.exe`, the `ShellExecuteA` function effectively acts as an",
+        "interpreter for the commands specified in its parameters. The parameters (`lpFile`, `lpParameters`, etc.) determine what action is taken, making it an indirect form of command execution.",
+        "**Important Note:** The exact sub-techniques and other related MITRE ATT&CK techniques would depend heavily on the contents pointed to by the memory addresses (0x40609f, 0x403000, 0x40303c,",
+        "0x403048) used as parameters in the ShellExecuteA call. Without knowing what those memory locations contain (the file path, parameters, etc.), a more precise mapping to sub-techniques is not",
+        "possible. The analysis is limited to the obvious use of `ShellExecuteA`.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code provided indicates the use of a particular technique to execute a command on the system. Specifically, the code uses the `ShellExecuteA` function to run a command via",
+        "`cmd.exe`. This is a typical method employed in various tactics to execute commands or scripts.",
+        "In the context of the MITRE ATT&CK framework, this code can be associated with the following technique:",
+        "- **T1059.003: Command and Scripting Interpreter: Windows Command Shell**",
+        "This technique is part of a common attack pattern where adversaries use system interpreters to execute commands. In this case, the Windows Command Shell (`cmd.exe`) is leveraged to execute a",
+        "command, which appears to be directing output to a file in the temporary directory.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code snippet you provided involves several operations commonly associated with certain techniques in the MITRE ATT&CK framework. It involves function calls and stack manipulation,",
+        "which could align with techniques used in malware or exploit development. However, without more context, it's challenging to link it to a specific technique definitively. Here are a few possible",
+        "MITRE ATT&CK techniques that could be related to such an assembly code:",
+        "1. **T1055: Process Injection**: The use of `call` instructions and manipulation of function arguments may indicate attempts at process injection, where code is injected into another process's",
+        "space to execute, allowing to run code in the context of another live process.",
+        "2. **T1064: Scripting**: If the code is part of a script or macro that compiles and executes other binary or shellcode, it could be relevant to scripting techniques.",
+        "3. **T1203: Exploitation for Client Execution**: If this segment of code is part of an exploit payload, which takes advantage of vulnerabilities to execute code.",
+        "4. **T1059.001: Command and Scripting Interpreter: PowerShell/Command Line**: If this assembly is transcribed from higher-level scripting or interpreter-based sequences to achieve execution flow",
+        "control.",
+        "5. **T1140: Deobfuscate/Decode Files or Information**: Sometimes, such code sequences are involved in deobfuscation routines in malware where intentionally obfuscated payloads are prepared to",
+        "execute.",
+        "The surrounding context of what this code intends to achieve (e.g., as part of an exploit, malware loader, etc.) and how it's used within a broader software or script would provide clearer",
+        "insights for assigning a precise MITRE technique.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The x86 assembly code snippet you've provided is performing actions that align with a specific MITRE ATT&CK technique. The presence of a call to the `ShellExecuteA` function is indicative of an",
+        "attempt to execute or launch a program. This aligns with process or command execution techniques which can be used by adversaries to execute code through various methods.",
+        "In this case, `ShellExecuteA` is often associated with the following MITRE ATT&CK technique:",
+        "- **T1059**: Command and Scripting Interpreter",
+        "In some contexts, depending on what is specifically being executed, it might also be associated with:",
+        "- **T1203**: Exploitation for Client Execution",
+        "Thus, the assembly code primarily aligns with the technique mentioned above. Now, if this function were specifically being used to execute a Windows command or a script, it might be more aligned",
+        "with a sub-technique involving command and scripting execution detail.",
+        "Since there is no specific sub-technique ID for `ShellExecuteA` itself, it's aligned with the basic technique of executing commands or processes, which is generally classified under T1059 in the",
+        "MITRE ATT&CK framework.",
+        "Close"
+    ]
+}

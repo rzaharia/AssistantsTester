@@ -1,0 +1,173 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1053.005",
+                "T1050.003",
+                "T1047",
+                "T1547.001",
+                "T1204.001"
+            ],
+            "valid": [
+                "T1053.005"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1548.002",
+                "T1055.001",
+                "T1071.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1071.001",
+                "T1547.001",
+                "T1003.002",
+                "T1005.002",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1105",
+                "T1053",
+                "T1055",
+                "T1059",
+                "T1205",
+                "T1055",
+                "T1059",
+                "T1105",
+                "T1053"
+            ],
+            "valid": [
+                "T1053",
+                "T1053",
+                "T1053",
+                "T1053"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1083",
+                "T1106",
+                "T1082",
+                "T1562"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1560.001",
+                "T1106",
+                "T1106",
+                "T1059",
+                "T1203",
+                "T1055",
+                "T1070.004",
+                "T1560.001",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques are associated:",
+        "* **T1053.005: Scheduled Task/Job:** The code creates a scheduled task using `schtasks`. This is evident in the string \"schtasks /create /tn \"abc\" /tr C:\\x.exe /sc ONLOGON /ru \"System\"\" written",
+        "to a batch file.",
+        "* **T1050.003: Process Injection (CreateRemoteThread):** While not explicitly using `CreateRemoteThread`, the code's use of `CreateProcessA` followed by `WaitForSingleObject` strongly suggests a",
+        "process creation technique that could be used as a precursor to other process injection methods. It's creating a process and then waiting for its completion. The subsequent cleanup of handles",
+        "could be associated with post-injection actions.",
+        "* **T1047: Windows Management Instrumentation:** While not directly visible, the use of `CreateProcessA` might be used in conjunction with WMI to create a process and execute commands on the",
+        "victim machine. Without more context, this is a possibility, but not a certain technique from the provided code snippet.",
+        "* **T1547.001: Create or Modify System Process:** The creation of a scheduled task directly manipulates system processes, even if it's not an immediate modification.",
+        "* **T1204.001: Create a Batch File:** The code creates a batch file (`example.bat`) which contains commands.",
+        "**Important Note:** The code snippet focuses on the creation and execution of a batch file containing a scheduled task command. The `CreateProcessA` call, while potentially indicative of process",
+        "injection, doesn't definitively confirm it. Further analysis would be needed to determine the exact process injection technique employed (if any). The provided information does not provide",
+        "enough context to determine whether additional techniques may be used. The code may be part of a larger attack.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet performs several actions that map to multiple MITRE ATT&CK techniques. Pinpointing the exact sub-techniques requires more context (e.g., what",
+        "`sub_0x00000040A`, `sub_0x000005000`, etc. actually do). However, based on the code's structure, we can infer some likely candidates:",
+        "* **T1547.001: Data Staged**: The code loads data from various memory addresses (e.g., `0x4030a8`, `0x4030ac`, etc.) into the stack. This suggests data is being prepared for some action,",
+        "possibly exfiltration or further processing. The numerous pushes onto the stack before calls to various subroutines are suggestive of building parameters for later use.",
+        "* **T1548.002: Process Injection:** The repeated calls to functions like `sub_0x000005018` and `sub_0x000005008` along with the manipulation of memory addresses (`0x403000`, `0x403010`,",
+        "`0x403020`, `0x403058`) strongly suggest process injection. This is especially true given the structure of passing memory addresses and potentially other data structures into those subroutines.",
+        "The addresses themselves might be handles to processes or memory regions.",
+        "* **T1055.001: Process Discovery:** While not explicitly evident, the code might be performing process discovery as a prerequisite to process injection. The loading of data at various addresses",
+        "*could* represent retrieving information about running processes, although this requires examining the code of the called subroutines.",
+        "* **T1071.001: Application Layer Protocol:** The code interacts with various addresses, possibly related to network activity. While there's no direct evidence, the possibility exists that data",
+        "is being communicated over an application layer protocol like HTTP, especially if the `sub_0x000005000`, etc. functions handle network operations. More context is definitely needed here.",
+        "**Important Note:** Without knowing the functionality of the called subroutines (`sub_0x00000040A`, `sub_0x000005000`, etc.), these are only educated guesses. A full reverse engineering of the",
+        "subroutines is necessary to assign techniques with high confidence. The code strongly suggests malicious activity, but the specifics require further analysis.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "Based on the provided assembly code, the MITRE ATT&CK techniques involved are:",
+        "* **T1071.001: Application Layer Protocol:** The code uses `CreateFileA`, `WriteFile`, and `CloseHandle` functions to interact with files, suggesting the creation or modification of files that",
+        "could be used for communication (e.g., writing to a file to communicate with a C2 server). The specific protocol would need further analysis.",
+        "* **T1547.001: Create or Modify System Process:** The code uses the `CreateProcessA` function to create a new process. This indicates an attempt to execute a process with potentially malicious",
+        "intent. The subsequent use of `WaitForSingleObject` and further `CloseHandle` calls indicates interaction with and cleanup of the created process.",
+        "* **T1003.002: OS Credential Dumping:** While not explicitly evident, the use of `CreateProcessA` might be related to this technique if the newly created process aims to dump credentials. This",
+        "would require further analysis of the code referenced at `0x4030a8` and beyond to determine the purpose of the newly created process.",
+        "* **T1005.002: Data Staged (on Host):** The file writing operations using `WriteFile` and the file deletion operation at the end `DeleteFileA` suggest this technique is present as data is being",
+        "staged in files on the local host.",
+        "* **T1027: Obfuscated Files or Information:** The use of multiple `WriteFile` calls with different offsets to files suggests an attempt to hide malicious payload within multiple small files or",
+        "to obfuscate the data. This is speculative and requires further analysis of the data written to the files.",
+        "**Important Note:** This analysis is based solely on the provided assembly code snippet. A complete understanding of the malicious activity requires a deeper analysis, including the contents of",
+        "the strings pointed to by the memory addresses (e.g., `0x403000`, `0x403010`, etc.), and a broader understanding of the execution environment. The specific sub-techniques and potential",
+        "additional techniques could vary based on these details.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code appears to perform a series of operations, including creating and writing to a batch file, scheduling a task using `schtasks`, executing a process, and deleting the",
+        "batch file. Based on these operations, we can associate several MITRE ATT&CK techniques with this code:",
+        "1. **File and Directory Manipulation (T1105)**: - The code uses `CreateFileA`, `WriteFile`, and `DeleteFileA` to manipulate files, specifically creating a batch file (`example.bat`), writing",
+        "commands to it, and then eventually deleting it.",
+        "2. **Scheduled Task/Job (T1053)**: - The code writes a string that schedules a task using `schtasks` to the batch file. This is indicative of using scheduled tasks to execute code during",
+        "on-logon events.",
+        "3. **Process Injection (T1055)** or **Command and Scripting Interpreter (T1059)**: - By writing a command to be executed inside a batch file, although not necessarily direct process injection,",
+        "this could relate to command execution through scripting if the batch file is executed. Alternatively, it might also be considered as execution via command-line interface.",
+        "4. **Execution (T1205)**: - The call to `CreateProcessA` suggests an execution of a process directly from within the code.",
+        "Here is a structured list of these MITRE techniques with possible interpretations considering this assembly code:",
+        "- **T1055**: Process Injection (due to potential execution of another process) - **T1059**: Command and Scripting Interpreter (execution through batch scripting) - **T1105**: Ingress Tool",
+        "Transfer (file operations like writing commands) - **T1053**: Scheduled Task/Job (using `schtasks`)",
+        "An exact association might depend on further context regarding what the `CreateProcessA` call is intended to execute, as well as how the batch file is triggered.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "This assembly code snippet contains several operations that could potentially align with MITRE ATT&CK techniques depending on the context and the specific intent of each function being called.",
+        "Without specific knowledge of the functions being called and their effects, it is difficult to provide a precise mapping to MITRE ATT&CK techniques. However, I can make some educated guesses",
+        "based on typical operations observed in this code.",
+        "1. **Process Injection (T1055)**: Some function calls seem to involve memory manipulations and could potentially be used for code injection (e.g., `call sub_0x...`). Such operations might align",
+        "with certain sub-techniques of process injection.",
+        "2. **File and Directory Discovery (T1083)** or **File/Directory Manipulation (T1106)**: If these calls are used to interact with or manipulate file systems or to perform directory enumeration,",
+        "they might align with these techniques.",
+        "3. **System Information Discovery (T1082)**: If these operations involve querying system information or interacting with system resources, they could relate to system information discovery.",
+        "4. **Defense Evasion (T1562)**: The use of certain operations or memory manipulations could be techniques intended to evade detection.",
+        "Please note, without specific knowledge of what `sub_0x...` functions do, it is speculative to accurately determine the exact methods used. If more details can be provided, or if specific",
+        "functions or their behaviors are known, I can give a more accurate mapping to the MITRE ATT&CK framework.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "This assembly code snippet includes a variety of Windows API calls that are associated with specific actions which correspond to MITRE ATT&CK techniques. Here's the breakdown and the relevant",
+        "MITRE techniques:",
+        "1. **File Creation and Writing:** - Use of the `CreateFileA`, `WriteFile`, and `CloseHandle` functions to create and write to a file, and then close it. - **MITRE Technique:** T1560.001 -",
+        "Archive Collected Data: Write to File - **MITRE Technique for File Access:** T1106 - Native API",
+        "2. **Executing a Process:** - Use of `CreateProcessA` to start a new process. - **MITRE Technique:** T1106 - Native API (Specifically, CreateProcess is generally associated with T1059 - Command",
+        "and Scripting Interpreter if used for executing commands, or T1203 - Exploitation for Client Execution if it's part of an exploit chain.)",
+        "3. **Process Synchronization:** - Use of `WaitForSingleObject` to wait for a process or thread to finish. - **MITRE Technique:** T1055 - Process Injection (Where the synchronization of process",
+        "execution might be involved, depending on the context. Generally, process synchronization is more about operational details.)",
+        "4. **File Deletion:** - Use of `DeleteFileA` to delete a file. - **MITRE Technique:** T1070.004 - Indicator Removal on Host: File Deletion",
+        "Overall, from the details in the assembly code, the two direct observable techniques are: - **File Manipulation** via the Windows API is T1560.001 (Data Staged: Local Data Staging). - **Process",
+        "Creation** is T1106 (Execution: Native API).",
+        "Please note that the exact sub-technique IDs might not always align perfectly, depending on interpretations or specific actions intended by the code. This analysis assumes typical uses of the",
+        "functions in question.",
+        "Close"
+    ]
+}

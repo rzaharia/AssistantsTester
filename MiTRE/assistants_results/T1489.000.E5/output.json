@@ -1,0 +1,144 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.005",
+                "T1059.002",
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1556",
+                "T1059.001",
+                "T1071.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.010",
+                "T1547.001",
+                "T1548.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1569.002"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1140",
+                "T1140.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code shows a function call to execute a command, likely using a system call. Let's break it down to identify the MITRE ATT&CK techniques:",
+        "* **`mov ecx, 0x40609f` `call sub_0x00000040A`**: This is a function call. The specific function (`sub_0x00000040A`) is unknown without more context (the full binary). However, the pattern",
+        "strongly suggests an attempt to perform some preparatory action before command execution. This could involve things like privilege escalation, process creation, or other actions that will give",
+        "the adversary more control over the system before the critical function call.",
+        "* **`push 5` `push 0x403000 ; \"C:\\Windows\\System32\\net.exe stop MSSQLSERVER\"` `call (null)`**: This is the core of the malicious activity. It's pushing the arguments for `net.exe stop",
+        "MSSQLSERVER` onto the stack and then calling a function (likely a system call). This is the actual command execution.",
+        "Based on this analysis, the most relevant MITRE ATT&CK techniques are:",
+        "* **T1059.005 - Command and Scripting Interpreter: PowerShell:** While the code doesn't explicitly mention PowerShell, the use of `net.exe` to stop a service is common and falls under the",
+        "general umbrella of command execution. PowerShell is not explicitly used in this case, though other scripting languages could be used instead.",
+        "* **T1059.002 - Command and Scripting Interpreter: Native API:** This is more likely to be the applicable sub-technique, as the code directly utilizes a system call instead of a higher-level",
+        "scripting language interpreter. The command execution is happening via a direct OS call.",
+        "* **T1547.001 - Command and Scripting Interpreter: System Service:** This technique aligns with the use of `net.exe` (which is a system service) to stop the MSSQLSERVER service.",
+        "**Important Note:** The lack of context around `sub_0x00000040A` and the `(null)` function call makes precise technique assignment challenging. The analysis is based solely on the provided code",
+        "snippet and the overall behavior it exhibits. A full analysis of the executable containing this code would be necessary for more accurate and complete MITRE ATT&CK mapping.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows a function call to two different subroutines (`sub_0x00000040A` and `sub_0x000005004`) with some stack manipulation for parameter passing and cleanup.",
+        "Without knowing the functionality of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. The code itself doesn't directly reveal specific malicious actions.",
+        "However, we can infer potential techniques based on the general structure:",
+        "* **T1055.001: Process Injection:** If `sub_0x00000040A` or `sub_0x000005004` involves injecting code into another process, this technique would apply. This is a common technique for malware to",
+        "evade detection. The code suggests some preparation work for this, with the stack allocation (`sub esp, 0x40`) potentially being used to hold injected code or altered process context.",
+        "* **T1556: Process Hollowing:** This technique is also a possibility, especially if the subroutines deal with replacing a legitimate process with malicious code. Again, the stack frame",
+        "allocation hints towards the potential for additional data or code.",
+        "* **T1059.001: Command and Scripting Interpreter:** The subroutine calls might execute a malicious command or script. The passed value (0x403000) to `sub_0x000005004` could point to a command",
+        "string, however without disassembling these subroutines, it cannot be confirmed.",
+        "* **T1071.001: Application Layer Protocol:** It is possible that `sub_0x00000040A` or `sub_0x000005004` interact with a network to exfiltrate data or download additional components. Without",
+        "knowing more about the called functions, it's pure conjecture.",
+        "**Important Note:** These are *potential* MITRE ATT&CK techniques. The actual techniques used depend entirely on the functionality of the two subroutines called. To accurately determine the",
+        "techniques, the code for `sub_0x00000040A` and `sub_0x000005004` must be analyzed. The provided snippet only shows setup and cleanup for function calls.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code snippet shows a function call (`call sub_0x00000040A` and a later call to `(null)`), standard function prologue and epilogue (stack frame setup and teardown), and some",
+        "argument passing. Without knowing the content of `sub_0x00000040A` and what happens at the null-call, pinpointing exact MITRE ATT&CK techniques is impossible. However, we can identify some",
+        "*potential* techniques based on the general structure:",
+        "* **T1055.001: Process Injection - CreateRemoteThread:** The call to `(null)` (possibly a null pointer dereference) *could* indicate an attempt to execute code in another process's address",
+        "space. This is speculative without the context of the null-call. This is a low confidence assumption.",
+        "* **T1055.010: Process Injection - Reflective DLL Injection:** Again, highly speculative, but the structure *could* be consistent with loading a DLL reflectively, although more information is",
+        "needed. This is a low confidence assumption.",
+        "* **T1547.001: Executable and Linker Format (ELF) file abuse:** This would only apply if the null pointer actually pointed to an ELF file that is then loaded into memory.",
+        "* **T1548.002: Exploitation for Privilege Escalation:** This is a broad technique, and the code *could* be part of a larger exploit, but we have no indication of what privileges are being",
+        "sought. This is a low confidence assumption.",
+        "**Important Note:** The lack of context severely limits the accuracy of any MITRE ATT&CK technique mapping. The code alone does not provide sufficient information to confidently assign specific",
+        "techniques. Analyzing the functions called (especially `sub_0x00000040A` and understanding the target of the null-call) is crucial for a proper assessment. Further analysis of the entire binary",
+        "is necessary.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code appears to be involved in creating and executing a command string to stop the MSSQLSERVER service via `net.exe`. This type of behavior is typically associated with",
+        "execution and privilege escalation techniques. Specifically, based on the command:",
+        "```assembly push 0x403000 ; \"C:\\Windows\\System32\\net.exe stop MSSQLSERVER\" call (null) ```",
+        "This suggests the execution of a command to stop a service, which can be considered as command-line interface execution.",
+        "In the MITRE ATT&CK framework, this behavior can be mapped to:",
+        "- **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**",
+        "Since the code also shows manipulation of processes and could imply potentially stopping or controlling services, it might also relate to:",
+        "- **T1569.002 - System Services: Service Execution**",
+        "The focus is particularly on running a command to interact with the services. Keep in mind, this is a broad categorization, as the exact sub-technique could also depend on other contextual",
+        "factors that aren't fully discernible from the given snippet alone.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code depicts a sequence of operations typically involved in setting up and cleaning up a function stack frame, as well as calling other functions. Analyzing this,",
+        "several MITRE ATT&CK techniques can be associated with different segments of the code:",
+        "1. **T1055 - Process Injection**: This technique comes into play if the `call` instructions target specific functions that are used to inject code into another process's address space (e.g., by",
+        "calling API functions such as `WriteProcessMemory`, `CreateRemoteThread`, etc.).",
+        "2. **T1027 - Obfuscated Files or Information**: The usage of stack manipulation and calling of subroutines (like `sub_0x00000040A` and `sub_0x000005004`) can be a pattern seen in code",
+        "obfuscation techniques, where instructions are not directly clear without reverse engineering.",
+        "3. **T1140 - Deobfuscate/Decode Files or Information (Sub-technique: T1140.003)**: If the called routines involve the decryption of data or unpacking of packed code, this sub-technique becomes",
+        "relevant.",
+        "In terms of specific MITRE sub-technique identifiers, however, the provided code does not inherently provide enough context, such as API system calls or explicit process/thread manipulation, to",
+        "decode precise sub-techniques like those for DLL Injection, Process Hollowing, etc. Therefore, without additional context or identification of familiar API calls, it's best inferred in the",
+        "generalized sense of process injection or obfuscation.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code you've provided is indicative of techniques often associated with function hooking and indirect function calls, which can be linked to process injection or manipulating",
+        "execution flow. While the assembly code does not provide explicit evidence of a specific MITRE ATT&CK technique, several educated guesses can be made based on common use cases of these",
+        "instructions in malicious contexts:",
+        "1. **T1055 - Process Injection**: The use of calls to specific subroutines and potential manipulation of execution flow can be associated with various process injection techniques. Specifically,",
+        "the technique allows adversaries to run arbitrary code in the address space of a separate live process, which can potentially be the case here if the sequence is part of a larger code injection",
+        "scheme.",
+        "2. **T1055.001 - Dynamic-link Library Injection**: If the subroutine being called is intended to load a DLL into a different process, it could relate to DLL injection techniques.",
+        "3. **T1106 - Execution through API**: The use of calling conventions and potentially invoking a function dynamically at runtime could represent use of APIs to execute code. This is particularly",
+        "relevant if the null call is replaced with pointer dereference to a legitimate address pointing to an API function.",
+        "These mappings are speculative and rely on the broader context in which this assembly code is being used. Each MITRE technique must be evaluated in the context of additional evidence or",
+        "surrounding activity.",
+        "Close"
+    ]
+}

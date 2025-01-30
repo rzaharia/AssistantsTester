@@ -1,0 +1,157 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1012.002",
+                "T1012.002",
+                "T1112",
+                "T1005.001",
+                "T1112",
+                "T1005.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1059.002",
+                "T1548.002"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1012.002",
+                "T1112",
+                "T1106",
+                "T1547.001",
+                "T1106",
+                "T1012.002",
+                "T1112",
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.001"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1547.012",
+                "T1012",
+                "T1112"
+            ],
+            "valid": [
+                "T1547.012"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1027.002",
+                "T1098"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1012",
+                "T1112",
+                "T1547.001",
+                "T1112"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.001"
+            ]
+        }
+    },
+    "gemini": [
+        "The provided assembly code performs registry manipulation to set a value. Specifically, it opens the `SYSTEM\\CurrentControlSet\\Control\\Lsa` registry key, and then sets the value \"Authentication",
+        "Packages\" to \"c:\\data\\my_runner.exe\". This strongly suggests the use of the following MITRE ATT&CK techniques:",
+        "* **T1012.002: Registry Run Keys / Startup Folder:** While the code doesn't directly modify startup locations, the modification of the LSA registry key is often done to achieve persistence. This",
+        "makes T1012.002 a strong candidate, though it requires further context to definitively confirm. The specific key modified affects the functionality of the LSA, so the impact is related to",
+        "persistence, but not a direct modification of startup items.",
+        "* **T1112: Modify Registry:** This is the most direct and definitive match. The code explicitly uses `RegOpenKeyExA` and `RegSetValueExA` to interact with the Windows Registry. The sub-technique",
+        "depends on the specific registry key targeted. Given that `SYSTEM\\CurrentControlSet\\Control\\Lsa` is highly sensitive, several sub-techniques could potentially apply depending on the overall",
+        "goal. Without more context, it's hard to pinpoint a specific sub-technique.",
+        "* **T1005.001: Create Account:** While not directly evident in the code, modification of the LSA key could be used in conjunction with creating a new account, to grant privilege to this new",
+        "account.",
+        "**It's important to note:** The exact sub-techniques under T1112 and the potential applicability of T1005.001 depend on the broader context of the malware and its goals. This code snippet only",
+        "shows a part of the process. A complete analysis would be required to definitively determine all applicable MITRE ATT&CK techniques and sub-techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what those",
+        "functions do, we can only speculate on the MITRE ATT&CK techniques. However, based on the structure, we can infer some possibilities:",
+        "* **T1055.001 - Process Injection:** The code's structure, especially the calls to external functions (sub_0x000005000, etc.), is suggestive of process injection. The code is passing parameters",
+        "(potentially shellcode or malicious code) to these functions, which could then execute it within another process. This is a strong possibility, but without reverse engineering the called",
+        "functions, it cannot be confirmed.",
+        "* **T1059.002 - Command and Scripting Interpreter:** If the parameters passed to the functions `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` invoke commands (e.g., via system calls",
+        "or interactions with the operating system's command interpreter), this technique would apply. Again, further analysis of the called functions is crucial.",
+        "* **T1548.002 - Abuse Elevation Control Mechanism:** The conditional jump (`je offset_0x000000477`) suggests a potential check for success or failure. If the functions being called are",
+        "attempting to gain elevated privileges, this technique could be involved. This is highly speculative without understanding the purpose of the conditional jump.",
+        "**Important Note:** These are *potential* MITRE ATT&CK techniques. To definitively determine the techniques used, a full reverse engineering of the called functions (sub_0x00000040A,",
+        "sub_0x000005000, sub_0x000005004, sub_0x000005008) is required. The provided snippet only shows the setup and flow, not the actual malicious actions. The parameters passed to the subroutines are",
+        "crucial for a more precise classification.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code shows a function that attempts to open a registry key (`RegOpenKeyExA`) and then set a value within that key (`RegSetValueExA`). If the key opening fails, it returns",
+        "0; otherwise, it returns 1. Let's break down the MITRE ATT&CK techniques involved:",
+        "* **T1012.002: Registry Run Keys / Startup Folder**: While not explicitly creating a run key, the code's interaction with the registry *could* be used to achieve persistence if `lpSubKey`",
+        "(0x403000) points to a location associated with startup or run keys. This is *conditional* upon the value of `lpSubKey`. We cannot definitively say this technique is used without knowing the",
+        "value at memory address `0x403000`.",
+        "* **T1112: Registry Key Run and Userinit**: Similar to the above, depending on the `lpSubKey` value, this technique could be applicable. Again, this is conditional.",
+        "* **T1106: Native API**: The code directly uses the Windows API functions `RegOpenKeyExA` and `RegSetValueExA` to interact with the Windows Registry. This is a clear indicator of this technique.",
+        "* **T1547.001: Boot or Logon Autostart Execution**: If `lpSubKey` points to a location allowing autostart execution on boot or login, this technique would apply. Again this is conditional.",
+        "**In summary:** The strongest and most certain MITRE technique mapping is **T1106: Native API**. The others (T1012.002, T1112, T1547.001) are *potential* techniques that *might* be used",
+        "depending on the content of the memory location pointed to by `0x403000`. Without more information about that memory address, we cannot definitively include them. The code itself does not",
+        "directly show evidence of persistence being established, only an attempt to modify the registry.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The x86 assembly code you provided interacts with the Windows Registry. Specifically, it performs operations such as opening a registry key, setting a registry value, and closing the registry",
+        "key. These actions typically fall under the MITRE ATT&CK technique for modifying or interacting with the Windows Registry for achieving persistence or executing malicious configuration changes.",
+        "The appropriate MITRE ATT&CK techniques and sub-techniques that relate to the provided assembly code are:",
+        "- **T1547.012**: This represents \"Registree Run Keys / Startup Folder: Authentication Packages.\" The assembly code specifically interacts with the \"SYSTEM\\CurrentControlSet\\Control\\Lsa\" registry",
+        "key and modifies the \"Authentication Packages\" value.",
+        "- **T1012**: This represents \"Query Registry,\" as the code queries the registry to decide the course of action (though more prominently it's modifying the registry).",
+        "- **T1112**: This represents \"Modify Registry,\" as the code modifies the registry by setting new values in a specific registry key.",
+        "These techniques are associated with persistence mechanisms and the modification of Registry values to achieve certain malicious goals, such as ensuring that malicious code is loaded during the",
+        "system startup or altering system security settings.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing the provided x86 assembly code, several actions and potential techniques can be inferred:",
+        "1. **Stack-based operations and function calls:** The code uses the stack for function call management (typical push/pop sequences and `call` instructions). This might relate to control flow",
+        "hijacking, stack pivoting, or reflective code loading, but without explicit malicious behavior, this alone doesn't map directly to a specific MITRE technique.",
+        "2. **Indirect function calls:** The use of `call` instructions with calculated addresses (`call sub_0x000...`) could indicate the use of dynamic linking or indirect calls, potentially",
+        "corresponding to `T1027.002 - Obfuscated Files or Information: Software Packing` if these calls are obfuscated or packed.",
+        "3. **Conditional jumps and error-checking:** `test` and `je` instructions are used to check the result of function calls and alter control flow. This is standard error-checking or branching",
+        "logic.",
+        "4. **Use of specific constants in function calls:** The `push` instructions with specific constants before `call` could indicate API calls. If these values are relating to handle manipulation or",
+        "access token changes, it could point to techniques like `T1098 - Account Manipulation`. However, without additional context on what `sub_0x000005000` or similar functions do, this can't be",
+        "definitively mapped to a specific technique.",
+        "5. **General behavior:** The code could be part of an installer or an initialization function in benign software. Without more context (e.g., what the calls resolve to, like Windows API calls),",
+        "it",
+        "If more information about the functions (e.g., if they align with process injection, registry manipulation, etc.) were provided, we could more accurately identify the MITRE techniques. As it",
+        "stands, without specific context on what APIs or system functions are being called, specific MITRE mappings based only on this disassembly are speculative.",
+        "For precise mappings, more contextual understanding of the broader application or function of this code is necessary, such as knowledge of what the functions `sub_0x000...` actually do.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code provided appears to interact with the Windows Registry using the Windows API functions `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`. This sequence of actions is often",
+        "associated with modifying system settings or maintaining persistence. In the context of the MITRE ATT&CK framework, this behavior corresponds to accessing the Windows Registry.",
+        "Here is the relevant MITRE technique based on the actions depicted in the assembly code:",
+        "- **Tactic**: Persistence or Defense Evasion - **Technique**: Registry Modification - **Sub-technique**: Registry Key/Value Modification",
+        "The MITRE ATT&CK ID for modifying registry keys/values is:",
+        "- **T1547.001**: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder",
+        "Although this assembly code does not directly show persistence mechanisms using Run Keys, it demonstrates general registry modification typically associated with `T1012: Query Registry` or",
+        "`T1112: Modify Registry`. Depending on the broader context in which this code is used, particularly if this modifies start-up or configuration settings, it could align with `T1547.001`.",
+        "Therefore, the most fitting classification, if assuming persistence, would be:",
+        "- **T1112**: Modify Registry",
+        "However, without specific context (e.g., the values or keys being indicative of persistence), it strictly relates to registry modifications.",
+        "Close"
+    ]
+}

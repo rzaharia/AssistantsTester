@@ -1,0 +1,161 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1053.005",
+                "T1543.001",
+                "T1543.001",
+                "T1547.001",
+                "T1053.005"
+            ],
+            "valid": [
+                "T1053.005",
+                "T1053.005"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.005",
+                "T1547.001",
+                "T1543.002"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1547",
+                "T1059.005",
+                "T1057",
+                "T1060.002",
+                "T1059",
+                "T1059.002",
+                "T1059.004"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1053.005",
+                "T1106",
+                "T1055.001",
+                "T1569.002",
+                "T1021.001"
+            ],
+            "valid": [
+                "T1053.005"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1012",
+                "T1007"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1543",
+                "T1543.003",
+                "T1106",
+                "T1059",
+                "T1057",
+                "T1203",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code uses the `CreateProcessA` function to launch a new process. This process is configured to run a scheduled task (`schtasks`) which creates a persistent backdoor. The",
+        "code then waits for the process to finish and closes handles. Based on this, the MITRE ATT&CK techniques involved are:",
+        "* **T1547.001: Scheduled Task/Job:** The code explicitly uses `schtasks` to create a scheduled task, indicating the use of this technique to achieve persistence.",
+        "* **T1053.005: Scheduled Task/Job - Create or Modify:** This sub-technique is also relevant as the code creates a new scheduled task.",
+        "* **T1543.001: Create or Modify System Process:** While not directly creating a *system* process, it uses `CreateProcessA` to create a process which then creates the scheduled task which will",
+        "run with elevated privileges. The ambiguity makes a more specific subtechnique difficult to definitively assign.",
+        "It's important to note that `T1543.001` might be considered less certain than `T1547.001` and `T1053.005`. The primary action is creating a scheduled task; the system process creation is an",
+        "indirect consequence. The `sub_0x00000040A` call is not defined, preventing a more granular assessment of other potential techniques it might employ (e.g., code obfuscation, data manipulation",
+        "etc.)",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet shows a function that makes several function calls (`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`). Without knowing the",
+        "functionality of these subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the structure, some possible techniques are:",
+        "* **T1055.001 - Process Injection:** The code performs several function calls with parameters that look like handles or addresses, which is a common characteristic of process injection",
+        "techniques. The `sub_0x000005004` call, in particular, with numerous pushed arguments, is suspicious. This is a strong candidate if the subroutines perform code injection or process creation.",
+        "* **T1055.005 - DLL Injection:** Similar to process injection, if the called functions load and execute code from a DLL, this would fall under this sub-technique. Again, this requires further",
+        "knowledge about the called subroutines.",
+        "* **T1547.001 - Remote Services:** If `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` represent calls to remote services or APIs, which is plausible, this would be another possible",
+        "technique.",
+        "* **T1543.002 - Create or Modify System Process:** This is plausible if the function calls create or modify processes.",
+        "**Important Note:** These are *potential* MITRE ATT&CK techniques. To accurately determine the techniques, we need the decompiled C/C++ code (or at least the functionality of the `sub_xxxx`",
+        "functions) to understand what actions those functions actually perform. The assembly alone is not sufficient for a definitive mapping. The presence of memory addresses (`0x404000`, `0x404044`,",
+        "etc.) also suggests potential memory manipulation, which can be used in several techniques, but again, requires further analysis.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the creation and management of a process, strongly suggesting the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Create Process with Modified Environment:** While the code doesn't explicitly modify the environment, the `CreateProcessA` call with a null pointer for `lpEnvironment` could be",
+        "interpreted as implicitly modifying the environment by not inheriting the current one. This is a subtle point and might not be definitively categorized as this sub-technique without more",
+        "context.",
+        "* **T1547: Create Process:** The `CreateProcessA` function call directly implements this technique. The code creates a new process. This is a clear and unambiguous match.",
+        "* **T1059.005: Command and Scripting Interpreter:** The code likely uses a command-line to launch the new process (`lpCommandLine`). While we don't see the command itself, the mechanism strongly",
+        "implies this.",
+        "* **T1057: Process Discovery:** The code uses `WaitForSingleObject` and `CloseHandle` to manage the created process and handle, indicating interaction with process information, which is implicit",
+        "within process discovery.",
+        "* **T1060.002: Native API:** The code uses the `CreateProcessA`, `WaitForSingleObject`, and `CloseHandle` functions, which are all native Windows APIs.",
+        "**Important Note:** The lack of the actual command line string (`lpCommandLine` points to a memory location, 0x403000) makes definitive assignment of some techniques more challenging. More",
+        "context is needed to further refine this analysis. The sub-technique for T1059 could be more specific if the contents of `lpCommandLine` were known. For instance, it could be T1059.002",
+        "(PowerShell), T1059.004 (Windows Scripting Host), or others, depending on the command.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code snippet appears to employ several techniques that are commonly associated with malicious behavior. Here are the relevant MITRE ATT&CK techniques that can be inferred",
+        "from the code:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The code contains a command line that uses \"cmd /c\" to execute the `schtasks` command, which is a method of",
+        "interacting with the Windows Command Shell.",
+        "2. **T1053.005 - Scheduled Task/Job: Scheduled Task**: The code is using the `schtasks` utility to create a scheduled task, which is a common technique for persistence.",
+        "3. **T1106 - Execution: Native API**: The use of `CreateProcessA` indicates the use of Windows API for process creation.",
+        "4. **T1055.001 - Process Injection: Dynamic-link Library Injection**: Although not directly observable in this code snippet, techniques like creating processes with specific attributes (possibly",
+        "loaded DLLs) and interacting with handles could imply a setup for process injection or DLL injection, but would require more context to confirm.",
+        "5. **T1569.002 - System Services: Service Execution**: By creating a scheduled task that runs with the \"System\" user, the code is leveraging system services for execution.",
+        "6. **T1021.001 - Remote Services: Remote Desktop Protocol**: If more context were given, such as network services being invoked in a manner resembling remote access, it could be included here.",
+        "However, the code snippet doesn't give explicit enough evidence for this technique alone.",
+        "The code shows an intention to execute a program (`C:\\x.exe`) as a scheduled task using high privileges (\"System\") which aligns with persistence and privilege escalation tactics. Additionally,",
+        "by using API calls such as `CreateProcessA`, `WaitForSingleObject`, and `CloseHandle`, the code demonstrates typical behavior seen in malware for creating and managing processes.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code appears to interact with memory and possibly perform actions related to process or thread handling. Without specific context or additional information, it can be",
+        "challenging to identify exactly which MITRE ATT&CK techniques are involved. However, we can infer the possible technique based on common patterns observed in assembly code.",
+        "1. **Process Injection** might be suggested if any of the functions being called are related to manipulating other processes' memory, which is not explicitly visible here but is a common",
+        "technique when similar patterns of memory manipulation and function calls are apparent. - **MITRE Technique**: T1055 - Process Injection",
+        "2. **Query Registry** or access to specific memory locations might suggest attempts to stealthily gather information or manipulate system settings. - **MITRE Technique**: T1012 - Query Registry",
+        "3. **System Service Discovery** if the addresses or functions relate to retrieving system information. - **MITRE Technique**: T1007 - System Service Discovery",
+        "Though without precise knowledge of what `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` do, and without knowing what memory addresses like `0x404000` and",
+        "`0x404044` refer to, assumptions have to be theoretical.",
+        "To gain more accurate identification, an analysis of the subroutines and memory contents would be necessary. The assembly code does not explicitly show known API calls or actions directly",
+        "indicative of specific MITRE techniques without further context.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code appears to be assembling a process, executing it, and handling its cleanup. Here's a breakdown of the relevant MITRE ATT&CK techniques related to this sequence of",
+        "actions:",
+        "1. **Process Injection (T1055)**: Some of the code seems to be setting up for process interaction, although it doesn't clearly show injection here, but it could be a sub-technique depending on",
+        "the context. If this code were being run in the context of code being injected into another process, this technique might apply.",
+        "2. **Create or Modify System Process (T1543)**, specifically: - **Sub-technique T1543.003: Windows Service** - if this functionality is setting up a persistent service.",
+        "3. **Execution through API (T1106)**: - The call to `CreateProcessA` is a clear indicator of using a Windows API function to create a new process, which aligns with this technique.",
+        "4. **Command and Scripting Interpreter (T1059)**: - This may also apply if the `lpCommandLine` argument involves a shell command or script execution.",
+        "5. **Process Discovery (T1057)**: - Indirectly related, as part of process management, not explicitly shown to be discovery in this snippet unless it queries other processes.",
+        "6. **Indirect Command Execution (T1203)**: - This could be related if the details in `lpCommandLine` involve indirect execution of other programs or commands.",
+        "Given the specific assembly snippet: - The most directly applicable technique is **T1106: Execution through API**, given the use of `CreateProcessA` to start a process. If there are additional",
+        "operations being performed by `sub_0x00000040A`, it may align with different techniques or sub-techniques. Additional context on the arguments to functions like `CreateProcessA` or the broader",
+        "context of what specific processes or commands are being executed would be needed to refine this further.",
+        "Close"
+    ]
+}
