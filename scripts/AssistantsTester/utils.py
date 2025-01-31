@@ -190,14 +190,29 @@ def do_statistics_run_1(assistants_out):
     print(f'Total problems: {total_problems}')
     for assistant, solves in solves_by_assistant.items():
         print(f'\t{assistant} solves: {solves}/{total_problems}')
-    print(f'Unique problems: {len(unique_techniques)}')
+    print(f'Total techniques: {len(unique_techniques)}')
     empty_unique_techniques = []
+    at_least_one_technique = 0
+    both_technique = 0
+    technique_by_model = {}
     for problem in unique_techniques.items():
         if len(problem[1]) == 0:
             empty_unique_techniques.append(problem[0])
         else:
+            for model in problem[1]:
+                if model not in technique_by_model:
+                    technique_by_model[model] = []
+                technique_by_model[model].append(problem[0])
+            if len(problem[1]) >= 1:
+                at_least_one_technique += 1
+            if len(problem[1]) == 2:
+                both_technique += 1
             print(f'\t{problem[0]}: {problem[1]}')
-    print('\tEmpty techniques: {}'.format(empty_unique_techniques))
+    print('\t{} empty techniques: {}'.format(len(empty_unique_techniques), empty_unique_techniques))
+    print(f'\tAt least one technique: {at_least_one_technique}')
+    print(f'\tBoth models: {both_technique}')
+    for model, tactics in technique_by_model.items():
+        print(f'\t{model} has {len(tactics)}')
     common_problems = {}
     problems_at_least_one = set()
     for problem in problems_statistics.items():

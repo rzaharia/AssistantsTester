@@ -330,10 +330,31 @@ def do_statistics():
         utils.do_statistics_run_1(assistants_out)
 
 
+def delete_assistant_results(assistant_name, suffix=''):
+    answer = input(f'Are you sure you want to delete {assistant_name}{suffix}? Enter \'y\' for yes: ')
+    if answer != 'y':
+        print('\'y\' not found, will not delete!')
+        return
+    current_assistant_out = assistants_out
+    for file in os.listdir(binaries_out):
+        file_location = os.path.join(binaries_out, file)
+        if not os.path.isfile(file_location):
+            continue
+        problem_folder = os.path.join(current_assistant_out, file)
+        if not os.path.exists(problem_folder):
+            continue
+        out_file_name = f'{file}.{assistant_name}{suffix}.gview'
+        gview_out_file = os.path.join(problem_folder, out_file_name)
+        if not os.path.exists(gview_out_file):
+            continue
+        os.remove(gview_out_file)
+        print(f'Removed file: {gview_out_file}')
+
+
 def main():
     print('Starting RUN ' + str(CURRENT_RUN))
-    suffix = ''
-    # suffix = '_no_imports_no_strings'
+    # suffix = ''
+    suffix = '_no_imports_no_strings'
     # suffix = '_yes_imports_no_strings'
     print('Suffix: ' + suffix)
     # collect_binaries()
@@ -342,6 +363,9 @@ def main():
     # process_assistants_output()
     # vote_best_assistant()
     do_statistics()
+
+    # utils
+    # delete_assistant_results('gemini', suffix)
     pass
 
 
