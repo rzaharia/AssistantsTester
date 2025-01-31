@@ -241,12 +241,25 @@ def do_statistics_run_1(assistants_out):
         for problem in problem_data:
             print('\t\t', problem)
     print('All problems: ')
+    techniques_by_full_model = {}
+    techniques_missed_full_model = {}
     for problem_name, problem_data in problems_statistics.items():
         data_string = ''
         for index, (assistant_name, assistant_value) in enumerate(problem_data.items()):
             assistant_value = int(assistant_value)
+            if assistant_value > 0:
+                if assistant_name not in techniques_by_full_model:
+                    techniques_by_full_model[assistant_name] = []
+                techniques_by_full_model[assistant_name].append(problem_name)
+            else:
+                if assistant_name not in techniques_missed_full_model:
+                    techniques_missed_full_model[assistant_name] = []
+                techniques_missed_full_model[assistant_name].append(problem_name)
             data_string += f'{assistant_name}: {assistant_value}'
             if index < len(problem_data) - 1:
                 data_string += ','
             data_string += ' '
         print(f'\t{problem_name}: {data_string}')
+    for model, techniques in techniques_by_full_model.items():
+        print(f'Model {model}: ')
+        print('\t' + ', '.join(techniques))

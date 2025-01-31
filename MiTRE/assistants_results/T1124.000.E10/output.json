@@ -15,20 +15,19 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1055.002",
-                "T1055.012",
-                "T1546.003",
-                "T1574.001"
+                "T1055.014",
+                "T1059.002",
+                "T1547.001"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1574.001",
+                "T1574.002",
+                "T1548.002",
                 "T1550.002",
-                "T1566.002",
-                "T1550.002",
-                "T1055.001"
+                "T1566.001"
             ],
             "valid": []
         },
@@ -76,36 +75,35 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function call to two other functions (`sub_0x00000040A` and `sub_0x000005004`). Without knowing the content of those functions, we can only speculate",
-        "on the MITRE ATT&CK techniques involved. The code itself primarily demonstrates standard function prologue/epilogue and stack manipulation. Therefore, we cannot definitively assign specific",
-        "techniques. However, we can suggest *possible* techniques based on common patterns:",
-        "* **T1055.001: Process Injection - CreateRemoteThread:** If `sub_0x00000040A` or `sub_0x000005004` creates a thread in another process, this technique might be used. This is highly speculative",
-        "without further analysis of the called functions.",
-        "* **T1055.002: Process Injection - QueueUserAPC:** Similar to above, this is a possibility if the called functions employ this method.",
-        "* **T1055.012: Process Injection - Reflective DLL Injection:** Again, only a possibility if the called functions implement reflective DLL injection.",
-        "* **T1546.003: Shared Libraries - Shared Libraries:** Depending on what those functions perform, they could potentially use or load shared libraries.",
-        "* **T1574.001: Exfiltration Over C2:** If the called functions perform network communication (e.g., sending data to a command-and-control server), exfiltration might be involved.",
-        "**In summary:** The provided code alone is insufficient to definitively identify any MITRE ATT&CK techniques. The called functions (`sub_0x00000040A` and `sub_0x000005004`) must be analyzed to",
-        "determine the actual techniques used. The techniques listed above are purely *potential* candidates based on the possibility of malicious actions within the unprovided functions. More code",
-        "context is needed for a precise mapping.",
+        "The provided assembly code snippet shows a function call to two other functions (`sub_0x00000040A` and `sub_0x000005004`). Without knowing the contents of these subroutines, we can only",
+        "speculate on the MITRE ATT&CK techniques involved. The code itself demonstrates standard function prologue and epilogue, and some parameter passing. This is not enough to definitively map to",
+        "specific MITRE techniques.",
+        "However, we can make some *potential* associations based on common practices:",
+        "* **T1055.001 - Process Injection:** If `sub_0x00000040A` or `sub_0x000005004` perform process injection (e.g., injecting code into another process), this technique would apply. The `call`",
+        "instructions are the strongest indicators of this possibility. The addresses themselves are not enough for concrete assignment.",
+        "* **T1055.014 - DLL Injection:** A similar argument applies. If the called subroutines load and execute a DLL in another process this would be the appropriate technique.",
+        "* **T1059.002 - Shellcode Execution:** If the subroutines involve executing shellcode, this would be appropriate. Again, this requires knowing the content of the called functions.",
+        "* **T1547.001 - Remote Services:** A remote call is possible if `sub_0x00000040A` or `sub_0x000005004` communicate with a remote server.",
+        "**In summary:** Without reverse-engineering `sub_0x00000040A` and `sub_0x000005004`, we *cannot* definitively assign MITRE ATT&CK techniques. The assembly code only shows the setup for function",
+        "calls, not the actions performed within those functions. The possibilities listed above are purely speculative based on the *potential* actions of these unknown subroutines. Further analysis of",
+        "the called functions is required.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code snippet shows a function call (`call sub_0x00000040A`) and another call to a null address (`call (null)`). This strongly suggests the use of **indirect function",
-        "calls**, which can be used for several malicious purposes. Additionally, the stack manipulation and function calls are typical of procedures that might be used in other techniques.",
-        "Therefore, based solely on this code, a reasonable MITRE ATT&CK association is:",
-        "* **T1574.001: Bypass User Account Control (UAC): Forced Autologon** This is speculative, as the code doesn't directly show UAC bypass, but indirect calls are often employed to load and execute",
-        "malicious code (which *might* involve UAC bypass). The null call might indicate a failure to resolve a library or function, which is also indicative of a lack of expected privileges or sandboxed",
-        "execution environment and could lead to lateral movement via alternative means (e.g., T1550.002: Use Alternate Authentication Material) Therefore this technique could be a potential secondary",
-        "technique as a consequence.",
-        "* **T1566.002: External Proxy:** Using an external proxy to evade detection requires indirect calls. Again, speculative, but the lack of clarity in the `sub_0x00000040A` function makes this a",
-        "possibility, as this could be a proxy communication.",
-        "* **T1550.002: Use Alternate Authentication Material:** If the indirect calls are used to fetch credentials or tokens from other sources this would fit.",
-        "* **T1055.001: Process Injection:** If `sub_0x00000040A` loads and executes shellcode in another process, that would constitute process injection. (However, this is highly speculative based only",
-        "on the limited code provided.)",
-        "It's crucial to understand that **without further context or analysis of the functions called (particularly `sub_0x00000040A`), these MITRE technique assignments are highly speculative.** The",
-        "code only shows the structure of a function; it does not reveal the purpose or malicious intent. A much more comprehensive analysis, including the disassembly of the called functions, would be",
-        "needed to accurately identify the techniques employed.",
+        "The provided assembly code snippet shows a function call (`call sub_0x00000040A`) followed by another function call to a null address (`call (null)`). This points to potential exploitation",
+        "scenarios, but without knowing the contents of `sub_0x00000040A` we can only speculate on the precise MITRE ATT&CK techniques.",
+        "However, based on the structure, we can suggest some *potential* MITRE ATT&CK techniques:",
+        "* **T1574.001: External Remote Services:** If `sub_0x00000040A` and/or the null-pointer call resolve to network communication, this technique would apply. The code establishes a function call",
+        "which is likely making a connection to an external service.",
+        "* **T1574.002: External Remote Services (Command and Control):** Similar to above, if the function call leads to communication with a Command and Control (C2) server, this would be more",
+        "specific. This would heavily depend on the specifics of `sub_0x00000040A`.",
+        "* **T1548.002: Abuse Elevation Control Mechanism:** The `call (null)` could be part of a return-oriented programming (ROP) attack exploiting a vulnerability to gain elevated privileges, although",
+        "this is heavily speculative without more context.",
+        "* **T1550.002: Use Alternate Authentication Material:** Depending on what `sub_0x00000040A` does, it *might* be attempting to use stolen credentials or other alternative authentication methods.",
+        "* **T1566.001: External Proxy:** If the call goes through a proxy, which is possible with network communication.",
+        "**Important Disclaimer:** These are only *potential* MITRE ATT&CK mappings. The actual techniques employed depend entirely on the functionality of `sub_0x00000040A` and the target system. The",
+        "code itself only shows a function call",
+        "needs to be determined. A full reverse engineering analysis would be required.",
         "Close"
     ],
     "gpt4o": [

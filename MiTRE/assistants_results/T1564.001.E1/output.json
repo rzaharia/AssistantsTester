@@ -11,19 +11,20 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
+                "T1071.001",
+                "T1547.001",
+                "T1548.002",
                 "T1053.005",
-                "T1055.001",
-                "T1027.001",
-                "T1566.002"
+                "T1060.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1059.005",
-                "T1053.005",
-                "T1543.001"
+                "T1055.005",
+                "T1056.001",
+                "T1070.001"
             ],
             "valid": []
         },
@@ -69,36 +70,37 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet doesn't definitively point to specific MITRE ATT&CK techniques without more context (e.g., what `sub_0x00000040A` and `sub_0x000005004`, `sub_0x000005000`,",
-        "`sub_0x00000500C` do). However, we can infer some *possible* techniques based on the observed actions:",
-        "* **T1053.005 - Scheduled Task/Job:** The code calls functions (`sub_0x000005004`, etc.) with multiple parameters. If these functions interact with the operating system to create or modify",
-        "scheduled tasks, this technique would apply. The parameters passed (especially `0x8000000` and memory addresses) suggest potential configuration data for a task. This is purely speculative",
-        "without knowing the called functions' behavior.",
-        "* **T1055.001 - Process Injection:** The repeated calls to `sub_0x000005000` and `sub_0x00000500C` with memory addresses (`0x404044`, `0x404048`) as arguments strongly suggest potential process",
-        "injection. The functions might be injecting code or manipulating the memory space of another process. Again, this is highly speculative without knowing the function's implementation.",
-        "* **T1027.001 - Obfuscated Files or Information:** The use of numerous function calls with seemingly arbitrary addresses (`sub_0x...`) hints at obfuscation attempts to hide the true",
-        "functionality. This makes reverse-engineering more challenging.",
-        "* **T1566.002 - External Proxy:** The code might utilize a proxy (through network requests contained within the unknown functions) to communicate with a Command and Control (C2) server. But this",
-        "is just a possibility, a very weak one at that.",
-        "**Important Note:** These are *potential* MITRE ATT&CK techniques based on limited information. To definitively map the code to specific techniques, a full reverse-engineering analysis of the",
-        "called functions (`sub_0x...`) is necessary. The lack of information on those functions prevents precise mapping. The techniques listed above should be considered as *possible* mappings based on",
-        "*suspicious* code patterns, not as definitive attributions.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, and sub_0x00000500C). Without knowing the",
+        "functionality of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the structure, we can infer some possibilities.",
+        "The code strongly suggests **data manipulation** and likely **execution of external code** or **system calls**.",
+        "Possible MITRE ATT&CK Techniques (speculative, requires more context):",
+        "* **T1071.001: Command and Scripting Interpreter:** If `sub_0x000005004`, `sub_0x000005000`, or `sub_0x00000500C` execute commands through a scripting interpreter (e.g., PowerShell, cmd.exe),",
+        "this technique would apply. The pushing of numerous arguments suggests parameters being passed to such a command.",
+        "* **T1547.001: Process Injection (using a reflective loader or other):** If one of the called subroutines injects code into another process, this is a possibility. This would need analysis of",
+        "the called functions.",
+        "* **T1548.002: Process Injection (using CreateRemoteThread):** Similar to the above, but specifically if the injection uses `CreateRemoteThread`. This is purely speculative without knowing the",
+        "called functions.",
+        "* **T1053.005: Scheduled Task/Job:** If a scheduled task or job is created or manipulated through the called functions, this technique could be used.",
+        "* **T1060.002: Indicator Removal on Host - Clear Logs:** It is *possible* if one of the unknown functions interacts with system logs to remove artifacts. This is highly speculative.",
+        "**Important Note:** These are *possible* techniques based on the limited information. To accurately determine the MITRE ATT&CK techniques, a thorough reverse engineering analysis of the",
+        "`sub_XXXX` functions is required. The memory addresses (e.g., `0x404000`, `0x404044`, `0x403000`) and the values being passed into them may contain clues, which would need investigation. The",
+        "absence of obvious malicious activity doesn't rule out the use of techniques like process injection or execution of external code by leveraging legitimate system functions.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process. Let's break down the MITRE ATT&CK techniques involved:",
-        "* **T1547.001: Process Injection - CreateRemoteThread:** While the code doesn't explicitly use `CreateRemoteThread`, the use of `CreateProcessA` followed by waiting and closing handles is",
-        "indicative of a potential process creation for malicious purposes. A secondary process may be created to load malicious code in ways not directly shown by this snippet. This is a strong",
-        "possibility based on the context of the `CreateProcessA` call.",
-        "* **T1059.005: Command and Scripting Interpreter - Windows Command Shell:** The presence of `lpCommandLine` suggests that a command line is being used to start the new process. The actual",
-        "command line is pointed to by address `0x403000`, which isn't visible in this snippet, but strongly implies that the attacker is leveraging the Windows command shell.",
-        "* **T1053.005: Scheduled Task/Job - Create or Modify a Scheduled Task:** The code itself does not directly create a scheduled task. However, the creation of a process through `CreateProcessA`",
-        "could be part of a broader operation involving scheduled tasks to ensure persistence or to run at a specific time. This is speculative without more context.",
-        "* **T1543.001: Create or Modify System Process:** The use of `CreateProcessA` indicates the creation of a new process. The process created *could* be a system process, but more information is",
-        "required to confirm this. If the target process is a system process, this technique would apply.",
-        "**Important Note:** The exact sub-techniques and even the primary techniques may be different depending on what `0x403000` (the `lpCommandLine` parameter) points to. The given code snippet only",
-        "provides a fragment of the attack. Further analysis of the command line being executed is essential to determine the precise techniques involved. Without knowing the command line, this analysis",
-        "is inherently limited.",
+        "The provided assembly code shows the creation and management of a process, indicating the use of the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Process Creation (using CreateProcess):** The `call CreateProcessA` instruction clearly demonstrates the creation of a new process. The numerous pushed arguments before the call",
+        "provide the necessary parameters for `CreateProcessA`.",
+        "* **T1055.005: Process Injection (using CreateProcess):** While not explicitly process injection in the typical sense (e.g., injecting shellcode into an existing process), using `CreateProcess`",
+        "to launch a malicious process is a common method for delivering malicious payloads. The code doesn't show *how* the parameters to `CreateProcessA` are determined, but the very act of creating a",
+        "process from the provided command line (`0x403000`) could indicate a malicious process is being spawned. More context is needed to confirm this sub-technique with certainty.",
+        "* **T1056.001: Exfiltration Over C2 (Command and Control):** This is speculative without knowing what `0x403000` (lpCommandLine) points to. If this points to a command line that connects to a C2",
+        "server, exfiltration would be highly probable.",
+        "* **T1070.001: Indicator Removal on Host:** The `CloseHandle` calls suggest an attempt to clean up artifacts, though it's unclear whether this is for legitimate reasons or to hinder",
+        "investigation.",
+        "**Important Note:** The certainty of these techniques depends heavily on the contents of the memory locations referenced (e.g., `0x403000`, `0x40609f`, `0x404000`, etc.). Analyzing the data",
+        "pointed to by these addresses is crucial for a precise attribution. The code alone suggests the possibility but doesn't definitively confirm malicious intent. Only thorough reverse engineering",
+        "of the complete binary can solidify the MITRE technique assignments.",
         "Close"
     ],
     "gpt4o": [

@@ -17,18 +17,21 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1547.001",
-                "T1543.003",
                 "T1055.001",
-                "T1071.001"
+                "T1055.002",
+                "T1055.010",
+                "T1547.001",
+                "T1547.001",
+                "T1548.002",
+                "T1548.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1543.003",
-                "T1055.001"
+                "T1055",
+                "T1057"
             ],
             "valid": []
         },
@@ -78,32 +81,35 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques are potentially implicated. However, without knowing the functionality of `sub_0x00000040A`, `sub_0x000005004`,",
-        "`sub_0x000005000`, and `sub_0x00000500C`, we can only speculate on the precise techniques. The code strongly suggests actions related to process creation and/or manipulation.",
-        "Here's a breakdown of possible MITRE ATT&CK techniques, keeping in mind the lack of context around the called subroutines significantly limits accuracy:",
-        "* **T1547.001: Create or Modify System Process:** The code performs several function calls (`call sub_0x...`), which, if those functions create or modify processes, would directly map to this",
-        "technique. The arguments passed to these calls (memory addresses and potentially handles) suggest process manipulation. The `push` and `call` instructions repeatedly suggest function calls",
-        "potentially impacting processes.",
-        "* **T1543.003: Create/Bypass User Account Control (UAC):** Without knowing the internals of the called functions, it's impossible to definitively say if UAC bypass is involved. However, the",
-        "potential for process creation could be used as a step in a UAC bypass. This is a *possible* association, not a certain one.",
-        "* **T1055.001: Process Injection:** Again, the `push` and `call` instructions with memory addresses suggest that code is being injected into or executed within other processes. This is highly",
-        "dependent on the un-shown function body of the calls.",
-        "* **T1071.001: Application Layer Protocol:** The calls and memory references may indicate attempts to communicate or receive data using an application layer protocol; however, this is highly",
-        "speculative without decompiled code of the subroutines.",
-        "**Important Note:** These are *potential* mappings. The precise MITRE ATT&CK techniques cannot be definitively determined without analyzing the disassembled code of the subroutines",
-        "(`sub_0x...`). The provided snippet only shows the shell of the attack; the core functionality resides within the unknown functions. Reverse engineering those functions is crucial for accurate",
-        "MITRE ATT&CK mapping.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, sub_0x00000500C). Without knowing what those",
+        "subroutines do, we can only speculate on the MITRE ATT&CK techniques. However, based on the general structure and actions, we can infer some possibilities.",
+        "The most likely techniques are related to **process injection** or **execution**. The code allocates stack space (`sub esp, 0x40`), makes function calls with seemingly data-passing arguments",
+        "(various pushes onto the stack), and conditionally calls other functions (based on the `test eax, eax; je` instruction). This strongly suggests that the code might be attempting to load and",
+        "execute something in memory.",
+        "Possible MITRE ATT&CK Techniques (with caveats):",
+        "* **T1055.001 - Process Injection: Reflective DLL Injection:** If `sub_0x000005004` and its associated calls are loading and executing code from memory, this could be reflective DLL injection.",
+        "This is speculation without knowing the contents of the called subroutines.",
+        "* **T1055.002 - Process Injection: Process Hollowing:** Similar to reflective DLL injection, process hollowing involves creating a suspended process and injecting code into it. Again, this",
+        "requires analyzing `sub_0x000005004` and related functions.",
+        "* **T1055.010 - Process Injection: Thread Injection:** This is also possible if the called functions create and manipulate threads in a target process.",
+        "* **T1547.001 - T1547.001 - Create or Modify System Process: Create Remote Thread:** The code might use a remote thread to execute code within another process.",
+        "* **T1548.002 - T1548.002 - Exploit Public-Facing Application:** If the code is interacting with a legitimate application's public-facing interface to achieve injection or execution, this",
+        "technique could be applicable.",
+        "**Important Note:** These are only *possible* mappings. To accurately determine the MITRE ATT&CK techniques, a thorough reverse engineering of `sub_0x00000040A`, `sub_0x000005004`,",
+        "`sub_0x000005000`, and `sub_0x00000500C` is necessary. The data pushed onto the stack before those function calls is crucial for determining the exact behavior. The code as presented only shows",
+        "the setup and some conditional execution, not the core malicious functionality.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process, strongly suggesting the following MITRE ATT&CK techniques:",
-        "* **T1547.001: Process Injection - CreateRemoteThread:** While the code doesn't explicitly use `CreateRemoteThread`, the use of `CreateProcessA` to launch a new process followed by",
-        "`WaitForSingleObject` and `CloseHandle` to manage its lifecycle is a common precursor to, and often used in conjunction with, techniques like CreateRemoteThread. The injected code could be",
-        "hidden within the launched process. It's *indirectly* related, hence the qualification.",
-        "* **T1543.003: Create or Modify System Process: Create Remote Process:** The code uses `CreateProcessA` to create a new process. This directly maps to this sub-technique.",
-        "* **T1055.001: Process Discovery - Create Process:** The code explicitly creates a new process via `CreateProcessA`.",
-        "It's important to note that without knowing the content of the strings pointed to by `0x403000` (lpCommandLine) and the actual behavior of `sub_0x00000040A`, a more precise attribution might be",
-        "possible. The code *could* be part of a larger attack that incorporates other techniques. The lack of information about `sub_0x00000040A` prevents a complete and precise assessment.",
+        "The provided assembly code shows the creation and management of a process. Based on this, the most relevant MITRE ATT&CK techniques are:",
+        "* **T1547.001: Create Process with Alternate Commandline:** The code uses `CreateProcessA` with a command line (`lpCommandLine` at 0x403000) which strongly suggests creating a process using an",
+        "alternative command line (instead of the default). The exact command line is not visible in the provided snippet, however.",
+        "* **T1055: Process Injection:** While not explicitly shown, the code *could* be part of a larger process injection operation. The function call to `sub_0x00000040A` (the purpose of which is",
+        "unknown) raises suspicion. This subroutine might contain the actual injection logic. Without seeing the code for `sub_0x00000040A`, this remains a possibility rather than a certainty.",
+        "* **T1057: Process Discovery:** Although less prominent, the code obtains a process handle (`0x404044`), and later uses this handle with `WaitForSingleObject` and `CloseHandle`. These functions",
+        "are associated with process management, which could be used for discovery as a preparatory step for other actions.",
+        "It's important to note that without the code for `sub_0x00000040A` and the data at memory addresses like `0x403000` and `0x40609f`, a definitive assessment is impossible. The presence of these",
+        "unknown functions and data significantly increases the ambiguity. The code *could* be used in more sophisticated attacks; however, the provided snippet alone only gives a partial view.",
         "Close"
     ],
     "gpt4o": [

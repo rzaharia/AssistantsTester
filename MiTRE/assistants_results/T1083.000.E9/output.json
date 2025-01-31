@@ -12,22 +12,20 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1071.001",
-                "T1547.001",
-                "T1055.001",
-                "T1053.005"
+                "T1059.002",
+                "T1059.005",
+                "T1070.001",
+                "T1562.001",
+                "T1047"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
+                "T1059.005",
                 "T1055.001",
                 "T1056",
-                "T1070.001",
-                "T1547.001",
-                "T1056",
-                "T1070.001",
                 "T1055.001"
             ],
             "valid": []
@@ -77,32 +75,34 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several function calls (to `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`). Without knowing the",
-        "functionality of these subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code's structure, we can infer some possibilities.",
-        "The code's setup (`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, etc.) suggests a standard function prologue. The interesting parts are the function calls and memory manipulation.",
-        "* **T1071.001: Application Layer Protocol:** If `sub_0x00000040A` or any of the `sub_0x00000500x` functions interact with a network protocol (e.g., HTTP, DNS, etc.) to establish a connection or",
-        "exfiltrate data, this technique would apply. This is highly probable given the function calls and the use of what looks like parameters.",
-        "* **T1547.001: Process Injection:** If one of the called subroutines injects code into another process, this technique applies. This is a possibility, but we can't confirm it without knowing the",
-        "nature of those subroutines.",
-        "* **T1055.001: Process Discovery:** The code might be gathering information about running processes. Without knowing what the called functions do, this is speculative.",
-        "* **T1053.005: Scheduled Task/Job:** If the code is designed to create or modify scheduled tasks, this applies. This is unlikely based on the snippet, but possible if `sub_0x00000500x` functions",
-        "interact with the operating system's scheduling capabilities.",
-        "**Important Note:** These are only *potential* MITRE ATT&CK techniques. To accurately determine the techniques used, the functionality of the called subroutines (`sub_0x00000040A`,",
-        "`sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`) must be analyzed. The code itself only demonstrates function calls and memory manipulation, neither of which are techniques in and of",
-        "themselves, but rather components that may be used *within* a broader attack technique. Analyzing the subroutines is crucial for proper categorization.",
+        "The provided assembly code snippet shows a function that performs several actions, including function calls with potentially malicious intent. Without knowing the functionality of",
+        "`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`, we can only speculate on the MITRE ATT&CK techniques. However, based on the observable actions, several techniques",
+        "are possible candidates:",
+        "* **T1059.002: Command and Scripting Interpreter:** The code makes multiple calls to functions (`sub_0x...`). These functions could be executing commands or scripts on the system. Without",
+        "knowing their contents, we cannot confirm this, but it's a strong possibility.",
+        "* **T1059.005: Command and Scripting Interpreter: PowerShell:** Similar to the above, if the called functions use PowerShell, this technique would apply. This would require analysis of the",
+        "called functions.",
+        "* **T1070.001: Indicator Removal on Host: File Deletion:** While not explicitly shown, the code *could* be deleting files. The calls to functions might interact with the file system, and the `je",
+        "offset_0x0000004B1` suggests conditional execution based on the results of a function call, perhaps checking for file deletion success. This is speculative without further analysis.",
+        "* **T1562.001: Impair Defenses: System Service Disable:** Similarly, the code might disable system services. This is highly speculative, requiring investigation of the called functions.",
+        "* **T1047: Windows Management Instrumentation:** Again, the functions (`sub_0x...`) *could* be interacting with WMI to manipulate the system.",
+        "**Important Note:** These are *potential* MITRE ATT&CK techniques. To accurately determine the techniques, a deeper analysis of the functions (`sub_0x...`) is absolutely required. The assembly",
+        "code itself only reveals function calls and data manipulation; the actual malicious actions (if any) reside within those functions. The absence of string literals or more direct indications",
+        "makes definitive mapping to specific MITRE ATT&CK techniques impossible without more context.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process. Based on the `CreateProcessA` call and subsequent handle manipulation, the MITRE ATT&CK techniques are:",
-        "* **T1547.001: Create Process:** The `CreateProcessA` function call directly implements this technique. The code creates a new process.",
-        "* **T1055.001: Process Injection:** While not explicitly shown in this snippet, the initial call to `sub_0x00000040A` is suspicious. Without knowing the contents of `sub_0x00000040A`, it's",
-        "possible this function performs some form of process injection before calling `CreateProcessA`. This is a strong possibility, requiring further analysis of `sub_0x00000040A`. This is a",
-        "*potential* technique, not definitively confirmed.",
-        "* **T1056: Execution through API:** The use of `CreateProcessA` is a clear example of this technique. The malware leverages a legitimate Windows API for malicious purposes.",
-        "* **T1070.001: Indicator Removal on Host:** The `CloseHandle` calls suggest an attempt to clean up artifacts (process handles) after execution. While this could be benign, it's often used to",
-        "evade detection.",
-        "**In summary:** T1547.001 and T1056 are confirmed. T1070.001 is highly probable. T1055.001 is a strong possibility contingent on further reverse engineering of `sub_0x00000040A`. The lack of",
-        "information about that subroutine prevents a definitive statement.",
+        "The assembly code shows the creation and management of a process, indicating the use of the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Create Process:** The `CreateProcessA` call directly creates a new process. The arguments passed to `CreateProcessA` (command line, process attributes, etc.) suggest a spawned",
+        "process.",
+        "* **T1059.005: Command and Scripting Interpreter:** While not explicitly shown, the `0x403000` argument to `CreateProcessA` (likely a pointer to a command line string) strongly suggests that the",
+        "created process is launched using a command or script interpreter. The specific interpreter isn't visible in this snippet.",
+        "* **T1055.001: Process Injection:** The code itself doesn't perform process injection, but the creation of a new process *could* be part of a larger process injection chain (e.g., the spawned",
+        "process might be used to load malicious code). This is a potential, not a definitive, association. Further analysis is needed to confirm.",
+        "* **T1056: Execute-Shellcode:** Similar to T1055.001, the spawned process *could* be loading and executing shellcode. This is also a potential, not a definitive, association. More code is",
+        "needed.",
+        "**Important Note:** The analysis is limited by the provided code snippet. The absence of the contents pointed to by several addresses (e.g., `0x403000` - the command line, `0x40609f` - the call",
+        "target) prevents a more precise attribution. The behavior observed is consistent with these techniques, but more context would allow for a more confident assessment.",
         "Close"
     ],
     "gpt4o": [

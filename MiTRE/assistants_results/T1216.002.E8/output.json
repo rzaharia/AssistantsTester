@@ -17,8 +17,10 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1053.002",
-                "T1047"
+                "T1547.001",
+                "T1547.001",
+                "T1071.001",
+                "T1020"
             ],
             "valid": []
         },
@@ -26,7 +28,11 @@
             "all": [
                 "T1547.001",
                 "T1055.001",
-                "T1056"
+                "T1055.001",
+                "T1056.001",
+                "T1070.001",
+                "T1070.002",
+                "T1004.002"
             ],
             "valid": []
         },
@@ -82,35 +88,40 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, sub_0x00000500C). Without knowing the",
-        "functionality of these subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on the code structure and actions, we can make some educated guesses.",
-        "The code performs the following actions:",
-        "* **Stack manipulation:** The `push` and `pop` instructions are used extensively, suggesting the potential for function calls, data manipulation on the stack, and possibly the creation or",
-        "manipulation of shellcode. * **Function calls:** Multiple calls to external functions (`sub_0x...`) indicate that this code relies on other modules or libraries for specific functionality. These",
-        "subroutines could perform any number of actions. * **Data writing:** The line `mov dword ptr [0x404000], 0x44` writes data to memory. * **Conditional jump:** The `test eax, eax` and `je`",
-        "instructions indicate a conditional jump based on the result of a previous operation. This suggests a decision-making process within the code. * **Passing arguments to functions:** Multiple",
-        "arguments are pushed onto the stack before calling functions, hinting at data being passed to those functions.",
-        "**Based on this analysis, here's a possible MITRE ATT&CK mapping, recognizing the high degree of uncertainty without knowing the subroutine implementations:**",
-        "* **T1055.001 - Process Injection:** The code could be performing process injection if the called subroutines manipulate processes or threads in a way that injects code into another process.",
-        "This is a strong possibility if `sub_0x000005004`, `sub_0x000005000`, or `sub_0x00000500C` handle process or memory manipulation. * **T1053.002 - Use of Publicly Available Tools:** The called",
-        "subroutines could be publicly available libraries or utilities being leveraged for malicious purposes. * **T1047 - Windows Management Instrumentation:** If the called functions interact with",
-        "WMI, this technique could apply.",
-        "**Important Disclaimer:** This mapping is highly speculative. To accurately determine the MITRE ATT&CK techniques involved, a thorough reverse engineering analysis of the called subroutines",
-        "(`sub_0x...`) is required. The actual techniques could be quite different or more specific than the ones listed above. The lack of context concerning the functionality of the called functions",
-        "makes definitive mapping impossible.",
+        "The provided assembly code snippet shows a function that makes several function calls (`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`). Without knowing what these",
+        "functions do, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code structure and some common patterns, we can suggest some possibilities. Note that these are",
+        "*potential* mappings and require further analysis of the called functions to confirm.",
+        "**Potential MITRE ATT&CK Techniques:**",
+        "* **T1055.001 - Process Injection:** The code calls several functions (`sub_0x000005000`, `sub_0x00000500C`) with arguments that *might* be used for process injection. The pushing of addresses",
+        "(`0x404044`, `0x404000`, `0x404048`) strongly suggests memory manipulation which is commonly used in process injection techniques. This is highly speculative without knowing what the called",
+        "functions do.",
+        "* **T1547.001 - T1547.001 - External Remote Services:** The initial call to `sub_0x00000040A` with the argument `0x40609f` could indicate interaction with an external service or a remotely",
+        "loaded library. Again, this requires further investigation into the nature of `sub_0x00000040A`.",
+        "* **T1071.001 - Application Layer Protocol:** The code interacts with some functions that may be using application-level protocols to communicate. The nature of these protocols will need deeper",
+        "analysis to map them accurately.",
+        "* **T1020 - System Network Configuration Discovery:** It's possible that `sub_0x00000040A` is performing network reconnaissance. It's purely speculative unless analyzed.",
+        "**Important Note:** These are educated guesses. To definitively determine the MITRE ATT&CK techniques, the functions `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and",
+        "`sub_0x00000500C` need to be reverse-engineered to understand their behavior. The data pointed to by the memory addresses also needs to be analyzed. Without this further analysis, these mappings",
+        "remain highly uncertain.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process. Based on the `CreateProcessA` call and subsequent handle management, the following MITRE ATT&CK techniques are",
-        "relevant:",
-        "* **T1547.001: Create Process:** The `CreateProcessA` function call directly implements this technique. The code creates a new process.",
-        "* **T1055.001: Process Injection:** While not explicitly shown, the code *could* be part of a larger process injection technique. The `sub_0x00000040A` call is suspicious; the function it points",
-        "to might load malicious code into the newly created process. However, without knowing the contents of `sub_0x00000040A`, this is only a potential association.",
-        "* **T1056: Create or Modify System Process:** Depending on the target process, this might apply. If the created process is a system process or a process with elevated privileges, this technique",
-        "would be relevant.",
-        "**Important Note:** The lack of information about `sub_0x00000040A` and the parameters passed to `CreateProcessA` (particularly `lpCommandLine`) prevents a more definitive assessment. The code's",
-        "behavior could change dramatically based on the contents of these missing elements. The presence of a call to a subroutine strongly suggests a potential for more sophisticated actions that are",
-        "not immediately apparent.",
+        "The provided assembly code shows the creation and management of a process, indicating the use of the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Create Process:** The `CreateProcessA` call directly implements this technique. The code prepares the necessary arguments (command line, process attributes, etc.) and then calls",
+        "the Windows API function to create a new process.",
+        "* **T1055.001: Process Injection:** While not explicitly shown in this snippet, the function call `sub_0x00000040A` *could* be performing process injection. The code's behavior prior to creating",
+        "the new process warrants further investigation of `sub_0x00000040A` to determine if it's injecting code or manipulating process memory in any way. Without knowing what `sub_0x00000040A` does,",
+        "T1055.001 is a *potential* technique.",
+        "* **T1056.001: Execute-Assembly:** This is also a *potential* technique, depending on the contents of `sub_0x00000040A`. If that function loads and executes an assembly file, this technique",
+        "would apply.",
+        "* **T1070.001: Command and Scripting Interpreter:** The use of `CreateProcessA` with a command line suggests this technique may be used. The specific command being executed needs to be examined",
+        "to confirm.",
+        "* **T1070.002: Command and Scripting Interpreter: PowerShell:** If the command executed via `CreateProcessA` uses Powershell, then this technique would be more precise. This cannot be determined",
+        "from the provided snippet.",
+        "* **T1004.002: Create Remote Threads:** This is an *unlikely* technique, but only if `sub_0x00000040A` performs remote thread creation. This snippet does not show remote thread creation through",
+        "the `CreateRemoteThread` API or similar functions.",
+        "The specific sub-techniques above are the most likely candidates, however, the exact MITRE ATT&CK mapping is contingent on the implementation details of `sub_0x00000040A`. Further analysis of",
+        "this function is needed for a more complete and accurate mapping. The techniques listed as \"potential\" require further investigation.",
         "Close"
     ],
     "gpt4o": [

@@ -12,21 +12,18 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1543.003",
+                "T1055.001",
                 "T1547.001",
-                "T1055.001"
+                "T1548.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
+                "T1055.001",
                 "T1547.001",
-                "T1055.001",
-                "T1047",
-                "T1070.001",
-                "T1055.001",
-                "T1547.001"
+                "T1055.001"
             ],
             "valid": []
         },
@@ -77,36 +74,29 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, sub_0x00000500C). Without knowing the",
-        "functionality of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code's structure, we can infer some possibilities:",
-        "The code strongly suggests **process creation** and/or **process injection** due to function calls and potentially the passing of memory addresses.",
-        "Based on this, possible MITRE ATT&CK techniques are:",
-        "* **T1543.003: External Remote Services:** If `sub_0x00000040A` and/or `sub_0x000005004` interact with external services to perform actions like downloading/uploading files or performing network",
-        "communication, this technique would be relevant. This is speculative without knowing the contents of those subroutines.",
-        "* **T1547.001: Process Injection:** If `sub_0x000005004` or other called subroutines inject code into another process, then this technique applies. The use of memory addresses (e.g., `0x404000`,",
-        "`0x404044`) as parameters to these function calls hints towards this possibility.",
-        "* **T1055.001: Process Hollowing:** This is less likely but possible depending on the function of the called subroutines. Process hollowing involves creating a process, removing its original",
-        "code, and injecting malicious code. The memory addresses being passed could be involved in such an operation.",
-        "**Important Note:** These are educated guesses based on the limited code snippet. To definitively determine the MITRE ATT&CK techniques, the functionality of `sub_0x00000040A`,",
-        "`sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` must be analyzed. Furthermore, the context in which this code is executed (e.g., part of a larger malware sample) is crucial for",
-        "accurate attribution.",
+        "Based on the provided x86 assembly code, the most likely associated MITRE ATT&CK techniques are:",
+        "* **T1055.001: Process Injection:** The code calls several functions (`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`). Without knowing the specifics of these",
+        "functions, it's impossible to definitively say *how* process injection is performed (e.g., process hollowing, thread injection, etc.), but the multiple function calls and manipulation of memory",
+        "addresses (e.g., `0x404000`, `0x404044`, `0x404048`) strongly suggest this is the goal. The pushing of numerous parameters to those functions further supports this.",
+        "* **T1547.001: Data Encapsulation:** The code manipulates data at memory addresses (`0x404000`, `0x404044`, `0x404048`). While it does not explicitly show encryption, the possibility of data",
+        "encapsulation (hiding malicious code or data within seemingly benign data structures) can't be ruled out without understanding the contents of the memory locations and the functions being",
+        "called.",
+        "* **T1548.002: Boot or Logon Autostart Execution:** The use of `sub_0x000005004` is suggestive but relies on the function's actual implementation to verify this. If this function registers a",
+        "routine to run during system startup, then this technique would apply. More details about the `sub_0x000005004` are needed for confirmation.",
+        "**Important Note:** These are *potential* associations. To definitively determine the MITRE ATT&CK techniques, the functions (`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`,",
+        "`sub_0x00000500C`) must be reverse engineered to understand their functionality. The code itself only hints at the potential malicious behavior. The values being written and read in memory also",
+        "require further analysis to confirm this.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process. Let's break down the MITRE ATT&CK techniques involved:",
-        "* **T1547.001: Process Injection - CreateRemoteThread:** While the code uses `CreateProcessA`, which isn't *directly* CreateRemoteThread, the subsequent actions (especially `WaitForSingleObject`",
-        "and `CloseHandle`) suggest the possibility of further interaction with the newly created process. This might involve injecting code into the spawned process later on (although not explicitly",
-        "shown in this snippet). Therefore, T1547.001 is a *potential* technique, depending on what `sub_0x00000040A` does. If `sub_0x00000040A` prepares malicious code for injection, this technique",
-        "becomes more likely.",
-        "* **T1055.001: Process Creation - CreateProcess:** This technique directly maps to the use of the `CreateProcessA` function within the code. The malware spawns a new process.",
-        "* **T1047: Windows Management Instrumentation:** This is *possible* but not definitively shown. The code does not use WMI functions directly. However, if `sub_0x00000040A` interacts with WMI",
-        "(unlikely given the context), this technique would be relevant.",
-        "* **T1070.001: Indicator Removal on Host - Clear Windows Event Logs:** This is not directly present in this code sample.",
-        "**In summary:**",
-        "The most likely MITRE ATT&CK techniques based on the provided assembly code are:",
-        "* **T1055.001:** Process Creation - CreateProcess * **T1547.001:** Process Injection - CreateRemoteThread (Possible, requires further analysis of `sub_0x00000040A`)",
-        "It's crucial to emphasize that definitively assigning techniques requires full context, especially the functionality of the `sub_0x00000040A` subroutine. Without knowing what that subroutine",
-        "does, the possibility of other techniques remains.",
+        "The provided assembly code shows the creation and management of a process, strongly suggesting the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Process Creation:** The `CreateProcessA` function call is the clear indicator. The code is creating a new process. This is further supported by the subsequent",
+        "`WaitForSingleObject` and `CloseHandle` calls which manage the created process's handle.",
+        "* **T1055.001: Process Injection:** While not directly evident, the code *could* be part of a larger process injection attack. The initial call to `sub_0x00000040A` (whose functionality is",
+        "unknown) raises suspicion. This function could potentially perform malicious actions before `CreateProcessA` is called, like loading malicious code into the newly created process's memory space.",
+        "This is only a possibility, however, and more context is needed to definitively say if this technique is used.",
+        "Therefore, without more information about `sub_0x00000040A`, we can confidently identify **T1547.001** but can only *suspect* **T1055.001**. Further analysis of the unknown function is required",
+        "to confirm the latter.",
         "Close"
     ],
     "gpt4o": [

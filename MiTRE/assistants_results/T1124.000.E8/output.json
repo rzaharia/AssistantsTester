@@ -12,9 +12,12 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
+                "T1059.002",
                 "T1055.001",
                 "T1071.001",
-                "T1543.003"
+                "T1566.002",
+                "T1574.001",
+                "T1574.002"
             ],
             "valid": []
         },
@@ -22,12 +25,8 @@
             "all": [
                 "T1547.001",
                 "T1055.001",
-                "T1055.001",
-                "T1056",
-                "T1050.001",
-                "T1020",
-                "T1056",
-                "T1547"
+                "T1003.002",
+                "T1071.001"
             ],
             "valid": []
         },
@@ -78,34 +77,37 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, sub_0x00000500C). Without knowing the",
-        "functionality of these subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code's structure and actions, we can make some educated guesses.",
-        "The most likely techniques are:",
-        "* **T1055.001 - Process Injection:** The code calls external functions (subroutines) and the calls to `sub_0x000005000` and `sub_0x00000500C` suggest potential process injection. This is",
-        "especially true if these subroutines load and execute code in another process's memory space. This is highly speculative without knowing what these functions do.",
-        "* **T1071.001 - Application Layer Protocol:** The calls to external functions might interact with network protocols using application-layer mechanisms. This is highly speculative without reverse",
-        "engineering the called functions.",
-        "* **T1543.003 - External Proxy:** If the called functions communicate over a network, there's a possibility they leverage a proxy. This is highly speculative.",
-        "**Important Note:** The lack of context makes definitive MITRE ATT&CK mapping impossible. The code's behavior strongly depends on the functionality of the called subroutines (`sub_0x00000040A`,",
-        "`sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`). To accurately map this code to MITRE ATT&CK techniques, further analysis of these subroutines is required. Reverse engineering these",
-        "functions is necessary to determine the precise techniques used.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005004, sub_0x000005000, sub_0x00000500C). Without knowing what these",
+        "subroutines do, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code structure, we can infer some possibilities.",
+        "The code exhibits characteristics consistent with the following:",
+        "* **T1059.002: Command and Scripting Interpreter:** The function calls to `sub_0x00000040A` and others could be used to execute commands or scripts, especially if those functions involve system",
+        "calls or interactions with external processes. Without more context, this is a possible, but not definitive mapping.",
+        "* **T1055.001: Process Injection:** The behavior is suspicious enough to warrant consideration of process injection. It depends heavily on the functions it calls. If the called functions are",
+        "used to inject code into another process, this would be highly probable.",
+        "* **T1071.001: Application Layer Protocol:** If the functions called interact with a network, this technique is likely in use.",
+        "* **T1566.002: External Remote Services:** If the called functions communicate with an external system or service (e.g., a command-and-control server), this technique applies.",
+        "* **T1574.001: Executable and Linkable Format and T1574.002: Shared Libraries:** These techniques are possible depending on what the called subroutines are doing.",
+        "**Important Note:** These are *potential* MITRE ATT&CK mappings based on *limited information*. To accurately determine the techniques used, a full analysis of the called subroutines",
+        "(`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`) is absolutely necessary. The code itself only shows function calls and some basic stack manipulation; the actual",
+        "malicious activity (if any) is hidden within those called functions. The use of parameters pushed onto the stack (`0x404044`, `0x404000`, etc.) further emphasizes the need for deeper analysis of",
+        "the called functions to pinpoint specific ATT&CK techniques.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The assembly code shows the creation and management of a process, strongly suggesting the following MITRE ATT&CK techniques:",
-        "* **T1547.001: Create Process:** The `CreateProcessA` call directly indicates the creation of a new process. This is the primary technique evident in the code.",
-        "* **T1055.001: Process Injection:** While not explicitly shown, the code *could* be part of a larger process injection attack. The creation of a process, especially with unusual parameters or",
-        "pre-existing setup, is often a precursor to process injection. The fact we don't see the injected code doesn't rule out this possibility. We cannot definitively say this is T1055.001 without",
-        "more context.",
-        "* **T1056: Execution through Interpreter:** This is *possible* but needs more information. If the `0x403000 ; lpCommandLine` points to a script or interpreter command, then this technique",
-        "applies. We need the string pointed to by `0x403000` to confirm this.",
-        "* **T1050.001: Scheduled Task/Job:** This is a very low confidence assessment. The code itself doesn't demonstrate scheduling; however, the created process *could* be a scheduled task or job",
-        "depending on how the `lpCommandLine` is constructed.",
-        "* **T1020: System Information Discovery:** The code indirectly touches this, as it does need to interact with system resources to create a process. However, this is a very generic supporting",
-        "technique and isn't the primary action.",
-        "**Important Note:** The certainty of these techniques is heavily dependent on the missing data. Specifically, the contents of memory locations like `0x403000` (command line), `0x40609f`",
-        "(function call target), and the functions `sub_0x00000040A` are crucial for a more precise attribution. Without analyzing the contents of those memory locations, the attribution to techniques",
-        "like T1056 or even getting a higher confidence on T1547 is not possible.",
+        "The provided assembly code shows the creation and management of a process. Based on the `CreateProcessA` call and subsequent handle manipulation, the following MITRE ATT&CK techniques are",
+        "applicable:",
+        "* **T1547.001: Create Process with Elevated Privileges (via CreateProcessA):** The code utilizes `CreateProcessA`, a common function for process creation. While the code itself doesn't",
+        "explicitly show elevation, the use of `CreateProcessA` makes this technique possible depending on the context and privileges the code is executed with. The absence of explicit privilege",
+        "escalation techniques doesn't rule out this sub-technique.",
+        "* **T1055.001: Process Injection (via CreateProcess):** While not directly injecting code into another process, `CreateProcessA` is frequently misused in process injection attacks. A malicious",
+        "actor could leverage a similar code structure to launch a process that then injects malicious code into another target process (not shown in this example). The mere act of creating a process,",
+        "however, doesn't automatically qualify as process injection.",
+        "* **T1003.002: Process Discovery (via handle manipulation):** The code opens and closes handles using `CloseHandle` which demonstrates basic process discovery actions (getting a handle implies",
+        "some level of process discovery). However, it's a rudimentary level; more sophisticated discovery methods might be required to map this sub-technique fully.",
+        "* **T1071.001: Application Layer Protocol: ** The function calls `CreateProcessA` which can be used to execute a payload to communicate over a network if the created process executes a payload",
+        "that opens a network connection. The provided code snippet doesn't contain details about this possibility. However, it could be a component within a larger attack.",
+        "**Important Note:** The provided assembly code is only a snippet. Without knowing the context (e.g., the values passed to `CreateProcessA`, the content of the created process), a complete and",
+        "accurate MITRE ATT&CK mapping isn't possible. The code demonstrates the *potential* for malicious activity, but does not inherently confirm it.",
         "Close"
     ],
     "gpt4o": [

@@ -13,11 +13,10 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1059.001",
-                "T1059.002",
-                "T1546.002",
-                "T1543.001",
-                "T1574.001"
+                "T1547.001",
+                "T1548.002",
+                "T1550.002",
+                "T1055"
             ],
             "valid": []
         },
@@ -25,8 +24,8 @@
             "all": [
                 "T1012.002",
                 "T1112",
-                "T1547.001",
-                "T1012.002",
+                "T1007.001",
+                "T1112",
                 "T1112"
             ],
             "valid": []
@@ -75,30 +74,39 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing the",
-        "functionality of these called functions, a precise MITRE ATT&CK technique mapping is impossible. However, we can make some educated guesses based on the general structure and operations.",
-        "The code suggests the following *potential* MITRE ATT&CK techniques, keeping in mind that these are highly speculative without context of the called functions:",
-        "* **T1059.001 - Command and Scripting Interpreter:** The use of calls to external functions (sub_0x...) strongly suggests the execution of external code or commands. If `sub_0x000005000`,",
-        "`sub_0x000005004`, or `sub_0x000005008` execute commands or scripts, then this technique would apply. This is particularly likely if the pushed arguments (`0x403000`, `0x403034`) are paths to",
-        "scripts or commands.",
-        "* **T1059.002 - Scripting:** Similar to above, depending on the nature of the called functions, this technique might be relevant.",
-        "* **T1546.002 - External Proxy:** If the called functions are used to interact with a remote system or utilize a proxy for network communication, then this technique might be relevant.",
-        "* **T1543.001 - Create or Modify System Process:** While not directly evident, if any of the called functions create or modify processes, this technique applies.",
-        "* **T1574.001 - Exfiltration Over C2:** Again, if network communication is facilitated by the called functions, then this might apply.",
-        "**Important Disclaimer:** These are only *potential* mappings. The actual MITRE ATT&CK techniques employed depend entirely on the functionality of the subroutines `sub_0x00000040A`,",
-        "`sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008`. To accurately map to MITRE ATT&CK, the code of those subroutines must be analyzed. Without that analysis, any mapping is highly",
-        "speculative.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what those",
+        "functions do, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the structure, we can infer some possibilities.",
+        "The code strongly suggests the use of **indirect function calls**, and potentially **process injection** or **API hooking**, depending on what `sub_0x000005000`, `sub_0x000005004`, and",
+        "`sub_0x000005008` achieve. The use of `push` and `call` instructions with seemingly arbitrary addresses points to this. The values pushed onto the stack before the calls (e.g., `0x403000`,",
+        "`0x80000002`, `0x403034`) could be handles, addresses, or parameters for interacting with external processes or the operating system.",
+        "Considering the above, the most likely MITRE ATT&CK techniques are:",
+        "* **T1547.001: Process Injection - Shared Libraries:** This is the most probable technique if the called functions load malicious code into a legitimate process using shared libraries.",
+        "* **T1548.002: Process Injection - Reflective DLL Injection:** If the called functions load malicious code directly into memory without writing to disk, this could be the case.",
+        "* **T1550.002: Use of Alternate Command and Scripting Interpreter - Scripting Interpreter:** If the subroutines are using some scripting interpreter to run code, this would be a strong",
+        "possibility.",
+        "* **T1055: Process Injection:** This is a more generic technique that encompasses the above.",
+        "**Important Note:** To accurately determine the MITRE ATT&CK techniques, a deeper analysis of the called functions (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) is",
+        "required. The provided code snippet only shows the setup for the calls, not their actual implementation. The values being pushed might represent file paths, API function pointers, or other data",
+        "that reveal further intent. Without that information, these are educated guesses based on the potential behaviors of the code.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code performs registry manipulation using the Windows API functions `RegOpenKeyExA` and `RegSetValueExA`. Therefore, the most relevant MITRE ATT&CK techniques are:",
-        "* **T1012.002: Registry Run Keys / RunOnce:** While not explicitly creating a Run key, the code's ability to write to the registry hints at the potential to achieve this functionality if the",
-        "`lpSubKey` value (0x403000) points to a run key location. The lack of specific context prevents definitive assignment, however.",
-        "* **T1112: Modify Registry:** This is the most accurate mapping. The code directly calls `RegSetValueExA`, which modifies a registry key's value. The specific key and value are obfuscated",
-        "(0x403000 and 0x403034), but the action of modifying the registry is clearly present.",
-        "* **T1547.001: Registry Key Run and RunOnce Execution:** Similar to T1012.002, this is a possibility, dependent on the value of `lpSubKey`.",
-        "It's important to note that without knowing the values pointed to by the hexadecimal addresses (e.g., `0x403000`, `0x403034`), a more precise attribution is impossible. The code *could* be used",
-        "for other registry-related actions (e.g., data exfiltration via registry keys), but the provided code snippet focuses on writing data to a key. Therefore, T1112 is the most confident assignment.",
+        "The provided assembly code shows a function that attempts to open a registry key (`RegOpenKeyExA`) and then set a value within that key (`RegSetValueExA`). If successful, it returns 1;",
+        "otherwise, 0. Let's break down the MITRE ATT&CK techniques involved:",
+        "* **T1012.002: Registry Run Keys / HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run:** While the code doesn't explicitly target the Run key, the use of `RegOpenKeyExA` and `RegSetValueExA`",
+        "indicates an attempt to modify the registry. This is a *potential* indicator, and the specific key (`0x403000` and `0x403034` which are likely strings at runtime) would need to be analyzed to",
+        "determine if it's a Run key or another location. Without knowing the exact registry path, this is a low-confidence association.",
+        "* **T1112: Registry Key Run and Run Once Modification:** Similar to the above, the code's actions are consistent with modifying registry keys, but this is a general technique that doesn't",
+        "pinpoint a specific key. The confidence level is also dependent on resolving the hardcoded values.",
+        "* **T1007.001: System Services:** The code itself doesn't directly manipulate system services. However, a malicious actor could use registry manipulation (as in T1112) to add persistence through",
+        "system services, indirectly relating to this technique. This is a very indirect association with low confidence unless further analysis proves a service is being affected.",
+        "**Important Considerations:**",
+        "* **Context is crucial:** The provided code snippet alone doesn't definitively indicate malicious intent. The specific registry keys being targeted are crucial in determining the precise",
+        "technique and its purpose. The values `0x403000` and `0x403034` need to be reversed to reveal their meaning. * **Hexadecimal values:** The hexadecimal addresses (like `0x40609f`, `0x403000`,",
+        "`0x403034`) are memory addresses and need to be resolved to determine their meaning within the broader context of the malware. * **Obfuscation:** This code might be part of a larger, more",
+        "sophisticated attack, and its true intent might be obscured through obfuscation.",
+        "**In summary:** Based solely on this code snippet, the most relevant MITRE ATT&CK technique is **T1112: Registry Key Run and Run Once Modification**, with a caveat that its confidence level",
+        "depends on dynamic analysis to determine the targeted registry keys. The other techniques are possibilities that require more investigation and context.",
         "Close"
     ],
     "gpt4o": [

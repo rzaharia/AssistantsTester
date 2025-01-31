@@ -13,20 +13,22 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1055.001",
+                "T1071.001",
                 "T1047",
-                "T1055.001",
-                "T1047"
+                "T1548.002",
+                "T1550.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1112.001",
-                "T1012",
-                "T1112"
+                "T1055.001",
+                "T1547.001",
+                "T1548.002"
             ],
-            "valid": []
+            "valid": [
+                "T1547.001"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -73,32 +75,37 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing the",
-        "functionality of these called subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on the code structure and common practices, we can make some educated guesses.",
-        "The code strongly suggests **T1055.001 - Process Injection** as a possible technique. The calls to `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` with various parameters hint at the",
-        "possibility of loading or executing code in a different process. The `test eax, eax; je` instruction indicates a conditional jump based on the return value of one of these calls, suggesting",
-        "error handling or conditional execution within the injection process.",
-        "Additionally, there's a possibility of **T1047 - Windows Management Instrumentation (WMI)** being involved. The specific addresses (`0x403000`, `0x403040`, `0x40305c`) could potentially point to",
-        "WMI-related data or functions. However, this is highly speculative without further analysis of the called functions.",
-        "Finally, the overall structure, with the function prologue and epilogue (push/pop registers, stack manipulation), suggests the use of a standard function call. This is not a specific technique",
-        "but a common building block for many malicious activities.",
-        "**Therefore, without more information, the most likely associated MITRE ATT&CK technique is:**",
-        "* **T1055.001 - Process Injection**",
-        "Other techniques might be involved, but they cannot be reliably identified without reverse engineering the called functions (`sub_xxxx`) to understand their purpose. The possibility of **T1047 -",
-        "Windows Management Instrumentation (WMI)** remains, but it's a weak association based solely on the addresses in the code.",
+        "The provided assembly code snippet shows a function that makes several function calls (to `sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008`). Without knowing the",
+        "functionality of these subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code structure and parameters passed, we can infer some possibilities.",
+        "The code exhibits characteristics consistent with several techniques, but definitively mapping them requires knowing what the called subroutines do. For example, the pushes of addresses and",
+        "seemingly arbitrary values (`0x403000`, `0x80000001`, `0x403040`, etc.) suggest data manipulation or external interactions. The `test eax, eax` and `je` instructions imply conditional execution",
+        "based on a prior operation's success or failure.",
+        "**Possible MITRE ATT&CK Techniques (Speculative):**",
+        "The lack of context makes definitive assignment impossible. This list presents *potential* mappings based on common patterns:",
+        "* **T1071.001: Application Layer Protocol:** If `sub_0x00000040A` or any of the `sub_0x00000500X` functions interact with a network protocol (e.g., HTTP, DNS), this technique would apply. The",
+        "passed addresses may point to network data.",
+        "* **T1047: Network Service Scanning:** This is possible only if any of the called subroutines perform network scanning. We cannot conclude this from the provided code.",
+        "* **T1548.002: Abuse Elevation Control Mechanism:** If the code interacts with privilege escalation mechanisms or attempts to bypass security controls, this technique could be relevant. This",
+        "requires understanding the functions' purpose.",
+        "* **T1550.002: Use of Alternative Command and Scripting Interpreter:** This would only apply if one of the subroutines uses a language interpreter other than the default shell. Again, this is",
+        "speculative without the subroutine's content.",
+        "**Important Note:** These are *potential* mappings. Without reverse engineering the called subroutines (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008`), it's",
+        "impossible to definitively link this code to specific MITRE ATT&CK techniques. The values pushed onto the stack could be file paths, registry keys, or network addresses, greatly affecting the",
+        "interpretation. A full understanding needs additional context and reverse engineering efforts.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the use of the Windows API functions `RegOpenKeyExA` and `RegSetValueExA`. These functions are used to interact with the Windows Registry. Therefore, the most",
-        "relevant MITRE ATT&CK techniques are:",
-        "* **T1112.001: Registry Key Run Key Execution:** If the `lpSubKey` points to a run key, the code attempts to create or modify a registry key under Run, RunOnce, or similar, to achieve",
-        "persistence. This is speculative without knowing the value of `0x403000`.",
-        "* **T1012: Query Registry:** The `RegOpenKeyExA` call clearly demonstrates querying the registry for a specific key (`0x403000`).",
-        "* **T1112: Modify Registry:** The `RegSetValueExA` call indicates that the code modifies a registry value. The specific data and key targeted (`0x403040` and `0x40305c` respectively) determine",
-        "the exact impact, but the action is a registry modification.",
-        "**Important Note:** Without knowing the exact values pointed to by the memory addresses (like `0x403000`, `0x403040`, `0x40305c`), we cannot be completely certain of the specific sub-techniques",
-        "or the ultimate goal. The analysis only provides high-level conclusions based on the API calls made. A full understanding requires further investigation into the memory locations and their",
-        "contents.",
+        "Based on the provided assembly code, the most likely associated MITRE ATT&CK techniques are:",
+        "* **T1055.001: Process Injection (using Reflective DLL Injection):** The code shows a call to `sub_0x000005000` and `sub_0x000005004` with parameters that strongly suggest loading and executing",
+        "code from memory (possibly a DLL). The arguments pushed onto the stack before these calls (e.g., addresses, sizes) are indicative of loading data into memory and then executing it. Reflective",
+        "DLL injection is a common method for achieving this. The `test eax, eax` and conditional jump suggest checking the result of the injection attempt.",
+        "* **T1547.001: Remote Service Session Hijacking:** The function calls with seemingly arbitrary addresses (`sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) could be indicative of",
+        "manipulating a remote service session. Without more context about the functions' actual implementations, this is a less certain association than process injection.",
+        "* **T1548.002: Abuse Elevation Control Mechanism:** The code might be attempting to elevate privileges. This is speculation without knowing the behavior of the functions called",
+        "(`sub_0x000005000` et al.). The success or failure of the injection or service manipulation could be tied to privilege escalation.",
+        "**Important Note:** These are educated guesses based on common patterns in malware. Without knowing the functionality of the called subroutines (`sub_0x0000040A`, `sub_0x000005000`,",
+        "`sub_0x000005004`, `sub_000005008`), definitive attribution is impossible. The code snippet only shows the setup and execution of functions; the real attack techniques depend entirely on the",
+        "content of these functions. Reverse engineering the called functions would be necessary for more precise MITRE technique mapping.",
         "Close"
     ],
     "gpt4o": [

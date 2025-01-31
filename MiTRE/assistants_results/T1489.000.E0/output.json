@@ -15,16 +15,23 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1055.001",
-                "T1059.002",
+                "T1047.002",
+                "T1059.001",
+                "T1071.001",
+                "T1105",
                 "T1547.001",
-                "T1548.002"
+                "T1005.002",
+                "T1071.001",
+                "T1071.002",
+                "T1566.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1547.001"
+                "T1547.001",
+                "T1548.002",
+                "T1204.001"
             ],
             "valid": []
         },
@@ -67,32 +74,35 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function call to two other subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the functionality of those subroutines, we can only",
-        "speculate on the MITRE ATT&CK techniques involved. The code itself is indicative of standard function prologue and epilogue, but it doesn't directly reveal malicious intent. However, based on",
-        "the actions, we can propose some *potential* techniques:",
-        "**Potential MITRE ATT&CK Techniques:**",
-        "The lack of context makes definitive assignments impossible, but here are possibilities based on the observed behavior:",
-        "* **T1055.001 - Process Injection:** If `sub_0x00000040A` or `sub_0x000005030` perform process injection (e.g., injecting shellcode into another process), this technique would apply. This is a",
-        "common way malware executes its payload.",
-        "* **T1059.002 - Create Remote Threads:** Similar to process injection, creating remote threads is a method of executing arbitrary code in a target process. Again, dependent on the called",
-        "subroutines.",
-        "* **T1547.001 - Process Discovery:** `sub_0x00000040A` might be gathering information about running processes to choose a target for injection or other actions. However, this is highly",
-        "speculative without more details.",
-        "* **T1548.002 - System Information Discovery:** The code might retrieve system information which is then passed to the called functions, possibly for further malicious action. Again, purely",
-        "speculative without the subroutine analysis.",
-        "**Important Note:** These are *possible* mappings to MITRE ATT&CK techniques. To accurately determine the techniques, you must analyze the functions `sub_0x00000040A` and `sub_0x000005030`.",
-        "Their content will reveal the true purpose and corresponding MITRE techniques. The provided code only shows the setup for function calls; the actual malicious actions (if any) are hidden within",
-        "the called subroutines.",
+        "The provided assembly code snippet shows a function call to `sub_0x00000040A` and then to `sub_0x000005030`. Without knowing the functionality of these subroutines, we can only speculate on the",
+        "MITRE ATT&CK techniques involved. However, based on the structure, we can infer some possibilities.",
+        "The initial setup (`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, etc.) is standard function prologue, allocating stack space for local variables. The later `pop` instructions restore the stack",
+        "and registers. The `xor eax, eax` sets `eax` to zero, which often indicates a successful return value or a specific error code.",
+        "The key is the function calls:",
+        "* **`call sub_0x00000040A`**: This call, receiving a single argument (`ecx = 0x40609f`), could perform various actions. Without knowing its contents, we can't be specific, but possibilities",
+        "include:",
+        "* **T1047.002 - Windows Management Instrumentation (WMI) Event Subscription:** If `sub_0x00000040A` interacts with WMI, this would be relevant. * **T1059.001 - Command and Scripting Interpreter:",
+        "PowerShell:** Similarly, if this function executes PowerShell commands. * **T1071.001 - Application Layer Protocol: HTTP:** If it makes an HTTP request. * **T1105 - Ingress Tool Transfer:**",
+        "Downloading a malicious tool. * **T1547.001 - Data from Local System:** If it gathers local system information.",
+        "* **`call sub_0x000005030`**: This call receives multiple arguments, possibly pointers to data structures (0x403000, 0x403038, 0x403044). Again, it's impossible to be precise, but potential",
+        "matches include:",
+        "* **T1005.002 - Data Staged:** It might be writing data to disk before exfiltration. * **T1071.001 - Application Layer Protocol: HTTP:** Or making a network request with collected data. *",
+        "**T1071.002 - Application Layer Protocol: HTTPS:** The same but over HTTPS. * **T1566.002 - External Remote Services:** Connecting to an external service.",
+        "**In short, without more context, we cannot definitively assign MITRE ATT&CK techniques.** The code is suspicious due to the function calls, but it could be benign if those functions perform",
+        "legitimate actions. To give accurate MITRE ATT&CK mappings, the content of `sub_0x00000040A` and `sub_0x000005030` is essential. Reverse engineering these subroutines would be necessary.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows a call to `ShellExecuteA`, a Windows API function used to execute files. This, combined with the other actions, strongly suggests the use of **process",
-        "execution**.",
-        "Therefore, the MITRE ATT&CK technique associated with this code is:",
-        "**T1547.001: Create Process with Arguments**",
-        "There isn't enough information in the provided snippet to definitively identify sub-techniques beyond the creation of a process with arguments (as indicated by the various arguments pushed onto",
-        "the stack before the `ShellExecuteA` call). Additional context, such as the content at the memory addresses pointed to by the arguments (`0x403000`, `0x403038`, `0x403044`), would be needed to",
-        "determine if more specific sub-techniques apply (e.g., using a specific command-line interpreter or exploiting a vulnerability during process creation).",
+        "The provided assembly code shows a call to `ShellExecuteA`, a Windows API function used to execute files. This strongly indicates the use of **process execution**. The preceding setup with stack",
+        "manipulation is typical of function prologue and epilogue. The specific MITRE ATT&CK techniques involved are:",
+        "* **T1547.001: Create Process with Modified Environment:** While not explicitly shown, the code *could* be modifying environment variables before calling `ShellExecuteA`. We can't be certain",
+        "from this snippet alone. This is a *potential* technique.",
+        "* **T1548.002: Abuse Execution Autostart Location:** This is another *potential* technique. If the file executed via `ShellExecuteA` was placed in a startup location (e.g., Startup folder), this",
+        "would apply. Again, the code itself doesn't reveal this.",
+        "* **T1204.001: Create User Account:** Although very unlikely given the code, If the executed file created a user account, that would be relevant. Not shown here.",
+        "**Crucially:** The provided code only shows the *execution* part. The actual malicious behavior depends entirely on the file executed by `ShellExecuteA`. The code itself is benign",
+        "*target* of the `ShellExecuteA` call that determines the true malicious nature of the attack. Therefore, without knowing what `0x403044` (lpOperation) points to and the content of the file path",
+        "specified by `0x403038` (lpFile), a definitive MITRE technique assignment beyond process execution is impossible.",
         "Close"
     ],
     "gpt4o": [

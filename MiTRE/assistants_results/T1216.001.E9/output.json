@@ -11,19 +11,20 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1547.001",
-                "T1055.001",
-                "T1053.005",
-                "T1218"
+                "T1047.001",
+                "T1059.001",
+                "T1071.001",
+                "T1053.005"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1055",
-                "T1056.001",
-                "T1070.001"
+                "T1547.001",
+                "T1547",
+                "T1547.001",
+                "T1547.002"
             ],
             "valid": []
         },
@@ -70,36 +71,33 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows several function calls, stack manipulation, and conditional branching. Without knowing the functionality of `sub_0x00000040A`, `sub_0x000005004`,",
-        "`sub_0x000005000`, and `sub_0x00000500C`, pinpointing precise MITRE ATT&CK techniques is impossible. However, we can infer some *potential* techniques based on the code's structure:",
-        "* **T1547.001: Process Injection:** The calls to `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` along with the pushing of addresses (`0x404044`, `0x404000`, etc.) and potentially",
-        "process handles suggest a process injection attempt, particularly if these subroutines perform any form of code injection or thread manipulation within another process. This is speculative",
-        "without analyzing the subroutines' code.",
-        "* **T1055.001: Process Discovery:** The code accesses memory locations (`0x404044`, `0x404000`, etc.) and may be gathering information about processes, though this would only be confirmed by",
-        "understanding how the data at those addresses is used.",
-        "* **T1053.005: Scheduled Task/Job:** If `sub_0x000005004` interacts with the operating system's scheduling mechanism, this technique might be relevant, however it is extremely unlikely given the",
-        "absence of any obvious system calls related to task scheduling.",
-        "* **T1218: System Information Discovery:** Given the data handling and potential process manipulation, the malware may be gathering system information during its execution.",
-        "**Important Note:** These are *potential* MITRE ATT&CK mappings based solely on the limited information provided by the assembly code snippet. To accurately map the code to MITRE ATT&CK",
-        "techniques, a full analysis of the referenced subroutines (`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`) is crucial. The code itself only shows actions that",
-        "*could* be used in these techniques, not definitively that they *are* being used. The context of where this code runs and what it interacts with (other libraries, system calls, etc.) is also",
-        "needed for a complete analysis.",
+        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques are potentially involved. However, without knowing the functionality of the called subroutines (`sub_0x00000040A`,",
+        "`sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`), we can only speculate. The code suggests the use of several functions which could be indicative of different techniques based on",
+        "their true functionality:",
+        "The code shows standard function prologue and epilogue (push/pop ebp, esp manipulation), stack variable allocation (`sub esp, 0x40`), and function calls. The most suggestive parts are the",
+        "function calls and the data manipulation around addresses like `0x404000` and `0x404044`.",
+        "Here's a possible interpretation, keeping in mind this is highly speculative without knowing the subroutines' content:",
+        "* **T1047.001 - Windows Management Instrumentation (WMI):** The calls to the functions *could* be interacting with WMI to enumerate or execute commands, if those functions use WMI APIs. This is",
+        "highly speculative without reverse engineering the functions.",
+        "* **T1059.001 - Command and Scripting Interpreter: PowerShell:** Similar to WMI, this is only possible if the called functions use PowerShell. The code doesn't directly indicate this, but the",
+        "passing of parameters to the functions could indirectly point to this.",
+        "* **T1071.001 - Application Layer Protocol: ** The code shows network communication *if* the subroutines `sub_0x00000040A` and `sub_0x000005004` make network requests (e.g., using sockets,",
+        "HTTP). Again, this is highly speculative without reverse engineering those functions. The use of the various parameters passed to the functions increases the chance that some network based",
+        "action occurs.",
+        "* **T1053.005 - Scheduled Task/Job:** If the code is designed to create or manipulate scheduled tasks, the functions might involve interaction with the Windows Task Scheduler. No direct",
+        "indication is found in the provided snippet.",
+        "**Crucially, these are *potential* mappings. The actual techniques are entirely dependent on the functionality of the called subroutines.** To determine the precise techniques, reverse",
+        "engineering of the subroutines `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` is required. The code by itself only shows preparations and calls, not the actions",
+        "themselves.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process, indicating the use of the following MITRE ATT&CK techniques:",
-        "* **T1547.001: Create Process with Valid Process Name:** The `CreateProcessA` call is a clear indication of process creation. The use of a seemingly valid (though the actual value is not shown",
-        "in the snippet) `lpApplicationName` (argument) supports this. Without more context on the values of the arguments, specifically `lpApplicationName` and `lpCommandLine`, a more precise",
-        "sub-technique can not be determined. This would require analysis of the data pointed to by those addresses to determine if the process name and command line are legitimate or malicious.",
-        "* **T1055: Process Injection:** While not explicitly shown here, the call to `sub_0x00000040A` *could* be indicative of process injection. The nature of this function is unknown without further",
-        "analysis. It's a high-probability candidate for further investigation. This is merely a possibility, and this technique may not actually be implemented.",
-        "* **T1056.001: Create Remote Thread:** Similar to process injection, if `sub_0x00000040A` creates a remote thread, this would be indicated. Again, this requires further investigation of that",
-        "function.",
-        "* **T1070.001: Process Discovery:** The code retrieves a process handle (`dword ptr [0x404044]`) and handles (`dword ptr [0x404044]` and `dword ptr [0x404048]`) which might be used for process",
-        "discovery. However, this is only inferred based on the context of using process handles. There is no explicit process enumeration shown.",
-        "**Important Note:** The specific sub-techniques and confidence levels associated with these techniques are contingent upon deeper analysis of the referenced memory locations (particularly",
-        "`sub_0x00000040A`, `0x403000`, and `0x404000`) and the actual data values used as parameters in the `CreateProcessA` function call. The code snippet alone does not provide sufficient information",
-        "for a completely precise MITRE attribution.",
+        "The provided assembly code shows the creation and management of a process, which strongly indicates the use of **T1547.001: Create Process**. The `CreateProcessA` call is the key indicator.",
+        "Further, the `WaitForSingleObject` and `CloseHandle` calls show process waiting and cleanup, respectively, but these are supporting actions rather than primary techniques.",
+        "Therefore, the MITRE ATT&CK technique is:",
+        "**T1547.001: Create Remote Process**",
+        "While T1547 encompasses a broader range of process creation, the specifics of creating a process via `CreateProcessA` most accurately maps to T1547.001. There's no evidence in this snippet to",
+        "suggest the use of more specialized sub-techniques like using a specific DLL (T1547.002) or leveraging other, more sophisticated techniques.",
         "Close"
     ],
     "gpt4o": [

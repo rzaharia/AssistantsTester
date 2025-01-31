@@ -18,23 +18,23 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1055.002",
-                "T1543.003",
-                "T1566.002",
-                "T1071.001"
+                "T1059.005"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1112.002",
-                "T1012",
-                "T1110",
-                "T1112.002",
-                "T1012",
-                "T1110"
+                "T1012.002",
+                "T1112",
+                "T1547.001",
+                "T1112",
+                "T1012.002",
+                "T1547.001"
             ],
-            "valid": []
+            "valid": [
+                "T1547.001",
+                "T1547.001"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -81,35 +81,31 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided x86 assembly code, we can infer some potential MITRE ATT&CK techniques. However, without knowing the functionality of `sub_0x00000040A`, `sub_0x000005000`,",
-        "`sub_0x000005004`, and `sub_0x000005008`, we can only make educated guesses. The code shows function calls, stack manipulation, and conditional branching, suggesting some form of data processing",
-        "and potentially error handling.",
-        "Here are some *possible* MITRE ATT&CK techniques that *could* be associated with this code, bearing in mind the lack of context about the called functions:",
-        "* **T1055.001: Process Injection - CreateRemoteThread:** If `sub_0x000005000`, `sub_0x000005004`, or `sub_0x000005008` are creating threads in another process, this technique is possible. The",
-        "use of function calls and pushing addresses to the stack hints at this possibility. However, it's highly speculative without reverse engineering the called functions.",
-        "* **T1055.002: Process Injection - QueueUserAPC:** Similar to the above, if the subroutines are manipulating APC queues, this could be the case. Again, highly speculative.",
-        "* **T1543.003: Create or Modify System Process:** If the called functions manipulate system processes, this would apply.",
-        "* **T1566.002: External Command/Script Execution:** If the code executes external commands/scripts through one of the called functions, this is a possibility.",
-        "* **T1071.001: Command and Control - Application Layer Protocol:** The code might be part of a communication protocol with a C2 server. This is a broad guess based on the function calls.",
-        "**Important Disclaimer:** These are *potential* mappings, and more information is needed to confirm them. The called functions are crucial in determining the exact MITRE ATT&CK techniques.",
-        "Reverse engineering the `sub_xxxx` functions is necessary for accurate categorization. Without knowing their functionality, it's impossible to definitively assign MITRE ATT&CK techniques.",
+        "Based on the provided x86 assembly code, the most likely MITRE ATT&CK techniques are:",
+        "* **T1055.001: Process Injection - CreateRemoteThread:** The code shows calls to functions (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) which are likely related",
+        "to injecting code into another process. The specific use of `CreateRemoteThread` is not directly visible, but the pattern of preparing arguments and calling functions that manipulate memory",
+        "regions is highly suggestive. The error handling (test eax, eax; je) and conditional branching further support this assessment.",
+        "* **T1059.005: Command and Scripting Interpreter - System Management Interface (e.g. Windows Management Instrumentation (WMI))**: While not explicitly shown, the possibility of using system",
+        "management interfaces like WMI is a strong possibility given that process injection is often used as a method to run malicious commands through these interfaces and that the code shows extensive",
+        "argument preparation, indicating some form of command execution. This is more speculative, given the lack of direct evidence in the provided snippet.",
+        "**Important Considerations:**",
+        "* **Lack of Context:** Without knowing the functions (`sub_0x00000040A`, `sub_0x000005000`, etc.) the analysis is limited. These functions could reveal more precise techniques. *",
+        "**Obfuscation:** The code might be obfuscated to hinder analysis. * **Multiple Techniques:** The code could be leveraging several techniques in conjunction.",
+        "The provided assembly only gives a partial picture. A complete reverse engineering effort, including analyzing the called functions, is necessary for a more definitive attribution of MITRE",
+        "ATT&CK techniques.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code interacts with the Windows Registry. Specifically, it attempts to open a registry key (`RegOpenKeyExA`) and then set a value within that key (`RegSetValueExA`). If",
-        "successful, it returns 1; otherwise, 0. Finally, it closes the registry key (`RegCloseKey`).",
-        "Based on this, the relevant MITRE ATT&CK techniques are:",
-        "* **T1112.002: Registry Key/Value Name Creation:** The code creates or modifies registry values. While it doesn't explicitly *create* a key, the `RegSetValueExA` call implies modification, which",
-        "falls under this technique's scope.",
-        "* **T1012: Query Registry:** Although not directly shown as a query, `RegOpenKeyExA` retrieves information about the existence of the specified registry key which is implicitly a form of",
-        "querying.",
-        "* **T1110: Create Account:** While not explicitly creating an account, modifying the registry is often used as a component in account creation. This would depend on the contents of `lpSubKey`",
-        "and `lpValueName`, which aren't provided. If these point to locations used for account configuration, this technique might be considered. This should be stated with a caveat about the",
-        "un-specified values.",
-        "**Therefore, the most certain and relevant MITRE ATT&CK techniques are:**",
-        "* **T1112.002:** Registry Key/Value Name Creation * **T1012:** Query Registry",
-        "It's important to note that without knowing the specific values of the pushed parameters (particularly `lpSubKey` and `lpValueName`), a definitive mapping to T1110 is impossible. The code",
-        "*could* be creating or modifying settings for an account, but this cannot be asserted with the information given.",
+        "The assembly code performs registry manipulation. Specifically, it attempts to open a registry key (using `RegOpenKeyExA`) and then set a value within that key (using `RegSetValueExA`). Finally,",
+        "it closes the key (`RegCloseKey`). Failure to open the key results in a return value of 0; otherwise, 1 is returned.",
+        "Based on this, the associated MITRE ATT&CK techniques are:",
+        "* **T1012.002: Registry Run Keys / Startup Folder:** While the code doesn't directly modify startup folders or run keys, it manipulates the registry. If the targeted registry key is related to",
+        "startup, this technique would apply. This is conditional, however.",
+        "* **T1112: Modify Registry:** This is the most direct and applicable technique. The code explicitly uses functions to modify registry values.",
+        "* **T1547.001: Registry Key/Value Name:** The code interacts with registry key and value names (`lpSubKey`, `lpValueName`).",
+        "Therefore, the most accurate and comprehensive MITRE ATT&CK representation would be:",
+        "* **T1112:** This is the primary technique. The others are conditional upon the specific registry key being targeted. It's possible to apply T1012.002 if the key is in a startup location, but it",
+        "cannot be definitively determined from the assembly snippet alone. T1547.001 is a supporting sub-technique highlighting the specific action of manipulating registry key and value names.",
         "Close"
     ],
     "gpt4o": [

@@ -16,19 +16,20 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1055.010",
-                "T1055.011",
-                "T1547.001",
-                "T1547.001",
-                "T1543.001",
-                "T1547.002"
+                "T1047",
+                "T1059.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
+                "T1204.001",
                 "T1547.001",
-                "T1204.002",
+                "T1204.001",
+                "T1547.001",
+                "T1204.001",
+                "T1547.001",
+                "T1204.001",
                 "T1547.001"
             ],
             "valid": []
@@ -83,33 +84,36 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function call to two different subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the functionality of those subroutines, we can",
-        "only speculate on the MITRE ATT&CK techniques involved. The code itself performs standard function prologue and epilogue operations. The `push` and `call` instructions suggest potential actions,",
-        "but we need more context.",
-        "However, we can make some educated guesses based on common patterns:",
-        "**Possible MITRE ATT&CK Techniques (Speculative):**",
-        "* **T1055.001: Process Injection - CreateRemoteThread:** If `sub_0x00000040A` or `sub_0x000005030` creates a thread in another process's memory space, this technique would be applicable. The",
-        "pushing of addresses (`0x403000`, `0x403058`, `0x403064`) might indicate the loading of code into another process",
-        "* **T1055.010: Process Injection - QueueUserAPC:** Similarly, if one of the subroutines uses `QueueUserAPC` to inject code, this technique would be relevant.",
-        "* **T1055.011: Process Injection - Reflective DLL Injection:** If the addresses passed to the function calls are sections of a DLL loaded in memory, and a technique like Reflective DLL injection",
-        "is employed, this technique applies.",
-        "* **T1547.001: T1547.001: Create or Modify System Process: Create Remote Thread:** If the subroutines are creating threads in system processes.",
-        "* **T1543.001: Create or Modify System Process: Create Remote Thread** If the code creates a thread to run within a system process.",
-        "* **T1547.002: Create or Modify System Process: Directly Modify System Process** If the subroutines directly alter memory space of a system process.",
-        "**Important Note:** These are *potential* mappings based on the *limited* information. To accurately determine the MITRE ATT&CK techniques, the code of `sub_0x00000040A` and `sub_0x000005030` is",
-        "crucial. The values pushed onto the stack before calling `sub_0x000005030` also need analysis to better pinpoint the technique. Without understanding the functionality of these subroutines, any",
-        "mapping to MITRE techniques remains highly speculative.",
+        "The provided assembly code snippet shows a function call to `sub_0x00000040A` and later to `sub_0x000005030`. Without knowing the functionality of these subroutines, we can only speculate on the",
+        "MITRE ATT&CK techniques. The code itself primarily demonstrates standard function prologue/epilogue and some function calls, making it inconclusive without further analysis. However, we can make",
+        "some educated guesses based on common patterns.",
+        "Given the multiple arguments passed to `sub_0x000005030` (which look like pointers), it's plausible this involves some form of data manipulation or execution. The fact that it's a function call",
+        "with a significant amount of setup suggests that this isn't a trivial operation.",
+        "**Possible MITRE ATT&CK Techniques (Highly Speculative):**",
+        "* **T1055.001 - Process Injection:** If `sub_0x000005030` loads and executes code from the provided pointers, this would be a strong candidate. However, this is only speculative without reverse",
+        "engineering the subroutines.",
+        "* **T1047 - Windows Management Instrumentation (WMI):** If the data manipulated or the functions called interacts with WMI, this is another possibility. Again, this is highly speculative.",
+        "* **T1059.002 - Command and Scripting Interpreter: Programatically** If the function calls involve execution of code through a scripting engine, this would be relevant.",
+        "**Important Note:** To accurately determine the MITRE ATT&CK techniques, a deep reverse engineering analysis of `sub_0x00000040A` and `sub_0x000005030` is crucial. The provided assembly only",
+        "reveals the calling convention and doesn't expose the actual malicious behavior. Without understanding the content and purpose of these subroutines, any MITRE mapping is purely conjecture.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the use of the `ShellExecuteA` function, which is a common way to execute a program or open a document. This directly maps to a MITRE ATT&CK technique.",
-        "The most relevant MITRE ATT&CK technique is:",
-        "**T1547.001: Command and Scripting Interpreter: Native API**",
-        "This sub-technique specifically describes using native APIs (like `ShellExecuteA`) to execute commands. The code doesn't explicitly show the *contents* of `lpFile` or `lpParameters`, which would",
-        "determine the exact command executed. However, the *method* of execution is clearly via a native API call, hence this technique ID.",
-        "There might be other techniques involved depending on the content of the strings pointed to by `lpFile` and `lpParameters`. For example, if `lpFile` pointed to a malicious executable, additional",
-        "techniques like T1204.002 (User Execution) might also apply. However, without knowing the contents of those memory locations, **T1547.001** is the primary and most accurate MITRE technique based",
-        "solely on the provided assembly.",
+        "The provided assembly code shows a call to `ShellExecuteA`, a Windows API function used to execute a file. This strongly suggests the use of **T1204.001: Add File to Startup Folder** or",
+        "**T1547.001: Create or Modify System Process**. Let's break it down:",
+        "* **`call ShellExecuteA`:** This is the core indicator. `ShellExecuteA` is commonly abused to execute malicious files, potentially placing them in the startup folder (T1204.001) or launching a",
+        "process that's a payload (T1547.001). The arguments pushed onto the stack before the call (`lpFile`, `lpOperation`, etc.) would determine the exact behavior.",
+        "* **Other instructions:** The surrounding code is standard stack frame setup and teardown (`push ebp`, `mov ebp, esp`, etc.) and cleanup. These are not MITRE ATT&CK techniques themselves but",
+        "part of the execution context. The `call sub_0x00000040A` is also relevant, as this subroutine might perform actions leading up to the `ShellExecuteA` call, like downloading or preparing the",
+        "file to execute. Without knowing what `sub_0x00000040A` does, we can't associate a specific technique to it.",
+        "**Therefore, based on the provided code snippet alone, the most likely associated MITRE ATT&CK techniques are:**",
+        "* **T1204.001: Add File to Startup Folder:** If the `lpFile` argument points to a file intended to run at startup.",
+        "* **T1547.001: Create or Modify System Process:** If `ShellExecuteA` is used to launch a process with malicious intent.",
+        "**To be more precise, further analysis is needed:**",
+        "* **Disassembly of `sub_0x00000040A`:** Understanding this function's purpose is critical to accurately determine the complete attack chain. * **Analysis of the string data:** The strings",
+        "referenced by the `lpFile`, `lpParameters`, and `lpOperation` parameters would reveal the target file, parameters, and operation type, respectively. This would further pinpoint the attacker's",
+        "objective.",
+        "Without this additional information, T1204.001 and T1547.001 remain the most probable MITRE ATT&CK techniques. The specific sub-techniques might change depending on the discovered details.",
         "Close"
     ],
     "gpt4o": [

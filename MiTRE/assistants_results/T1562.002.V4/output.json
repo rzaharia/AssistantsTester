@@ -11,13 +11,11 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1055.001",
-                "T1055.010",
-                "T1546.012",
                 "T1547.001",
-                "T1047",
+                "T1548.002",
                 "T1055.001",
-                "T1055.010"
+                "T1071.001",
+                "T1047"
             ],
             "valid": []
         },
@@ -25,7 +23,10 @@
             "all": [
                 "T1012.002",
                 "T1112",
-                "T1007.001"
+                "T1543.003",
+                "T1112",
+                "T1012.002",
+                "T1543.003"
             ],
             "valid": []
         },
@@ -71,35 +72,37 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques could be associated, but without more context (like the functions `sub_0x00000040A`, `sub_0x000005000`,",
-        "`sub_0x000005004`, and `sub_0x000005008`), we can only speculate on the most likely candidates. The code shows characteristics of function calls which might indicate the following techniques:",
-        "* **T1055.001: Process Injection (using a legitimate process):** The code makes several function calls (`call sub_0x...`). If these functions load and execute code within another process, this",
-        "technique would apply. This is a strong possibility given the nature of the calls and memory allocation.",
-        "* **T1055.010: Process Injection (DLL Injection):** A similar reasoning as above, but specifically if the injected code is a DLL. This is less certain without knowing the exact nature of the",
-        "called functions.",
-        "* **T1546.012: System Binary Proxy Execution:** This is possible if one of the called functions is a legitimate system binary that is manipulated to execute malicious code. Again, needs more",
-        "context on the called subroutines.",
-        "* **T1547.001: Windows Management Instrumentation (WMI) Event Subscription:** If one of the called functions interacts with WMI to create an event subscription that triggers malicious code",
-        "execution, this would be applicable. This is less probable based on the snippets shown, but not impossible.",
-        "* **T1047: Windows Management Instrumentation:** Similar to above, this covers a broader set of WMI abuses. Less certain without more info.",
-        "**Why other techniques are less likely (based on this snippet):**",
-        "Techniques involving direct registry manipulation, file system modifications, or network communication are not readily apparent in this code. The core functionality hinges on function calls,",
-        "implying process injection or similar techniques as the most likely.",
-        "**In MITRE ATT&CK notation, considering the highest likelihood:**",
-        "The most probable techniques are **T1055.001** and possibly **T1055.010**, depending on the implementation details hidden within the called functions. To determine with certainty, the functions",
-        "`sub_0x...` need to be analyzed.",
+        "The provided assembly code shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what those",
+        "subroutines do, it's impossible to definitively assign specific MITRE ATT&CK techniques. However, we can make some educated guesses based on the general structure.",
+        "The code exhibits characteristics that *could* be associated with several techniques, depending on the functionality of the called subroutines. The most likely candidates are:",
+        "* **T1547.001: Process Injection:** If `sub_0x000005000`, `sub_0x000005004`, or `sub_0x000005008` involve injecting code into another process, this technique would apply. The pushing of",
+        "addresses and seemingly arbitrary data onto the stack before those calls strengthens this suspicion.",
+        "* **T1548.002: Process Hollowing:** Similar to process injection, process hollowing often involves creating a suspended process and replacing its image with malicious code. Again, this depends",
+        "heavily on what the called functions do.",
+        "* **T1055.001: Process Discovery:** The code might be used to enumerate processes or gather process information. If `sub_0x00000040A` performs some sort of system reconnaissance, it may be",
+        "related to this.",
+        "* **T1071.001: Application Layer Protocol:** If the function interacts with a network, especially through a custom protocol, this would apply. This is less likely without more information about",
+        "what `sub_0x00000040A` does.",
+        "* **T1047: Windows Management Instrumentation (WMI):** While less likely, some less common process manipulation techniques involving WMI could manifest as this type of assembly code.",
+        "**Crucially:** These are *potential* mappings. **The actual MITRE ATT&CK techniques cannot be determined without understanding the behavior of the functions called by this code snippet.**",
+        "Reverse engineering of `sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` is required for accurate attribution.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The assembly code demonstrates registry manipulation, specifically reading and potentially writing values. Based on this, the associated MITRE ATT&CK techniques are:",
-        "* **T1012.002: Registry Run Keys / RunOnce:** While not explicitly creating a Run key, the code's interaction with `RegOpenKeyExA` and `RegSetValueExA` suggests the possibility of modifying",
-        "registry keys that could be used for persistence (although this isn't definitively shown). The specific key (`0x403000` and `0x403044` are likely obfuscated addresses) needs to be analyzed",
-        "further.",
-        "* **T1112: Modify Registry:** The code directly uses `RegOpenKeyExA` to open a registry key and `RegSetValueExA` to set a value within it. This clearly falls under this technique.",
-        "* **T1007.001: Registry Key Run:** If the registry key modified is a Run key (or similar startup location), this sub-technique would also apply, though more analysis of the obfuscated addresses",
-        "is required for confirmation.",
-        "It's important to note that without knowing the values of the obfuscated addresses (`0x403000`, `0x403044`), a more precise MITRE ATT&CK mapping might be possible. The function call to",
-        "`sub_0x00000040A` is also a potential indicator, but without its implementation, we cannot determine its role in the overall attack.",
+        "The provided assembly code performs registry manipulation using the Windows API functions `RegOpenKeyExA` and `RegSetValueExA`. This indicates the following MITRE ATT&CK techniques:",
+        "* **T1012.002: Registry Run Keys / Run Once:** While not explicitly creating a Run key, the code's ability to write to the registry makes this a possibility depending on the value of `lpSubKey`",
+        "(0x403000). Further analysis is needed to determine the exact registry key being targeted. It's also possible the code is targeting other registry locations not related to persistence.",
+        "* **T1112: Modify Registry:** The code explicitly uses `RegSetValueExA` to modify a registry value. This technique is definitively present.",
+        "* **T1543.003: Create or Modify System Process:** This is less direct. While not creating a process, modifying the registry *can* lead to changes that trigger the creation or modification of",
+        "system processes upon reboot or other events. It's a potential outcome, but not guaranteed by the code alone.",
+        "**Important Considerations:**",
+        "* **`lpSubKey` (0x403000):** The value of `lpSubKey` is crucial. Its contents determine the specific registry key being targeted. Without knowing this value, the exact impact (persistence, data",
+        "exfiltration etc.) can not be accurately determined.",
+        "* **`lpValueName` (0x403044):** Similarly, this value determines which registry value is being modified.",
+        "* **Context is Key:** The provided code snippet is insufficient to definitively assign certain techniques. Analyzing the broader context (malware behavior, calling functions, network traffic",
+        "etc.) is critical for accurate attribution.",
+        "Therefore, based solely on the provided code: **T1112** is confirmed, **T1012.002** is possible but requires further investigation, and **T1543.003** is a potential downstream consequence. A",
+        "more complete analysis is needed for a higher confidence attribution.",
         "Close"
     ],
     "gpt4o": [

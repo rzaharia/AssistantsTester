@@ -12,23 +12,18 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1055.012",
-                "T1047",
-                "T1547.001",
-                "T1548.002",
-                "T1566.002"
+                "T1059.005",
+                "T1574.001"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
+                "T1055.001",
                 "T1055.002",
-                "T1552.002",
-                "T1547.001",
-                "T1547.001",
-                "T1547.001",
-                "T1548.002",
-                "T1566.001"
+                "T1543.003",
+                "T1562.001",
+                "T1055.001"
             ],
             "valid": []
         },
@@ -75,31 +70,33 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005004`). Without knowing the functionality of `sub_0x00000040A` and",
-        "`sub_0x000005004`, we can only speculate on the MITRE ATT&CK techniques involved. The code itself only demonstrates basic function prologue/epilogue and function calls. It does *not* directly",
-        "implement any specific attack technique.",
-        "To assign MITRE ATT&CK techniques, we need to understand what `sub_0x00000040A` and `sub_0x000005004` do. Possible techniques, depending on the called functions, could include:",
-        "* **T1055.001: Process Injection (using a legitimate process):** If either called function injects code into another process. * **T1055.012: Process Injection (using Reflective DLL Loading):**",
-        "If either called function uses reflective DLL injection. * **T1047: Windows Management Instrumentation:** If either function uses WMI for malicious purposes. * **T1547.001: Command and Scripting",
-        "Interpreter (PowerShell):** If either function uses a scripting interpreter for malicious actions. * **T1548.002: Abuse Elevation Control Mechanism (UAC bypass):** If the functions attempt to",
-        "bypass User Account Control. * **T1566.002: External Remote Services:** If the functions communicate with a remote service for malicious purposes.",
-        "**In conclusion:** The assembly code itself only shows function calls. **No MITRE ATT&CK techniques can be definitively assigned without knowing the functionality of the called subroutines",
-        "(`sub_0x00000040A` and `sub_0x000005004`).** Reverse engineering those subroutines is necessary for accurate technique attribution.",
+        "The provided assembly code snippet shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005004`). Without knowing what those subroutines do, we can only",
+        "speculate on the MITRE ATT&CK techniques. The code itself is fairly generic function prologue/epilogue. The important parts are the calls.",
+        "However, based on the general structure, we can suggest *potential* MITRE ATT&CK techniques, understanding that these are highly speculative without more context:",
+        "* **T1055.001 - Process Injection:** If `sub_0x00000040A` or `sub_0x000005004` injects code into another process (e.g., using techniques like process hollowing or thread injection), this would",
+        "be a strong candidate. The `0x403000` argument passed to the second function might be a memory address relevant to this.",
+        "* **T1059.005 - Command and Scripting Interpreter:** If either subroutine executes commands through a scripting engine (e.g., PowerShell, cmd.exe), this would be relevant. The pushed values (`5`",
+        "and `0x403000`) might be parameters or handles for this command execution.",
+        "* **T1574.001 - Data Staged:** If the subroutine retrieves data from a remote location or interacts with the network, then the technique could be data staging.",
+        "**Important Note:** These are *hypothetical* mappings. To accurately determine the associated MITRE techniques, you absolutely need to analyze the functions `sub_0x00000040A` and",
+        "`sub_0x000005004`. The code provided only shows the *caller* and not the *called* functions, which are essential for definitive technique identification.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code snippet shows a function call (`call sub_0x00000040A` and `call (null)`) and standard function prologue/epilogue. Without knowing the specifics of `sub_0x00000040A`",
-        "and the target of the null pointer dereference, it's impossible to definitively assign MITRE ATT&CK techniques. However, we can speculate on *possible* techniques based on the general structure:",
-        "* **T1055.002: Process Injection - Dynamic-link library injection** is a possibility *if* `sub_0x00000040A` loads and executes a DLL. The `call (null)` is highly suspicious and likely points to",
-        "exploitation, perhaps attempting a DLL injection with a calculated address.",
-        "* **T1552.002: External Remote Services - Dynamic Data Exchange (DDE)** is possible *if* `sub_0x00000040A` or the target of the `call (null)` uses DDE. DDE is frequently misused to achieve",
-        "remote code execution.",
-        "* **T1547.001: T1547.001: T1547.001: Exploit Public-Facing Application** and **T1548.002: Abuse Elevation Control Mechanism** are both highly possible. The code is the sort of thing one would",
-        "expect in an exploit that needs to gain privileges. This is especially true because the `call (null)` is suspicious and would need to have already made system calls in order to do it's job.",
-        "* **T1566.001: Create or Modify System Process:** This is likely if the code successfully injects code into another process.",
-        "**Important Note:** These are *potential* mappings. The actual MITRE ATT&CK techniques depend entirely on the functionality of `sub_0x00000040A` and what happens during the null pointer",
-        "dereference",
-        "crucial for accurate technique assignment. A memory dump or more context would allow for more precise identification.",
+        "The provided assembly code snippet shows a function call, stack manipulation, and then function cleanup. There isn't enough information to definitively assign specific MITRE ATT&CK techniques",
+        "with sub-techniques. The code is too generic. However, we can speculate based on what the code *could* be doing:",
+        "* **T1055.001: Process Injection (Process Hollowing):** If `sub_0x00000040A` creates a new process and the code at `0x403000` overwrites its image with malicious code, this could indicate",
+        "process hollowing. This is a *strong possibility* if the `(null)` call is actually a dynamically resolved function pointer used to execute shellcode in the hollowed process. However, we need",
+        "significantly more context (the code of `sub_0x00000040A` and the content at `0x403000`) to confirm.",
+        "* **T1055.002: Process Injection (Thread Execution):** Similar to the above, if the `(null)` call creates a new thread and injects code into it, this technique could be used. Again, the lack of",
+        "context makes this speculative.",
+        "* **T1543.003: Create or Modify System Process:** This is a more general possibility if the `(null)` function call modifies a system process for malicious purposes. This is less specific than",
+        "process injection techniques.",
+        "* **T1562.001: Impair Defenses (Disable or Modify Tools):** While not directly shown, if the called functions manipulate security tools or logs, this could be the case. It's highly unlikely",
+        "based on this snippet alone.",
+        "**In summary:** Without more information about the functions called and the data manipulated, assigning specific MITRE ATT&CK techniques is unreliable. The most plausible *speculative*",
+        "assignment, based on the possibility of process injection is **T1055.001**. However, this is not definitive without further analysis. The provided code only shows setup and cleanup of a function",
+        "call, not the actual malicious action.",
         "Close"
     ],
     "gpt4o": [

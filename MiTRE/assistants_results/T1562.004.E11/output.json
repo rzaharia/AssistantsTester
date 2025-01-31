@@ -12,19 +12,18 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1055.014",
-                "T1548.002",
-                "T1547.001"
+                "T1547.001",
+                "T1543.003",
+                "T1548.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1574.001",
-                "T1574.002",
-                "T1547.002",
+                "T1055.001",
+                "T1558.002",
                 "T1566.002",
-                "T1566.001"
+                "T1060.002"
             ],
             "valid": []
         },
@@ -65,38 +64,31 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005004`). Without knowing what those functions do, we can only speculate on",
-        "the MITRE ATT&CK techniques involved. The code itself is primarily focused on **stack management** and **function calling**, which are not techniques in themselves, but are *part* of many",
-        "techniques.",
-        "The most likely candidates, assuming malicious intent, are broad techniques related to **execution**:",
-        "* **T1055.001 - Process Injection: CreateRemoteThread:** If `sub_0x00000040A` or `sub_0x000005004` create a thread in another process, this technique would be applicable. The `0x40609f` and",
-        "`0x403000` arguments suggest pointers or handles which might be used for this.",
-        "* **T1055.014 - Process Injection: Shared Libraries:** If the called functions load and execute code from a shared library, this technique applies.",
-        "* **T1548.002 - Exploit Public-Facing Application:** If this code is part of an exploit targeting a publicly accessible application, this technique is relevant.",
-        "* **T1547.001 - Exploit Public-Facing Application: Web Delivery:** If this code is part of an exploit delivered via a web application.",
-        "**Crucially:** To determine the *specific* MITRE ATT&CK techniques, the functionality of `sub_0x00000040A` and `sub_0x000005004` must be analyzed. The provided snippet only shows the context of",
-        "the calls, not their actions. The supplied addresses themselves don't reveal anything without further context (e.g., a larger binary to examine).",
-        "Therefore, a definitive mapping to MITRE ATT&CK techniques is impossible based solely on the assembly code snippet. The above are potential candidates under *assumptions* of malicious activity.",
+        "The provided assembly code snippet shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005004`). Without knowing the functions' contents (`sub_0x00000040A`",
+        "and `sub_0x000005004`), we can only speculate on the MITRE ATT&CK techniques. The code itself primarily demonstrates standard function prologue/epilogue and argument passing. The techniques will",
+        "depend entirely on what those called functions do.",
+        "However, we can make some *potential* associations based on common practices:",
+        "* **T1055.001: Process Injection - Reflective DLL Injection:** If `sub_0x00000040A` or `sub_0x000005004` loads and executes code from memory (e.g., a DLL loaded directly into memory without",
+        "writing to disk), this technique would be relevant. This is a common pattern for evading detection.",
+        "* **T1547.001: Remote System Discovery:** If these called functions query network resources or attempt to map network shares, this technique would be relevant.",
+        "* **T1543.003: Create or Modify System Process:** If the called function creates or manipulates system processes (e.g., through the Windows API), this could be applicable.",
+        "* **T1548.002: Exploit Public-Facing Application:** If the called function interacts with a known vulnerable application, this would apply.",
+        "**Important Note:** These are just *possible* mappings. To accurately determine the MITRE ATT&CK techniques, the functions `sub_0x00000040A` and `sub_0x000005004` must be analyzed. The provided",
+        "code only shows the setup for calls; it doesn't reveal the malicious actions themselves. The lack of specifics makes any attribution to MITRE techniques highly speculative.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code snippet shows a function call followed by what seems to be a second function call to an unknown address (`(null)`), and then standard function epilogue. Let's break",
-        "down the MITRE ATT&CK techniques it might relate to:",
-        "The most prominent feature is the **two function calls**:",
-        "* **`call sub_0x00000040A`**: This calls a function at a specific address. The nature of this function is unknown, without further analysis. This could be part of many different techniques",
-        "depending on what `sub_0x00000040A` does.",
-        "* **`call (null)`**: This is a suspicious call to a NULL address, which is very likely to indicate some form of exploitation or error handling that results in a crash or unexpected behavior.",
-        "Given this uncertainty, we cannot definitively assign specific MITRE ATT&CK techniques. However, we can speculate on *potential* techniques based on common attack patterns:",
-        "* **T1574.001: Command and Scripting Interpreter:** If `sub_0x00000040A` or the null call involves executing commands via a scripting interpreter (e.g., cmd.exe, powershell), this technique",
-        "would be relevant.",
-        "* **T1574.002: Command and Scripting Interpreter: Alternative Command and Scripting Interpreter:** Similarly, if an uncommon or less-known interpreter is used.",
-        "* **T1547.002: Data from Local System:** If the function at `sub_0x00000040A` retrieves data from the local system, this technique might apply.",
-        "* **T1566.002: External Proxy:** If the code attempts to connect to a remote system through a proxy (the null pointer could represent an error during proxy handling), this could be a",
-        "possibility. However, this is extremely speculative without more context.",
-        "* **T1566.001: External Proxy: Proxy Server:** Similar to the above, but specific to a proxy server.",
-        "**Crucially**: Without knowing the functionality of `sub_0x00000040A` and why a NULL address is called, we cannot provide a precise MITRE ATT&CK mapping. The code snippet alone is insufficient.",
-        "Further reverse engineering is required to understand the context and behavior of the functions called. The use of `(null)` strongly suggests a potential error or unexpected behavior which",
-        "should be investigated.",
+        "The provided assembly code snippet shows a function call followed by another function call that appears to be to an address obtained dynamically (NULL). Based on this, the most likely MITRE",
+        "ATT&CK techniques are:",
+        "* **T1055.001: Process Injection:** The code calls an external function (`call sub_0x00000040A` and `call (null)`). This suggests the possibility that the malicious code is injecting its process",
+        "into another process. The second `call (null)` is particularly suspicious, as it could be used to resolve a function address at runtime (potentially from a hijacked memory location).",
+        "* **T1558.002: Dynamic Resolution:** The `call (null)` instruction is strongly indicative of this technique, where the attacker avoids static analysis by resolving function addresses at runtime.",
+        "This is a common technique to bypass security controls and evade detection.",
+        "* **T1566.002: External Proxy:** Depending on the context of where `sub_0x00000040A` exists, and what it does, there may be a possibility that the code communicates through a proxy, but there is",
+        "not enough information in the provided snippet.",
+        "* **T1060.002: Exploitation for Privilege Escalation:** The lack of context makes this hard to determine, but injecting code into a privileged process could be part of an escalation effort.",
+        "**Important Note:** Without more context (the surrounding code, the nature of `sub_0x00000040A`, and the operating system environment), it's impossible to definitively assign specific MITRE",
+        "ATT&CK techniques. The above are the *most likely* based on the limited information. The `call (null)` especially requires additional reverse engineering to understand its precise behavior.",
         "Close"
     ],
     "gpt4o": [

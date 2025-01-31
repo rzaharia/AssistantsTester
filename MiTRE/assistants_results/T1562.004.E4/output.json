@@ -14,24 +14,24 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1059.005",
                 "T1071.001",
-                "T1070.001",
-                "T1566.002"
+                "T1047",
+                "T1030",
+                "T1550.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
+                "T1071.001",
+                "T1106",
+                "T1562.001",
                 "T1547.001",
-                "T1003.002",
-                "T1102",
-                "T1047",
-                "T1071.001",
-                "T1071.001",
-                "T1102"
+                "T1081"
             ],
-            "valid": []
+            "valid": [
+                "T1562.001"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -83,38 +83,39 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques could be potentially associated. However, without knowing the functionality of the called subroutines (`sub_0x00000040A`,",
-        "`sub_0x000005000`, `sub_0x000005018`, `sub_0x000005008`, `sub_0x00000500C`, `sub_0x000005014`, `sub_0x000005010`, `sub_0x000005004`), a precise mapping is impossible. The code suggests data",
-        "manipulation and function calls, but the nature of those functions determines the specific techniques.",
-        "However, we can speculate on *possible* techniques based on common patterns:",
-        "* **T1059.005 - Command and Scripting Interpreter: System Command Execution:** If any of the called subroutines execute commands from strings or files (passed as parameters), then this technique",
-        "would apply. The presence of `push` instructions with addresses (`0x403000`, `0x403010`, `0x403020`, `0x403054`, etc.) suggests this is a possibility.",
-        "* **T1071.001 - Application Layer Protocol: HTTP:** Again, this depends entirely on the nature of the called functions. If they involve making HTTP requests (e.g., to download or upload files),",
-        "this technique could be relevant.",
-        "* **T1070.001 - Indicator Removal on Host:** The code appears to overwrite memory locations (e.g., `mov dword ptr [0x404000], 0x44`). If these memory locations are used for logging or other",
-        "indicators of compromise, this may point to this technique.",
-        "* **T1566.002 - Create or Modify System Process: Create Remote Threads:** The repeated calls to various subroutines with similar parameters (`push eax`, `push address`) could be used to create",
-        "threads. The context is unknown, but it's a possibility.",
-        "**Important Note:** These are *potential* associations. To accurately determine the MITRE ATT&CK techniques, the behavior of the called functions (`sub_0x...`) must be analyzed. Reverse",
-        "engineering these functions is necessary for a definitive answer. The code also shows memory manipulation which could be part of other techniques. The lack of strings also makes definitive",
-        "conclusions difficult. More analysis is needed.",
+        "The provided assembly code shows several actions that could map to multiple MITRE ATT&CK techniques, depending on the context and the functions called (`sub_0x...`). Without knowing what those",
+        "functions do, we can only speculate on the most likely techniques. The code appears to be performing some form of data manipulation and possibly interacting with a system (likely via the calls",
+        "to the `sub_0x...` functions).",
+        "Based on the observed actions, the following MITRE ATT&CK techniques are potential candidates:",
+        "* **T1071.001: Application Layer Protocol:** The code makes numerous calls to external functions (e.g., `sub_0x000005000`, `sub_000005018`, `sub_0x000005008`, etc.). These functions *could* be",
+        "interacting with network protocols to communicate with external systems. This is a strong possibility, but we cannot definitively say so without reverse-engineering the called functions.",
+        "* **T1047: Windows Management Instrumentation:** The structure of the code, with numerous function calls passing data structures, is reminiscent of WMI usage. WMI is often used for system",
+        "discovery and control, making this a plausible technique. Again, this is highly dependent on the functionality of the called subroutines.",
+        "* **T1030: OS Credential Dumping:** While not explicitly shown, if the called functions interact with memory locations containing credentials or security tokens, this technique could be",
+        "involved. There's nothing directly indicating this from this code snippet alone.",
+        "* **T1550.002: Use of Native API:** The code uses native Windows API calls (indirectly through the `sub_0x...` functions). This is practically certain given it is x86 assembly code operating on",
+        "a Windows system. However, this is more a characteristic of the code than a specific malicious action.",
+        "**Important Note:** The specific sub-techniques and confidence levels cannot be accurately determined without analyzing the referenced functions (`sub_0x...`). The code itself is only a part of",
+        "a larger attack. Reverse-engineering those functions is necessary to definitively map the actions to specific MITRE ATT&CK techniques and sub-techniques. The above is merely a plausible mapping",
+        "based on the limited information provided.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "Based on the provided assembly code, the following MITRE ATT&CK techniques are likely involved:",
-        "* **T1547.001: Create or Modify System Process:** The code uses `CreateProcessA` to create a new process. This directly maps to this sub-technique. The parameters passed to `CreateProcessA`",
-        "suggest the creation of a new process from a command line.",
-        "* **T1003.002: OS Command Execution: Command and Scripting Interpreter:** While not directly using a command interpreter like `cmd.exe` or `powershell.exe`, the `CreateProcessA` call with a",
-        "command line argument (`lpCommandLine`) is a common method used for command execution.",
-        "* **T1102: Pass the Hash:** While not explicitly present, the assembly code might be involved in pass-the-hash attacks depending on how `0x403094` through `0x4030a6` are populated. These memory",
-        "locations are loaded into the stack before creating a new process which suggests that the process creation may be leveraging credential data. More context is needed to be certain. This is highly",
-        "suspicious and warrants further investigation.",
-        "* **T1047: Windows Management Instrumentation (WMI):** Not directly shown but a possibility. WMI is frequently used by malware to execute commands, and there's no immediate evidence to rule it",
-        "out. This would be suspected if the `sub_0x00000040A` function was doing something with WMI.",
-        "* **T1071.001: Application Layer Protocol: Create File:** The code creates a file using `CreateFileA` and writes data to it using `WriteFile`. This strongly suggests T1071.001 is in use. The",
-        "file is then deleted using `DeleteFileA`. This is preparatory to other actions likely.",
-        "The certainty of some techniques, especially T1102, depends heavily on the values being read from memory locations like `0x403094` - `0x4030a6`. Further analysis of the `sub_0x00000040A`",
-        "function and the data in the `.data` section of the program would be necessary for complete accuracy.",
+        "The provided assembly code performs several actions related to file creation, writing data to files, process creation, and cleanup. Based on these actions, the following MITRE ATT&CK techniques",
+        "are applicable:",
+        "* **T1071.001: Application Layer Protocol:** The code uses `CreateFileA`, `WriteFile`, and `CloseHandle` functions, indicative of interacting with the file system at the application layer. While",
+        "not explicitly specifying a protocol, the interaction is clearly via the Windows API.",
+        "* **T1106: Native API:** The code extensively uses native Windows API functions such as `CreateFileA`, `WriteFile`, `CloseHandle`, `lstrlenA`, `CreateProcessA`, `WaitForSingleObject`, and",
+        "`DeleteFileA`. This is a direct use of native functions to achieve its objective.",
+        "* **T1562.001: Impair Defenses - Process Discovery:** This is less direct, but the code creates a process (`CreateProcessA`) making it potential relevant. The process created could be a tool to",
+        "evade detection or disable security features, but more code context is needed to confirm.",
+        "* **T1547.001: Create or Modify System Process:** The `CreateProcessA` function is used to spawn a new process. While it doesn't inherently suggest malicious intent, the creation of a process is",
+        "a core component of this technique. Again, further context is needed to definitively classify it as malicious.",
+        "* **T1081: Execute API Call:** This is a very broad technique, and the code clearly executes numerous Windows API calls. However, it's not a very specific or useful association without more",
+        "information on the context of *what* it executes and *why*.",
+        "It's crucial to note that these mappings are based solely on the provided assembly code snippet. Without knowing the context (e.g., what `sub_0x00000040A` does, the content of the strings at",
+        "0x403000, 0x403010, 0x403020, 0x403054, the command line being executed etc.), a more precise and confident attribution to specific sub-techniques or other techniques is impossible. The code",
+        "itself is not inherently malicious; the context of its execution determines its maliciousness or benign nature.",
         "Close"
     ],
     "gpt4o": [

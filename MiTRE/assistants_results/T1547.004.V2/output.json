@@ -14,17 +14,19 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1059.002",
-                "T1071.001",
                 "T1055.001",
-                "T1574.001"
+                "T1055.002",
+                "T1053.005",
+                "T1124.001"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1112.002",
-                "T1012"
+                "T1012",
+                "T1007",
+                "T1110.002"
             ],
             "valid": []
         },
@@ -70,35 +72,32 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what those",
-        "functions do, we can only speculate on the MITRE ATT&CK techniques. However, based on the structure, we can infer some possibilities.",
-        "The code uses stack manipulation (`push`, `pop`, `mov esp, ebp`, `pop ebp`) which is standard function prologue and epilogue. The interesting parts are the function calls and conditional jumps.",
-        "**Possible MITRE ATT&CK Techniques (speculative):**",
-        "* **T1059.002 - Command and Scripting Interpreter:** If `sub_0x00000040A` or any of the `sub_0x00000500x` functions execute commands or scripts (e.g., through system calls), this technique would",
-        "apply. This is highly probable given the function calls with various parameters being passed.",
-        "* **T1071.001 - Application Layer Protocol:** If the functions involve network communication, and the parameters hint at network protocols or addresses, this technique is relevant. More context",
-        "about the called functions is needed to be certain.",
-        "* **T1055.001 - Process Injection:** If any of the called functions inject code into other processes, this would be a strong candidate. This is less likely based solely on the provided snippet,",
-        "but still possible depending on the implementation of the called subroutines.",
-        "* **T1574.001 - External Remote Services:** If the code interacts with external services, then this would apply. Again, this depends on the functionality of the called subroutines.",
-        "**Why we can't be more specific:**",
-        "The lack of information about the subroutines (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) makes precise MITRE ATT&CK mapping impossible. These subroutines likely",
-        "contain the actual malicious behavior. The provided code only shows the setup and handling of the results from these calls.",
-        "**To get a more precise mapping, you need to:**",
-        "1. **Disassemble and analyze the called subroutines:** Understanding their functionality will reveal the true nature of the code's actions. 2. **Examine the data being passed to the",
-        "subroutines:** The parameters passed in the `push` instructions might offer clues about their purpose. 3. **Look for system calls or API calls:** The called functions likely use system or API",
-        "calls to interact with the operating system. Identifying those calls is crucial.",
-        "Without this additional information, any MITRE ATT&CK technique assignment would be purely speculative.",
+        "The provided assembly code snippet shows a function that makes several function calls (`call sub_0x...`), performs some conditional logic (`test eax, eax; je`), and manipulates the stack.",
+        "Without knowing the functionality of the called subroutines (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`), we can only speculate on the MITRE ATT&CK techniques.",
+        "However, based on the general structure, we can suggest some possibilities:",
+        "* **T1055.001: Process Injection - CreateRemoteThread:** The use of multiple function calls suggests the possibility of process injection. The function might be creating a thread in another",
+        "process to load malicious code. This is highly speculative without knowing the contents of the called functions.",
+        "* **T1055.002: Process Injection - QueueUserAPC:** Another possibility, though less likely based solely on this snippet. The use of functions with names like `sub_0x000005000` suggests potential",
+        "asynchronous procedure calls.",
+        "* **T1053.005: System Services - CreateRemoteThread:** Similar to the above, a remote thread creation could also use system services.",
+        "* **T1124.001: Remote Services - Dynamic Data Exchange:** Possibly if the functions handle inter-process communication (IPC). This is purely speculative.",
+        "**Important Note:** These are *potential* associations. To confidently assign MITRE ATT&CK techniques, the functions `sub_0x00000040A`, `sub_000005000`, `sub_0x000005004`, and `sub_0x000005008`",
+        "need to be analyzed. Their behavior directly determines the more precise technique(s) involved. The code also shows standard stack frame setup/teardown (`push ebp`, `mov ebp, esp`, etc.) which",
+        "is not directly indicative of any specific MITRE technique.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code performs registry manipulation. Specifically, it attempts to open a registry key (`RegOpenKeyExA`) and then set a value within that key (`RegSetValueExA`). If the key",
-        "opening fails, it returns 0; otherwise, it returns 1.",
-        "Based on this, the MITRE ATT&CK techniques are:",
-        "* **T1112.002: Modify Registry:** This is the primary technique. The code directly modifies the Windows Registry by setting a value using `RegSetValueExA`.",
-        "* **T1012: Query Registry:** While not explicitly setting a value, `RegOpenKeyExA` is used to query for the existence of a registry key. This is a prerequisite for the registry modification.",
-        "It's important to note that without more context (the value of `lpSubKey`, `lpValueName`, and `lpData`), we can't be more specific about *what* registry key and value are being targeted. This",
-        "limits the possibility of more granular sub-technique assignments.",
+        "The provided assembly code performs registry key manipulation. Specifically, it attempts to open a registry key (RegOpenKeyExA) and then set a value within that key (RegSetValueExA), before",
+        "closing the key (RegCloseKey). Based on this, the MITRE ATT&CK techniques are:",
+        "* **T1112.002: Registry Run Keys / RunOnce:** While not explicitly creating a run key, the code's modification of a registry key *could* be used to achieve persistence if the targeted key was a",
+        "run key. This is conditional and requires more context. It's not definitively proven by this snippet alone.",
+        "* **T1012: Query Registry:** The code queries the registry by attempting to open a key. Even if the key opening fails, the attempt itself constitutes querying.",
+        "* **T1007: System Information Discovery:** While not direct system information discovery, successfully opening and manipulating a registry key can provide system information. Therefore, this is",
+        "a related technique, dependent upon success of the operation.",
+        "* **T1110.002: Create or Modify System Process:** Indirectly related; successful execution might change the system state, though not directly by creating a process.",
+        "It's important to note that the sub-techniques are less certain without more context about the specific registry key being targeted (`0x403000` and `0x40305c` are likely addresses holding",
+        "strings, but the actual values are unknown) and the broader context of the malware. The listed techniques represent the most likely candidates based on the code provided, with some being",
+        "conditional upon further information. Further analysis of the strings at those addresses and the wider malware sample would be needed for a more precise determination.",
         "Close"
     ],
     "gpt4o": [

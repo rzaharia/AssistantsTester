@@ -15,19 +15,21 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1055.001",
+                "T1566.001",
                 "T1547.001",
-                "T1055.014",
-                "T1552.001",
-                "T1055"
+                "T1055.001",
+                "T1059.001",
+                "T1027"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1204.002",
-                "T1068",
-                "T1204.002"
+                "T1547.001",
+                "T1547.001",
+                "T1547",
+                "T1548.002",
+                "T1547.001"
             ],
             "valid": []
         },
@@ -74,32 +76,34 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005030`). Without knowing the functionality of `sub_0x00000040A` and",
-        "`sub_0x000005030`, we can only speculate on the MITRE ATT&CK techniques involved. The code itself only demonstrates the *preparation* for malicious actions, not the actions themselves.",
-        "However, based on the general structure, we can suggest some *possible* MITRE ATT&CK techniques, emphasizing that these are highly speculative without more context:",
-        "* **T1055.001: Process Injection - CreateRemoteThread:** If `sub_0x00000040A` or `sub_0x000005030` involves creating a thread in another process's context, this technique is a strong",
-        "possibility. The pushing of addresses (`0x403000`, `0x403014`, `0x403020`) hints at the potential for loading code from memory locations into a remote process.",
-        "* **T1547.001: Remote Service Session Hijacking - Remote Desktop Protocol:** If the calls involve manipulating a remote desktop protocol, this technique could be relevant. However, this is",
-        "highly dependent on the actual function of the called subroutines.",
-        "* **T1055.014: Process Injection - Append Process:** Similar to the above, the calls could be appending code to another running process.",
-        "* **T1552.001: Data Staged:** The loading of addresses (0x403000, etc.) prior to a function call is suggestive of this technique, if those memory locations contain data to be later used for",
-        "malicious purposes.",
-        "* **T1055:** The more general Process Injection technique.",
-        "**Important Note:** These are educated guesses. To accurately determine the MITRE ATT&CK techniques, the functionality of `sub_0x00000040A` and `sub_0x000005030` must be analyzed. Reverse",
-        "engineering these subroutines is necessary to provide a definitive answer. The code itself only shows standard function prologue/epilogue and argument passing; the malicious activity (if any)",
-        "lies within the called functions.",
+        "The provided assembly code snippet shows a function call to two different subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the implementation of these subroutines, we can",
+        "only speculate on the MITRE ATT&CK techniques involved. The code itself primarily demonstrates standard function prologue/epilogue and parameter passing, which are not techniques in and of",
+        "themselves.",
+        "However, based on the *general* pattern, we can suggest some *potential* MITRE ATT&CK techniques that *might* be used:",
+        "* **T1566.001: Spearphishing Attachment:** If `sub_0x00000040A` or `sub_0x000005030` process a downloaded file (e.g., a malicious document), this technique could be in play. The code shows",
+        "preparation for a function call which could involve file processing. This is purely speculative without reverse engineering the called functions.",
+        "* **T1547.001: Event Triggered Execution:** If the functions are triggered by a specific event (e.g., opening a document, a timer, a network connection), this is possible. Again, this is highly",
+        "speculative.",
+        "* **T1055.001: Process Injection:** If the functions load code into another process, this could be happening, but requires analysis of the called subroutines.",
+        "* **T1059.001: Command and Scripting Interpreter:** If the functions involve execution of commands or scripts (like those embedded in a malicious document), this is a possibility.",
+        "* **T1027: Obfuscated Files or Information:** The fact that we have assembly code in the first place, and that the subroutines have no readily-understandable names, may indicate an attempt to",
+        "obfuscate the malicious activity.",
+        "**Crucially:** These are just *possible* mappings. To accurately determine the MITRE ATT&CK techniques, **reverse engineering of `sub_0x00000040A` and `sub_0x000005030` is absolutely",
+        "necessary.** The provided code snippet only shows the setup for function calls; the actual malicious activity (if any) resides within those functions.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the use of `ShellExecuteA` after setting up some parameters. This points towards the MITRE ATT&CK technique:",
-        "**T1204.002: Create User Account**",
-        "While `ShellExecuteA` itself is a broad function capable of numerous actions, the context heavily suggests the creation of a user account. It would be unlikely to have all those parameters",
-        "initialized to zero (or near zero) with a harmless call. The code pushes various pointers which might point to strings providing account information passed to `ShellExecuteA`. A thorough",
-        "investigation would be needed to confirm, but the creation of an account is a highly plausible scenario.",
-        "It's important to note this is an *inference*. Without knowing the contents pointed to by `lpFile`, `lpParameters`, and `lpOperation`, a more precise MITRE technique cannot be definitively",
-        "assigned. Other techniques might be involved depending on the strings in these parameters or the actual function `sub_0x00000040A` performs. For example, if `sub_0x00000040A` performs some",
-        "privilege escalation, a technique like T1068 (Data Encrypted) might also be relevant if the parameters for `ShellExecuteA` are encrypted.",
-        "Therefore, **T1204.002** is a strong candidate based on the provided snippet but further analysis is required for complete accuracy.",
+        "The provided assembly code shows the use of the `ShellExecuteA` function, which is a common method for executing programs or opening documents. This indicates the use of **process execution**.",
+        "Therefore, the most relevant MITRE ATT&CK technique is:",
+        "**T1547.001: Process Injection - CreateRemoteThread**",
+        "While the code *doesn't* explicitly show *how* the process is created (e.g., using `CreateRemoteThread` directly), malware often uses this function in conjunction with `ShellExecuteA` to execute",
+        "malicious processes within the context of a legitimate process to evade detection. The `ShellExecuteA` call itself doesn't inherently *inject* code, but it's a frequently used technique after",
+        "injection has already occurred. The call to `sub_0x00000040A` before `ShellExecuteA` is highly suggestive that some sort of preparatory action for process execution or injection might have",
+        "happened there. Without the decompiled code for `sub_0x00000040A`, we cannot be completely certain.",
+        "It's important to note: A more precise MITRE technique assignment would require further analysis, particularly of the `sub_0x00000040A` function. If that function performed actual process",
+        "injection, then T1547.001 would be more definitive. If it just sets up parameters for a benign `ShellExecuteA` call, then a less specific technique such as **T1547: Process Injection** or",
+        "**T1548.002: Process Injection - CreateProcess** might also be considered. But given the unknown function and the common usage pattern, T1547.001 is the best guess based on the information",
+        "provided.",
         "Close"
     ],
     "gpt4o": [

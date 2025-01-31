@@ -16,11 +16,11 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1547.001",
-                "T1548.002",
                 "T1055.001",
-                "T1071.001",
-                "T1070.001"
+                "T1055.014",
+                "T1547.001",
+                "T1547.002",
+                "T1548"
             ],
             "valid": []
         },
@@ -28,7 +28,8 @@
             "all": [
                 "T1204.002",
                 "T1547.001",
-                "T1204.002"
+                "T1547.001",
+                "T1071.001"
             ],
             "valid": []
         },
@@ -73,34 +74,31 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes two function calls (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the implementation of those subroutines, we can only",
-        "speculate on the MITRE ATT&CK techniques based on the context clues. The code itself strongly suggests **process creation** or **execution** and possibly **data manipulation**.",
-        "The most likely MITRE ATT&CK techniques are:",
-        "* **T1547.001: Process Injection (Shared Libraries):** If `sub_0x00000040A` or `sub_0x000005030` loads a DLL or some other shared library into a target process, this technique would be relevant.",
-        "The large number of parameters passed to `sub_0x000005030` hints at potential DLL loading parameters or offsets within a specific memory region.",
-        "* **T1548.002: Process Injection (CreateRemoteThread):** Similar to above, but if the injection is via the `CreateRemoteThread` API (or equivalent), this would be the more accurate mapping.",
-        "* **T1055.001: Process Discovery (Environment Variables):** The value `0x40609f` passed to `sub_0x00000040A` *could* be a pointer to environment variables, though this is highly speculative",
-        "without disassembling the subroutines. Many malware families leverage environment variables as obfuscation or command and control.",
-        "* **T1071.001: Application Layer Protocol (External):** If any of the called functions communicate over a network, this technique would be relevant. The addresses of the called functions suggest",
-        "potential network or file system interaction.",
-        "* **T1070.001: Indicator Removal on Host (Indirect):** This is a less likely candidate, but the `xor eax, eax` instruction, followed by stack cleanup, can often be part of attempts to remove",
-        "artifacts from system memory after execution.",
-        "**Important Note:** The given assembly snippet alone provides insufficient information to definitively determine the employed MITRE ATT&CK techniques. To assign specific techniques with",
-        "confidence, the functionality of `sub_0x00000040A` and `sub_0x000005030` must be understood. Disassembling and analyzing those functions is required for accurate identification.",
+        "The provided assembly code snippet shows a function call to two different subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the contents of those subroutines, we can only",
+        "speculate on the MITRE ATT&CK techniques involved. The code itself exhibits characteristics common to several techniques, but definitive assignment is impossible without more context.",
+        "However, based on the structure, we can suggest some *potential* MITRE ATT&CK techniques:",
+        "* **T1055.001 - Process Injection:** The code allocates stack space (`sub esp, 0x40`) and performs function calls. If `sub_0x00000040A` or `sub_0x000005030` load and execute code in another",
+        "process's memory space, this would indicate process injection. This is a strong possibility given the nature of the code.",
+        "* **T1055.014 - DLL Injection:** This is a sub-technique of process injection. If the called subroutines load a DLL into another process, this would specifically be DLL injection. Again, this is",
+        "possible but not confirmed without analysis of the called functions.",
+        "* **T1547.001 - T1547.002 - T1548 - (Various Execution Techniques):** The function calls themselves represent some form of execution. The specific technique depends heavily on what",
+        "`sub_0x00000040A` and `sub_0x000005030` do. They could be using techniques like creating a process, using an existing process for execution (e.g., via thread hijacking), or using other means.",
+        "**In short:** The assembly is suggestive of execution and likely process injection, but the specific MITRE ATT&CK technique(s) can't be definitively identified without reverse engineering the",
+        "called functions (`sub_0x00000040A` and `sub_0x000005030`). The given code only shows the *preparation* and *execution* of some other malicious actions. We lack information on the *what* of",
+        "those actions.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the use of the `ShellExecuteA` function. This function is commonly used to execute files, open URLs, or perform other actions, depending on the parameters passed",
-        "to it. The code also includes standard function prologue and epilogue.",
-        "Based on this, the most relevant MITRE ATT&CK techniques are:",
-        "* **T1204.002: Execute Shell Command:** The `ShellExecuteA` function is directly used to execute a command. This specific sub-technique highlights the use of shell commands to execute malicious",
-        "code or achieve other malicious objectives.",
-        "* **T1547.001: Create or Modify System Process:** While not directly creating a new process in the traditional sense (it uses an existing shell capability), the execution of a file via",
-        "`ShellExecuteA` could ultimately lead to creation of a new system process if the executed file creates processes as part of its normal operation. The link is weaker here than T1204.002, but",
-        "still plausible, depending on the contents of `lpFile` (the file executed).",
-        "It's important to note that without knowing the contents of the memory addresses (`0x403000`, `0x40301c`, `0x403028`, `0x40609f`) pointed to by the code, a definitive assessment of the complete",
-        "attack chain is impossible. These addresses likely contain the parameters passed to `ShellExecuteA`, which determine the specific file or action executed. The `sub_0x00000040A` call is also",
-        "potentially important, as it might prepare malicious parameters for `ShellExecuteA`. Reverse engineering of that subroutine would be needed for a more accurate assessment.",
+        "The provided assembly code shows the use of the `ShellExecuteA` function, which is a common method for attackers to execute arbitrary code or files. This points towards the following MITRE",
+        "ATT&CK techniques:",
+        "* **T1204.002: Execution - Shell Command Execution:** The `ShellExecuteA` function directly executes a command. The arguments pushed onto the stack before the call (`lpFile`, `lpOperation`,",
+        "`lpParameters`, etc.) specify what to execute. While the exact command is not directly visible in the snippet, the function's purpose is to execute something.",
+        "* **T1547.001: Remote System Discovery - T1547.001: Local System Information Discovery:** While not explicitly shown, the execution may involve retrieving local system information based on its",
+        "output. Though this is inferential based on potential misuse, it's a possible correlated technique.",
+        "The `sub_0x00000040A` call could be anything; it depends on the context of the entire program. Without knowing the function's implementation, we can't assign a definitive technique to it.",
+        "However, if `sub_0x00000040A` is itself involved in retrieving data for command construction, it might contribute to **T1071.001: Application Layer Protocol:** if it uses a network protocol.",
+        "**Important Note:** These are the *most likely* associated MITRE ATT&CK techniques based on the provided code snippet. A more precise analysis requires the full program context and the",
+        "decompilation of `sub_0x00000040A`. The arguments passed to `ShellExecuteA` would also need to be examined to understand the exact nature of the execution.",
         "Close"
     ],
     "gpt4o": [

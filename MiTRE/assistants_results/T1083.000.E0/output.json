@@ -15,24 +15,18 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1047.001",
-                "T1053.005",
                 "T1547.001",
-                "T1071.001",
-                "T1081",
-                "T1055.001",
-                "T1546.001",
-                "T1548.002",
-                "T1027"
+                "T1059.001",
+                "T1059.005",
+                "T1106"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1547.002",
-                "T1548.002",
-                "T1547.002",
-                "T1548.002"
+                "T1204.002",
+                "T1547.001",
+                "T1204.002"
             ],
             "valid": []
         },
@@ -77,36 +71,32 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function call to `sub_0x00000040A` and then another to `sub_0x000005030`. Without knowing the functionality of these subroutines, we can only speculate",
-        "on the MITRE ATT&CK techniques involved. However, based on the general structure, we can make some educated guesses.",
-        "The initial stack frame setup (`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi`) is standard function prologue, not indicative of a specific technique. The same is",
-        "true for the epilogue.",
-        "The calls themselves are suspicious:",
-        "* **`call sub_0x00000040A`:** This could be a variety of things. Without knowing what `sub_0x00000040A` does, we cannot assign a specific MITRE technique. However, if this function performs any",
-        "sort of system call or interacts with external resources, it *could* be related to:",
-        "* **T1047.001 - Windows Management Instrumentation (WMI):** If the function interacts with WMI to perform actions such as enumeration or execution. * **T1053.005 - Scheduled Task/Job:",
-        "Creation:** If the function creates a scheduled task. * **T1547.001 - System Information Discovery:** If it gathers system information. * **T1071.001 - Application Layer Protocol:** If this",
-        "accesses a network resource using a protocol like HTTP. * **T1081 - Disabling Security Tools:** (Less likely without more context)",
-        "* **`call sub_0x000005030`:** This call pushes several addresses (`0x403000`, `0x40303c`, `0x403048`), which strongly suggests it's working with data loaded from memory. These could be function",
-        "pointers, code sections, or data structures. It's difficult to assign a specific technique without reverse engineering the subroutine. However, potential candidates, depending on the function's",
-        "action, include:",
-        "* **T1055.001 - Process Injection:** If it injects code into another process. * **T1546.001 - Data from Local System:** If it processes data from the local system. * **T1548.002 - Memory",
-        "Scraping:** If it extracts data from memory. * **T1027 - Obfuscated Files or Information:** If the data being processed is obfuscated.",
-        "**In summary:** The provided code snippet alone is insufficient to assign definite MITRE ATT&CK techniques. The calls to `sub_0x00000040A` and `sub_0x000005030` are crucial, and their",
-        "disassembly and analysis are necessary for accurate attribution. The potential techniques listed are broad possibilities based on common malicious behaviors. Further investigation is required.",
+        "The provided assembly code snippet shows a function that makes two external calls (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the functionality of these subroutines, we can only",
+        "speculate on the MITRE ATT&CK techniques based on the code's structure. It's likely involved in some form of execution, potentially loading and executing something else, based on the multiple",
+        "arguments passed to the second function call, but we lack definitive information.",
+        "Therefore, the most we can confidently suggest are techniques related to **process creation/execution** and possibly **data manipulation**:",
+        "* **T1547.001: Windows Management Instrumentation (WMI) - Command Execution:** If `sub_0x00000040A` or `sub_0x000005030` interact with WMI to execute commands, this technique would apply.",
+        "However, this is highly speculative without knowing the function's contents.",
+        "* **T1059.001: Command and Scripting Interpreter - Windows Command Shell:** Similar to the above, if the functions execute commands through `cmd.exe` or PowerShell, this would be relevant.",
+        "Again, highly speculative.",
+        "* **T1059.005: Command and Scripting Interpreter - Native API:** If the functions use native Windows APIs for execution, this is another possibility. Again, we need more context.",
+        "* **T1106: Native API:** This is a broader technique, as the code directly calls other functions which might use native APIs for malicious purposes.",
+        "**Important Note:** To accurately map the code to MITRE ATT&CK techniques, the functionality of `sub_0x00000040A` and `sub_0x000005030` must be analyzed. The provided assembly only shows the",
+        "*calling* of these functions, not what they actually *do*. Reverse engineering those subroutines is necessary for a precise attribution. The code itself only demonstrates standard function",
+        "prologue/epilogue and argument passing; nothing inherently malicious.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code uses the `ShellExecuteA` function, indicating the use of **T1547.002: External Remote Services** and likely **T1548.002: Command and Scripting Interpreter**.",
-        "Let's break down why:",
-        "* **T1547.002: External Remote Services:** `ShellExecuteA` is a Windows API function that executes a file or opens a URL. This directly falls under the External Remote Services technique as it",
-        "interacts with an external program (the one specified by the `lpFile` argument). The adversary might use this to execute a malicious program downloaded from a remote server or to perform actions",
-        "on a remote system.",
-        "* **T1548.002: Command and Scripting Interpreter:** While not explicitly using a command interpreter like `cmd.exe` or `powershell.exe`, the `ShellExecuteA` function effectively acts as an",
-        "interpreter for the commands specified in its parameters. The parameters (`lpFile`, `lpParameters`, etc.) determine what action is taken, making it an indirect form of command execution.",
-        "**Important Note:** The exact sub-techniques and other related MITRE ATT&CK techniques would depend heavily on the contents pointed to by the memory addresses (0x40609f, 0x403000, 0x40303c,",
-        "0x403048) used as parameters in the ShellExecuteA call. Without knowing what those memory locations contain (the file path, parameters, etc.), a more precise mapping to sub-techniques is not",
-        "possible. The analysis is limited to the obvious use of `ShellExecuteA`.",
+        "The provided assembly code shows a call to `ShellExecuteA` after some stack setup. This directly relates to **execution of a program through a legitimate API**. The parameters passed to",
+        "`ShellExecuteA` suggest it's likely executing a file (`lpFile`), potentially with parameters (`lpParameters`).",
+        "Therefore, the most relevant MITRE ATT&CK technique is:",
+        "**T1204.002: Execute Shellcode**",
+        "While `ShellExecuteA` isn't *directly* shellcode execution, the attacker is using a legitimate Windows API to execute something. If the `lpFile` parameter points to malicious code, this becomes",
+        "shellcode execution indirectly. There's insufficient information to determine definitively if this is malicious, but that's the likely intent given the context. A more precise sub-technique may",
+        "be determined if the value at `0x403048` (lpOperation) and the content of `0x40303c` (lpFile) were known and analyzed. For example, if lpOperation indicates running a file and lpFile points to a",
+        "malicious executable, T1547.001 (Execute External Program/Application) might be more appropriate. However, we cannot state that definitively from the given snippet.",
+        "Other techniques might be tangentially related depending on the context and the origin of the code, but T1204.002 is the most directly implicated by the given assembly. The stack setup is",
+        "standard procedure and not indicative of a specific technique itself.",
         "Close"
     ],
     "gpt4o": [

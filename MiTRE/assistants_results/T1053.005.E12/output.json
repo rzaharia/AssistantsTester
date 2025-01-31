@@ -18,23 +18,28 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
+                "T1055.001",
+                "T1055.014",
+                "T1055.015",
                 "T1547.001",
-                "T1059.001",
-                "T1059.002",
-                "T1059.005",
-                "T1071.001",
-                "T1071.002"
+                "T1547.001",
+                "T1548.002",
+                "T1548.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
+                "T1566.001",
                 "T1566.002",
                 "T1055.001",
-                "T1574.001",
-                "T1566.002"
+                "T1053.002",
+                "T1071.001",
+                "T1547.001"
             ],
-            "valid": []
+            "valid": [
+                "T1053.002"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -85,40 +90,36 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005004`) and then cleans up the stack. Without knowing the contents",
-        "of `sub_0x00000040A` and `sub_0x000005004`, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the structure, we can infer *potential* techniques.",
-        "The code strongly suggests **function calls to external routines**, which could be used for various malicious activities. This alone doesn't pinpoint a specific technique, but it's a foundation",
-        "for many.",
-        "Here are some *possible* MITRE ATT&CK techniques, with caveats:",
-        "* **T1547.001: External Remote Services (Command and Scripting Interpreter):** If `sub_0x00000040A` or `sub_0x000005004` make network requests or execute commands from a remote server, this",
-        "technique applies. This is a broad category and needs further analysis of the called functions.",
-        "* **T1059.001: Command and Scripting Interpreter (PowerShell):** Similar to the above, if the called functions leverage PowerShell (or another scripting language) to execute commands, this",
-        "technique applies. This is highly dependent on the functions' inner workings.",
-        "* **T1059.002: Command and Scripting Interpreter (Windows Command Shell):** Again, this is dependent on the nature of the functions.",
-        "* **T1059.005: Command and Scripting Interpreter (Other):** A catch-all for any other interpreter used by the functions.",
-        "* **T1071.001: Application Layer Protocol (HTTP):** If the called functions make HTTP requests for data exfiltration or other malicious purposes.",
-        "* **T1071.002: Application Layer Protocol (HTTPS):** Similar to the above, but for HTTPS requests.",
-        "**Important Disclaimer:** These are *potential* mappings, not definitive ones. To accurately determine the MITRE ATT&CK techniques, a deep analysis of the functions `sub_0x00000040A` and",
-        "`sub_0x000005004` is required. The provided assembly only shows the *setup* for external calls, not the actions performed within those functions. The arguments passed (like `0x40609f` and",
-        "`0x403000`) could also provide clues but their meaning is unknown without context.",
+        "The provided assembly code snippet shows a function that makes two external calls (`call sub_0x00000040A` and `call sub_0x000005004`). Without knowing the functionality of `sub_0x00000040A` and",
+        "`sub_0x000005004`, we can only speculate on the MITRE ATT&CK techniques involved. The code itself primarily demonstrates standard function prologue and epilogue.",
+        "However, based on the structure, we can suggest *potential* techniques, recognizing that confirmation requires understanding the called functions:",
+        "* **T1055.001: Process Injection - CreateRemoteThread:** If `sub_0x00000040A` or `sub_0x000005004` creates a thread in another process, this technique would be applicable. This is a common",
+        "method for process injection.",
+        "* **T1055.014: Process Injection - Reflective DLL Injection:** If the called functions load and execute code from memory without writing to disk, this technique is possible. This is often seen",
+        "with malicious DLLs.",
+        "* **T1055.015: Process Injection - QueueUserAPC:** This is less likely given the code snippet, but if the called functions use this technique for injection, it would be relevant.",
+        "* **T1547.001: T1547.001: Command and Scripting Interpreter - Command Shell:** If the code is injecting and executing a command-line shell, this technique is relevant.",
+        "* **T1548.002: T1548.002: Exploit Public-Facing Application:** If the application containing this code is a public-facing application being exploited, this is a relevant context, but the code",
+        "itself doesn't reveal this information.",
+        "**Important Note:** These are *possible* techniques. The actual MITRE ATT&CK techniques cannot be definitively determined without reverse-engineering the called functions (`sub_0x00000040A` and",
+        "`sub_0x000005004`) to understand their behavior. The code itself only shows the setup and cleanup of a function call, not the malicious actions (if any) performed within those called functions.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code snippet shows a function call and standard function prologue/epilogue. Without knowing the contents of `sub_0x00000040A` and the address pointed to by `0x403000`, we",
-        "can only speculate on the MITRE ATT&CK techniques. However, based on the structure, we can infer some possibilities:",
-        "* **T1566.002: External Remote Services:** The call to `sub_0x00000040A` suggests a function call to an external library or service. The exact nature depends entirely on the contents of that",
-        "function. If it communicates over a network, this technique becomes highly likely. Without more information, this is a strong possibility.",
-        "* **T1055.001: Process Injection:** While not explicitly shown here, the code *could* be part of a larger process injection operation. The `sub esp, 0x40` allocates stack space, suggestive of",
-        "preparing to inject code. This is a weak possibility without further context.",
-        "* **T1574.001: Exfiltration Over C2:** Again, dependent on the function called. If `sub_0x00000040A` or the call at `0x403000` uploads data to a command and control (C2) server, this technique",
-        "applies. This is a weak possibility without more information.",
-        "**Important Considerations:**",
-        "* **Lack of Information:** The code alone is insufficient to definitively identify MITRE ATT&CK techniques. We need to know what `sub_0x00000040A` and the location at `0x403000` do. They are the",
-        "crucial components for accurate classification.",
-        "* **Context is Key:** The assembly is likely part of a larger malware sample. Analyzing the entire sample within a sandbox environment, coupled with static and dynamic analysis, would be",
-        "necessary for reliable technique identification.",
-        "**In summary:** Without more context, it's impossible to give a definitive MITRE ATT&CK mapping. The most likely candidate, based solely on the limited information, is **T1566.002: External",
-        "Remote Services**, but this remains speculative.",
+        "The provided assembly code snippet shows a function call (likely to a dynamically linked library or an address within the program itself) and standard function prologue and epilogue. There's not",
+        "enough information to definitively assign specific MITRE ATT&CK techniques. The code itself is benign-looking; the maliciousness (if any) lies in what `sub_0x00000040A` and the `(null)` call do.",
+        "However, we can speculate on *possible* techniques based on general function behavior:",
+        "* **T1566.001: Phishing:** If `sub_0x00000040A` or the null-call interacts with a network to retrieve data (e.g., downloading a payload, sending exfiltrated data), this would align with the",
+        "phishing technique which often involves delivering a malicious payload via deceptive means.",
+        "* **T1566.002: Spearphishing Attachment:** Similar to above, if the call is related to processing a file (possibly from an attachment).",
+        "* **T1055.001: Process Injection:** If the `(null)` call is resolving to an address that allows code execution within another process, this would be a strong indicator of process injection,",
+        "given that `(null)` suggests a function pointer that might not be set correctly.",
+        "* **T1053.002: External Proxy:** If the code establishes a connection through a proxy server, then it could be using this technique.",
+        "* **T1071.001: Application Layer Protocol:** The code interacts with a network using a specific protocol (e.g. HTTP, DNS).",
+        "* **T1547.001: Data Encrypted:** (Though not explicitly shown) if the data passed to the function (`sub_0x00000040A` is encrypted before transmission, then this technique is possible.",
+        "**Important Note:** These are *possible* associations, not definitive ones. Without knowing the functionality of `sub_0x00000040A` and the target of the `(null)` call, any MITRE technique",
+        "assignment is purely speculative. A reverse engineering analysis of the complete binary is required to accurately determine the employed techniques. The provided code only depicts basic function",
+        "setup and calls; the actual malicious actions (if any) are hidden within those calls.",
         "Close"
     ],
     "gpt4o": [

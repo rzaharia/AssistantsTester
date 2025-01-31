@@ -17,18 +17,20 @@
             "all": [
                 "T1055.001",
                 "T1055.002",
+                "T1055.014",
                 "T1547.001",
-                "T1071.001"
+                "T1548.002"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1059.005",
                 "T1055.001",
-                "T1055.001",
-                "T1055.001"
+                "T1056.001",
+                "T1547.001",
+                "T1056.005",
+                "T1071"
             ],
             "valid": []
         },
@@ -87,29 +89,38 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided x86 assembly code, the most likely associated MITRE ATT&CK techniques are:",
-        "* **T1055.001: Process Injection (using dynamic-link library)** - The code calls `sub_0x000005004` and `sub_0x000005000` with multiple parameters, which strongly suggests a function call to load",
-        "and execute code (likely a DLL) within the current process. The large number of pushes before calling `sub_0x000005004` suggests the passing of various parameters needed for the injection",
-        "process.",
-        "* **T1055.002: Process Injection (using reflective DLL loading):** This is a possibility if `sub_0x000005004` and related functions handle loading a DLL from memory, instead of from disk.",
-        "Without further analysis of those functions, we can't confirm.",
-        "* **T1547.001: Process Discovery** - Although not explicitly shown, the code accesses memory locations (`dword ptr [0x404044]`, `dword ptr [0x404000]`, `dword ptr [0x404048]`). It is highly",
-        "probable that it's gathering some process information prior to the other actions, hence this technique is a strong possibility.",
-        "* **T1071.001: Command and Scripting Interpreter (PowerShell):** This is speculative without knowing the specifics of the called functions, especially `sub_0x000005000`, `sub_0x000005004`, and",
-        "`sub_0x00000500C`. These functions may interface with a scripting interpreter to run malicious code. It is possible that the passed parameters are commands or scripts to execute.",
-        "**Important Note:** The exact MITRE ATT&CK techniques cannot be definitively determined without further analysis of the referenced subroutines (`sub_0x00000040A`, `sub_0x000005004`,",
-        "`sub_0x000005000`, and `sub_0x00000500C`). The code snippets only show the setup for potential malicious activity. The actual actions are hidden within those functions. The analysis above is",
-        "based on the strong indicators within the provided code fragment. Reverse engineering those subroutines is needed for a complete assessment.",
+        "The provided assembly code snippet shows several function calls and stack manipulation, making it difficult to pinpoint exact MITRE ATT&CK techniques without knowing the functionality of",
+        "`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`. However, we can infer some *potential* techniques based on the code's structure:",
+        "* **T1055.001 - Process Injection: CreateRemoteThread:** The `call sub_0x000005004` with multiple pushed parameters suggests a possibility of creating a thread in another process's address",
+        "space. The parameters pushed onto the stack could be handles, addresses, and thread attributes. This is speculative without knowing `sub_0x000005004`'s functionality.",
+        "* **T1055.002 - Process Injection: QueueUserAPC:** Similar to the above, `sub_0x000005004` could also potentially utilize `QueueUserAPC` although this is less likely given the number of",
+        "parameters.",
+        "* **T1055.014 - Process Injection: Reflective DLL Injection:** The multiple function calls with seemingly similar arguments to `sub_0x000005000` and `sub_0x00000500C` could indicate stages of",
+        "loading and executing code from memory (reflective DLL injection). Again, this is highly speculative without knowing the functions' implementation.",
+        "* **T1547.001 - Process Discovery: List processes:** The code might be querying processes as part of its function (for example to identify a target process for injection), but there is no direct",
+        "evidence of this in the provided snippet.",
+        "* **T1548.002 - Process Injection: CreateThread:** Similar to CreateRemoteThread, the possibility of using CreateThread for process injection exists, especially if sub_0x000005004 interacts with",
+        "the Windows API in such a way.",
+        "**Important Note:** These are only *potential* mappings. Without reverse engineering the called subroutines, it's impossible to definitively assign MITRE ATT&CK techniques. The code's behavior",
+        "could be entirely benign or involve entirely different techniques not listed above. The addresses (e.g., `0x40609f`, `0x404000`, etc.) are also context-dependent and provide no additional clues",
+        "without further analysis.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
         "The provided assembly code shows the creation and management of a process, indicating the use of the following MITRE ATT&CK techniques:",
-        "* **T1547.001: Create Process:** The `CreateProcessA` function call clearly demonstrates the creation of a new process. This is the primary technique.",
-        "* **T1059.005: Command and Scripting Interpreter: Native API:** While not explicitly shown, the use of `CreateProcessA` implies interaction with the operating system via native APIs.",
-        "* **T1055.001: Process Injection: CreateRemoteThread:** Although not directly implemented in this snippet, the creation of a process through `CreateProcessA` opens the possibility of subsequent",
-        "process injection via techniques like `CreateRemoteThread`. It's not definitive from this code alone, but a *potential* secondary technique.",
-        "It is important to note that `T1055.001` is *speculative*. The provided assembly only shows process creation. To confirm `T1055.001`, further analysis would be required to see if the newly",
-        "created process is being manipulated for injection. The other two are directly observable.",
+        "* **T1547.001: Process Injection (CreateRemoteThread):** While not explicitly using `CreateRemoteThread`, the code uses `CreateProcessA` to create a new process. This is a common method used to",
+        "achieve process injection, particularly if the `lpCommandLine` points to malicious code or a process that is then manipulated for injection. The function call to `sub_0x00000040A` before",
+        "`CreateProcessA` strongly suggests this, as it likely prepares the environment or code for injection. We cannot say for sure without analyzing `sub_0x00000040A`, but it's a high probability.",
+        "* **T1055.001: Process Discovery (CreateProcess):** The use of `CreateProcessA` directly falls under this technique. The code explicitly creates a new process.",
+        "* **T1056.001: Process Injection (CreateProcess):** Similar to T1547.001, `CreateProcessA` is also used for this process injection technique. The specifics again rely on what `sub_0x00000040A`",
+        "does and what the value of `lpCommandLine` contains.",
+        "* **T1056.005: Process Injection (Shared Libraries):** If `sub_0x00000040A` loads a malicious shared library into the created process, this technique also applies. This requires analysis of the",
+        "function.",
+        "* **T1071: Command and Control (C2):** This is a possibility, contingent on the content of `lpCommandLine`. If the created process connects to a remote command-and-control server, this technique",
+        "applies.",
+        "**Important Note:** The definitive assignment of sub-techniques requires a deeper analysis of the `sub_0x00000040A` function and the data pointed to by the various arguments passed to",
+        "`CreateProcessA`, especially `lpCommandLine`. The code snippets provided only reveal the high-level actions and several possibilities. The code *could* be benign if `lpCommandLine` points to a",
+        "legitimate program. Without further analysis of the referenced memory locations, assigning more specific sub-techniques is speculation.",
         "Close"
     ],
     "gpt4o": [

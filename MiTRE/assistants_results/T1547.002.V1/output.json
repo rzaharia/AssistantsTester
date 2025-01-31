@@ -13,27 +13,21 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
+                "T1071.001",
                 "T1055.001",
-                "T1059.002",
-                "T1548.002"
+                "T1053.005",
+                "T1566.002",
+                "T1027"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1012.002",
-                "T1112",
-                "T1106",
-                "T1547.001",
-                "T1106",
-                "T1012.002",
-                "T1112",
-                "T1547.001"
+                "T1055.001",
+                "T1059.002",
+                "T1566.001"
             ],
-            "valid": [
-                "T1547.001",
-                "T1547.001"
-            ]
+            "valid": []
         },
         "gpt4o": {
             "all": [
@@ -82,32 +76,40 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what those",
-        "functions do, we can only speculate on the MITRE ATT&CK techniques. However, based on the structure, we can infer some possibilities:",
-        "* **T1055.001 - Process Injection:** The code's structure, especially the calls to external functions (sub_0x000005000, etc.), is suggestive of process injection. The code is passing parameters",
-        "(potentially shellcode or malicious code) to these functions, which could then execute it within another process. This is a strong possibility, but without reverse engineering the called",
-        "functions, it cannot be confirmed.",
-        "* **T1059.002 - Command and Scripting Interpreter:** If the parameters passed to the functions `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` invoke commands (e.g., via system calls",
-        "or interactions with the operating system's command interpreter), this technique would apply. Again, further analysis of the called functions is crucial.",
-        "* **T1548.002 - Abuse Elevation Control Mechanism:** The conditional jump (`je offset_0x000000477`) suggests a potential check for success or failure. If the functions being called are",
-        "attempting to gain elevated privileges, this technique could be involved. This is highly speculative without understanding the purpose of the conditional jump.",
-        "**Important Note:** These are *potential* MITRE ATT&CK techniques. To definitively determine the techniques used, a full reverse engineering of the called functions (sub_0x00000040A,",
-        "sub_0x000005000, sub_0x000005004, sub_0x000005008) is required. The provided snippet only shows the setup and flow, not the actual malicious actions. The parameters passed to the subroutines are",
-        "crucial for a more precise classification.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing the",
+        "functionality of these called subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the structure, we can infer some possibilities.",
+        "The code strongly suggests **data manipulation** and potentially **execution of code from the memory:**",
+        "* **T1071.001: Application Layer Protocol:** If `sub_0x00000040A` interacts with a network protocol (e.g., HTTP, DNS), this technique could be involved. This is purely speculative without",
+        "knowing the contents of that function.",
+        "* **T1055.001: Process Injection:** If one of the called subroutines (`sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) injects code into another process, this would be a strong",
+        "indicator. The pushing of addresses and seemingly arbitrary data strongly hints at this.",
+        "* **T1053.005: Scheduled Task/Job:** This is less likely but possible if a function like `sub_0x00000040A` is responsible for creating or manipulating scheduled tasks, although nothing explicit",
+        "suggests this.",
+        "* **T1566.002: External Remote Services:** If any of the called functions communicate with an external service (Command and Control), this would apply. Again, highly speculative without function",
+        "definitions.",
+        "* **T1027: Obfuscated Files or Information:** The assembly itself is not inherently obfuscated, but if the called functions contain obfuscation or the values used (like memory addresses) are",
+        "designed to hide their purpose, this might apply.",
+        "**Crucially:** To accurately map this code to MITRE ATT&CK techniques, we need the decompiled C/C++ code or the functionality of the functions `sub_0x00000040A`, `sub_0x000005000`,",
+        "`sub_0x000005004`, and `sub_0x000005008`. The provided assembly only shows the *call* to these functions, not their actions.",
+        "Without more information, the MITRE ATT&CK mapping remains highly uncertain and the above are only possibilities. The analysis would require reverse-engineering the called functions to",
+        "understand their true purpose.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows a function that attempts to open a registry key (`RegOpenKeyExA`) and then set a value within that key (`RegSetValueExA`). If the key opening fails, it returns",
-        "0; otherwise, it returns 1. Let's break down the MITRE ATT&CK techniques involved:",
-        "* **T1012.002: Registry Run Keys / Startup Folder**: While not explicitly creating a run key, the code's interaction with the registry *could* be used to achieve persistence if `lpSubKey`",
-        "(0x403000) points to a location associated with startup or run keys. This is *conditional* upon the value of `lpSubKey`. We cannot definitively say this technique is used without knowing the",
-        "value at memory address `0x403000`.",
-        "* **T1112: Registry Key Run and Userinit**: Similar to the above, depending on the `lpSubKey` value, this technique could be applicable. Again, this is conditional.",
-        "* **T1106: Native API**: The code directly uses the Windows API functions `RegOpenKeyExA` and `RegSetValueExA` to interact with the Windows Registry. This is a clear indicator of this technique.",
-        "* **T1547.001: Boot or Logon Autostart Execution**: If `lpSubKey` points to a location allowing autostart execution on boot or login, this technique would apply. Again this is conditional.",
-        "**In summary:** The strongest and most certain MITRE technique mapping is **T1106: Native API**. The others (T1012.002, T1112, T1547.001) are *potential* techniques that *might* be used",
-        "depending on the content of the memory location pointed to by `0x403000`. Without more information about that memory address, we cannot definitively include them. The code itself does not",
-        "directly show evidence of persistence being established, only an attempt to modify the registry.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what these",
+        "functions do, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the code structure, we can infer some possibilities.",
+        "The code's structure suggests a possible exploitation attempt or some form of data manipulation. The use of stack manipulation (push, pop, mov esp, ebp) is standard for function calls but also",
+        "frequently used in exploitation techniques.",
+        "Based on the limited information, the most likely associated MITRE ATT&CK techniques are:",
+        "* **T1055.001 - Process Injection:** If `sub_0x000005000`, `sub_0x000005004`, or `sub_0x000005008` perform process injection, this technique would apply. This is highly speculative without",
+        "knowing their implementation.",
+        "* **T1059.002 - Command and Scripting Interpreter:** If the called functions execute commands, scripts, or use interpreters, this technique could be involved. Again, this requires analyzing the",
+        "called functions' code.",
+        "* **T1566.001 - Spearphishing Attachment:** This is a possible delivery method if the malware using this code is distributed as an attachment. This technique is only relevant to the malware as a",
+        "whole, not this specific code snippet.",
+        "**Important Note:** These are *potential* associations. To accurately map this code to MITRE ATT&CK techniques, a full understanding of the functions `sub_0x00000040A`, `sub_0x000005000`,",
+        "`sub_0x000005004`, and `sub_0x000005008` is crucial. The code itself only displays standard function calling conventions and some conditional logic (the `je` instruction). The actual malicious",
+        "behavior, if any, is hidden within the called functions.",
         "Close"
     ],
     "gpt4o": [

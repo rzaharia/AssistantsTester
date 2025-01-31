@@ -17,23 +17,24 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1071.001",
+                "T1055.001",
                 "T1053.005",
-                "T1566.002"
+                "T1566.002",
+                "T1047"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1562.001",
+                "T1543.003",
                 "T1071.001",
-                "T1071.002",
-                "T1005.002",
-                "T1005.003",
-                "T1047"
+                "T1003.002",
+                "T1550.002"
             ],
-            "valid": []
+            "valid": [
+                "T1003.002"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -91,44 +92,39 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques are potentially involved. It's difficult to be completely precise without knowing the functionality of the called",
-        "subroutines (`sub_0x...`), but we can make educated guesses based on common patterns:",
-        "* **T1547.001: Data Encrypted for Impact:** The code heavily uses function calls (`call sub_0x...`) with parameters that look like they could be related to encryption keys, initialization",
-        "vectors, or ciphertext. The many pushes of seemingly random values (e.g., `push 0x403000`, `push 0x403010`, `push 0x403020`, `push 0x403054`) to the stack before those calls are suggestive of",
-        "this. This is highly speculative without knowing what those subroutines actually do. However, the pattern strongly suggests data manipulation that could be part of an encryption/decryption",
-        "process.",
-        "* **T1071.001: Application Layer Protocol:** The code interacts with several subroutines (e.g., `sub_0x000005000`, `sub_0x000005018`, `sub_0x000005008`, `sub_0x000005014`, `sub_0x000005010`,",
-        "`sub_0x000005004`, `sub_0x00000040A`). These subroutines could potentially handle network communication or interact with specific application-layer protocols for Command and Control (C2).",
-        "Without details of the subroutine function it remains speculation.",
-        "* **T1053.005: Scheduled Task/Job:** While not explicitly shown, the code's structure suggests the possibility of it being part of a scheduled task or job. The repeated actions and seemingly",
-        "automated operations hint towards a task running periodically or on certain triggers. This is a very weak association without further context.",
-        "* **T1566.002: Exploit Public-Facing Application:** This is entirely speculative, but the code",
-        "exploit targeting a vulnerable application.",
-        "**Important Note:** These are educated guesses based on limited information. The exact MITRE ATT&CK techniques cannot be definitively determined without understanding the purpose of the called",
-        "subroutines and the broader context of the code's execution environment. Reverse engineering the called subroutines is necessary for a conclusive assessment. The provided code snippet is",
-        "suspicious, but not enough to definitively label it malicious.",
+        "Based on the provided assembly code, several MITRE ATT&CK techniques are potentially involved. It's impossible to be completely certain without knowing the functionality of the called",
+        "subroutines (`sub_0x...`), but we can infer likely candidates:",
+        "* **T1547.001: Process Injection:** The code heavily utilizes calls to functions (`sub_0x000005000`, `sub_0x000005018`, `sub_0x000005008`, `sub_0x00000500C`, `sub_0x000005014`,",
+        "`sub_0x000005010`, `sub_0x000005004`) that likely perform some form of process manipulation. The repeated loading of addresses (0x403000, 0x403010, 0x403020, 0x403054) into registers before",
+        "these calls strongly suggests the injection of code or data into another process. The use of `lea eax, [ebp - 8]` repeatedly hints at using stack-based memory for the injected data.",
+        "* **T1055.001: Process Hollowing:** This is a possibility alongside or instead of general process injection. Process hollowing involves creating a process, replacing its image with malicious",
+        "code, and resuming execution. The assembly's structure, with multiple function calls that likely handle memory allocation and manipulation, aligns with this technique. However, definitive",
+        "confirmation requires understanding the detailed functionality of those functions.",
+        "* **T1053.005: Scheduled Task/Job:** The presence of `mov dword ptr [0x404000], 0x44` could indicate setting a value related to a scheduled task. This requires context to confirm if 0x404000 is",
+        "a memory location associated with scheduled task configuration.",
+        "* **T1566.002: Create or Modify System Process:** Modifying process information (potentially through manipulation indicated by the calls) might align with this technique.",
+        "* **T1047: Windows Management Instrumentation (WMI):** While not directly obvious, the complex memory manipulation could indicate using WMI to achieve persistence or execution. This is less",
+        "direct but a possibility given the lack of clear indicators elsewhere.",
+        "**Important Note:** This analysis is based solely on the assembly code snippet. The exact techniques employed heavily depend on the functionality of the called subroutines. Without their",
+        "decompiled code or further context, the above are only *potential* associations. A deeper reverse engineering effort is necessary for a more accurate assessment.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code performs several actions that map to multiple MITRE ATT&CK techniques. Here's a breakdown using the MITRE format:",
-        "* **T1547.001: Create or modify system process:** The code uses `CreateProcessA` to create a new process. This directly aligns with this sub-technique. The arguments to `CreateProcessA` suggest",
-        "the creation of a new process with specific command-line arguments and other attributes.",
-        "* **T1562.001: Impair Defenses - Disable or Modify Tools:** While not explicitly shown, the code's actions *could* be part of a larger operation to disable or modify security tools. The code",
-        "itself doesn't directly disable anything, but its function within a broader attack could lead to this. This is a *potential* association, requiring more context.",
-        "* **T1071.001: Application Layer Protocol - Create File:** The code uses `CreateFileA` to create a file. This directly maps to this sub-technique. The subsequent `WriteFile` calls write data to",
-        "this newly created file.",
-        "* **T1071.002: Application Layer Protocol - Write File:** The code uses `WriteFile` multiple times, writing data to the file created earlier. This corresponds directly to this sub-technique. The",
-        "data written could be malicious code, configuration information, or other data used for further malicious activity.",
-        "* **T1005.002: Data Obfuscation - Binary Encoding:** While not explicitly seen in this snippet, if the data written by `WriteFile` is encoded or obfuscated (common in malware), this technique",
-        "would apply. This would need further analysis of the data at addresses `0x403010`, `0x403020`, and `0x403054`.",
-        "* **T1005.003: Data Obfuscation - Decoding:** Conversely, if the code needs to decode previously obfuscated data before using it, this technique becomes relevant. Again, requires further",
-        "analysis of the file data.",
-        "* **T1047: Windows Management Instrumentation:** Although not directly evident in this snippet, the use of Windows APIs like `CreateProcessA`, `CreateFileA`, `WriteFile`, and `CloseHandle` are",
-        "commonly used in conjunction with WMI for various purposes (including malicious ones). It's possible this code leverages WMI for things like process spawning. This is a *potential* association,",
-        "and further investigation of the overall malware would be needed to confirm it.",
-        "**Important Note:** This analysis is based solely on the provided assembly code. A complete understanding of the attack requires analyzing the data written to the file (the strings at",
-        "`0x403010`, `0x403020`, `0x403054`, and the function `sub_0x00000040A`) and the context in which this code operates within a larger malware sample. The potential for other techniques to be",
-        "involved cannot be ruled out without more information.",
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques are likely involved:",
+        "* **T1547.001: Create or Modify System Process:** The code uses `CreateProcessA` to create a new process. This directly maps to this sub-technique. The use of `lpCommandLine` indicates the",
+        "creation of a process with a specific command line, which strengthens this association.",
+        "* **T1543.003: Create or Modify File:** The code uses `CreateFileA` and `WriteFile` to create and write to a file (`0x403000`, `0x403010`, `0x403020`, `0x403054`). This is creating files on the",
+        "system which is the described sub-technique. The subsequent `DeleteFileA` call doesn't negate this as the file was first created.",
+        "* **T1071.001: Application Layer Protocol:** While not explicitly stated, the code's actions strongly suggest that it's interacting with the system at the application layer, making data writes",
+        "and possibly receiving data (though this is less explicit). This is an inference based on the file operations, but it's very probable.",
+        "* **T1003.002: System Information Discovery:** While not explicitly performing a broad discovery sweep, the code retrieves file paths and potentially other environment information (though that",
+        "is not directly shown). This could be a precursor to further discovery or as part of a larger process. This is an inference, but if the `0x4030a0` to `0x4030b2` are locations storing",
+        "environmental information, this becomes more certain.",
+        "* **T1550.002: Use Alternate Data Streams:** It's impossible to definitively say this from the provided code snippet alone. If `0x403010`, `0x403020`, and `0x403054` point to data which is using",
+        "alternate data streams instead of the main data stream, this technique would be applicable. But it is highly uncertain without more context.",
+        "**Important Note:** These are educated guesses based on the assembly code. A definitive determination requires more context, such as the purpose and content of the strings pointed to by the",
+        "memory addresses (`0x403000`, `0x4030a0` etc.), the content of the called functions (`sub_0x00000040A`), and a broader understanding of the malware's overall behavior. The analysis is made more",
+        "difficult due to the use of hexadecimal addresses instead of meaningful variable names.",
         "Close"
     ],
     "gpt4o": [

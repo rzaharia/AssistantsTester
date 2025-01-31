@@ -15,22 +15,17 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1027.002",
-                "T1547.001",
                 "T1547.002",
-                "T1548.001",
-                "T1548.002",
-                "T1562.001"
+                "T1071.001",
+                "T1106"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1547.001",
-                "T1055.001",
-                "T1055.001",
-                "T1056",
-                "T1070.001"
+                "T1543.003",
+                "T1059.005"
             ],
             "valid": []
         },
@@ -80,39 +75,34 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several function calls (to `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`) and manipulates memory",
-        "locations (`0x404000`, `0x404044`, `0x404048`, `0x403000`). Without knowing the functionality of the called subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on",
-        "the code structure, several techniques are *potentially* involved:",
-        "* **T1055.001 - Process Injection:** The code's structure, especially the multiple calls to functions with suggestive names (`sub_0x000005000`, `sub_0x000005004`, `sub_0x00000500C`), hints at",
-        "the possibility of injecting code or data into another process. This is highly speculative without knowing what those functions do.",
-        "* **T1027.002 - Obfuscated Files or Information:** The use of hexadecimal addresses and the lack of clear comments makes the code somewhat obfuscated. This makes analysis and detection more",
-        "challenging.",
-        "* **T1547.001 - T1547.002 - T1548.001 - T1548.002 - (Likely but dependent on the called functions)** The calls to external functions could be masking the true purpose of this code, potentially",
-        "related to these techniques (External Remote Services, Boot or Logon Autostart Execution, or even exploitation of some kind.",
-        "* **T1562.001 - Impair Defenses:** While not explicitly shown, the obfuscation could be part of a broader attempt to impair defenses.",
-        "**Important Considerations:**",
-        "* **Context is Crucial:** These are *potential* associations. The actual MITRE ATT&CK techniques involved heavily depend on the functionality of `sub_0x00000040A`, `sub_0x000005004`,",
-        "`sub_0x000005000`, and `sub_0x00000500C`. Reverse engineering these functions is needed for precise identification.",
-        "* **Sub-techniques are Speculative:** The sub-techniques (e.g., `.001`, `.002`) are chosen based on general characteristics. More specific sub-techniques could be identified after a deeper",
-        "analysis.",
-        "* **No Direct Evidence:** The provided code snippet doesn't contain direct evidence of malicious activity. It merely exhibits characteristics often associated with malicious behavior.",
-        "In conclusion, definitive MITRE ATT&CK technique mapping requires analysis of the referenced subroutines and overall program context. The assembly code only offers hints towards potential",
-        "techniques, not definitive proof.",
+        "The provided assembly code snippet shows a function that makes several function calls (to `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`) and manipulates stack",
+        "memory. Without knowing the functionality of the called subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on the code's structure, we can infer some",
+        "possibilities:",
+        "* **T1055.001: Process Injection (Process Hollowing):** The allocation of stack space (`sub esp, 0x40`), function calls pushing arguments onto the stack, and the potential use of memory",
+        "addresses (like `0x404000`, `0x404044`, `0x403000`) could suggest process hollowing. Process hollowing often involves creating a suspended process, replacing its memory with malicious code, and",
+        "then resuming the process. This is highly speculative without the context of the called subroutines.",
+        "* **T1547.002: Remote Service Session Hijacking:** The code's structure is somewhat suggestive of establishing or manipulating a remote service session given that there are multiple function",
+        "calls with parameters being passed. Again, this is highly speculative.",
+        "* **T1071.001: Application Layer Protocol:** The fact that this is likely network-related (based on speculation around remote service hijacking) suggests this technique, although the given code",
+        "does not directly reveal such behaviour.",
+        "* **T1106: Native API:** The code uses native system calls (through the functions it calls). This is inherently present in any x86 code interacting with an OS, though not particularly indicative",
+        "of malicious activity on its own.",
+        "**Important Disclaimer:** These are *potential* MITRE ATT&CK technique mappings based on *limited* information. The actual techniques used depend entirely on the behavior of the functions",
+        "`sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`. Without knowing what those functions do, any mapping is highly uncertain and potentially inaccurate. Reverse",
+        "engineering those subroutines is crucial for a proper assessment.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code shows the creation and management of a process. Based on the `CreateProcessA` call and subsequent handle management, the MITRE ATT&CK techniques involved are:",
-        "* **T1547.001: Create Process:** The `CreateProcessA` function call directly implements this technique. The code creates a new process.",
-        "* **T1055.001: Process Injection:** While not directly apparent from this snippet alone, the preparation (setting up parameters for `CreateProcessA`) *could* be part of a larger process",
-        "injection attack. The code itself doesn't perform the injection, but it sets up the environment in which it *could* occur. Further analysis of `sub_0x00000040A` (the function called before",
-        "`CreateProcessA`) is needed to confirm this. The code by itself is not enough to confirm T1055.001.",
-        "* **T1056: Process Hollowing:** Similar to Process Injection, this is a *possibility* that requires further investigation of `sub_0x00000040A`. The code prepares for the creation of a new",
-        "process, making process hollowing possible, but not directly evident in the code provided.",
-        "* **T1070.001: Process Discovery:** This is not directly evident in this code, but the fact it works with process handles implies that at some point, the malware needed to either know the",
-        "process name it was after (`lpApplicationName` is null here but might not be always) or enumerate through processes to locate it.",
-        "**Important Note:** The certainty of these techniques hinges entirely on the functionality of `sub_0x00000040A`. Without understanding what this function does, we can only speculate about the",
-        "full extent of the malicious activity. The code provided only shows process creation and management; the actual malicious behavior might be concealed within the called function. A full reverse",
-        "engineering analysis is necessary for definitive attribution of techniques.",
+        "The provided assembly code shows the creation and management of a process, suggesting the following MITRE ATT&CK techniques:",
+        "* **T1547.001: Process Injection - CreateRemoteThread:** While the code doesn't explicitly use `CreateRemoteThread`, the use of `CreateProcessA` followed by `WaitForSingleObject` and",
+        "`CloseHandle` strongly suggests the potential for a subsequent process injection technique. The creation of a new process is a common precursor to techniques like CreateRemoteThread. The",
+        "function call at `0x40609f` could be loading malicious code into the newly created process. Further analysis of `sub_0x00000040A` is needed to confirm.",
+        "* **T1543.003: Create or Modify System Process:** The code uses `CreateProcessA` to create a new process. This is a clear indication of this technique.",
+        "* **T1059.005: Command and Scripting Interpreter - Windows Command Shell:** The code passes `lpCommandLine` (at address 0x403000) to `CreateProcessA`, suggesting the execution of a command",
+        "through the Windows command shell (cmd.exe or PowerShell) or another interpreter. The specific command cannot be determined without knowing the contents of memory location 0x403000.",
+        "**Important Note:** The techniques listed above are inferences based on the assembly code. More detailed analysis, including the content of the memory addresses referenced (especially `0x403000`",
+        "and the code within `sub_0x00000040A`) would be required for a definitive assessment. The code alone is insufficient to completely rule out other techniques. For example, the `sub_0x00000040A`",
+        "function could contain malicious code that performs additional actions.",
         "Close"
     ],
     "gpt4o": [

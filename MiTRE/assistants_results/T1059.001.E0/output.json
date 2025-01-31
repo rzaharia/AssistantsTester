@@ -18,26 +18,33 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1059.001",
-                "T1059.002",
-                "T1059.005",
+                "T1055.001",
+                "T1055.014",
                 "T1547.001",
-                "T1547.001",
-                "T1566.001"
+                "T1547.002",
+                "T1547.003",
+                "T1548.002"
             ],
-            "valid": [
-                "T1059.001",
-                "T1059.002",
-                "T1059.005"
-            ]
+            "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1204.002",
+                "T1059.001",
+                "T1071.001",
+                "T1548.002",
+                "T1547.001",
+                "T1047",
+                "T1055",
+                "T1547",
                 "T1566.002",
-                "T1566.001"
+                "T1547",
+                "T1059"
             ],
-            "valid": []
+            "valid": [
+                "T1059.001",
+                "T1059",
+                "T1059"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -84,32 +91,39 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function call to two different subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the contents of these subroutines, we can only",
-        "speculate on the MITRE ATT&CK techniques involved. The code itself primarily demonstrates standard function prologue/epilogue and argument passing conventions. However, based on the actions, we",
-        "can infer some *potential* techniques.",
-        "The most likely associated MITRE ATT&CK techniques are:",
-        "* **T1059.001 - Command and Scripting Interpreter:** If `sub_0x00000040A` or `sub_0x000005030` executes commands through a scripting interpreter (e.g., cmd.exe, PowerShell), this technique would",
-        "be applicable. The addresses `0x403000`, `0x403044`, `0x403050` passed to `sub_0x000005030` might point to command strings or scripts.",
-        "* **T1059.002 - Shellcode Execution:** If either subroutine executes shellcode, then this technique applies. Shellcode is often passed as an argument. The hex values could be a pointer to",
-        "shellcode, but again more context is needed.",
-        "* **T1059.005 - Process Injection:** If either subroutine injects code into another process, this would be applicable. The act of calling external subroutines *could* be a component of a process",
-        "injection attack, though it's not definitively shown here.",
-        "* **T1547.001 - T1547.001 - Data Encrypted for Impact:** Though not directly visible, if the subroutines deal with encryption or data destruction, this would be relevant. The data passed might",
-        "be encrypted data.",
-        "* **T1566.001 - External Communication:** If either subroutine communicates with a remote system, which is certainly possible, this would apply. The presence of network calls within these",
-        "subroutines is not shown.",
-        "**Crucially, these are *potential* associations.** The actual MITRE ATT&CK techniques used depend entirely on the code within `sub_0x00000040A` and `sub_0x000005030`. Without that information, a",
-        "precise mapping cannot be made. The provided assembly only shows function calls and standard stack manipulation; the actual malicious behavior, if any, is hidden within the called functions.",
+        "The provided assembly code snippet shows a function call to two other subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the functionality of these subroutines, we can only",
+        "speculate on the MITRE ATT&CK techniques involved. The code itself primarily demonstrates standard function prologue/epilogue and argument passing conventions.",
+        "However, we can infer *potential* techniques based on common uses of such code patterns:",
+        "* **T1055.001 - Process Injection:** If `sub_0x00000040A` or `sub_0x000005030` perform process injection (e.g., creating a new thread in another process and executing code there), this technique",
+        "would apply. This is highly likely given the passing of numerous parameters which could include memory addresses and handles necessary for injection.",
+        "* **T1055.014 - DLL Injection:** A similar argument applies here. If the subroutines inject a DLL into another process, this would be the more specific technique.",
+        "* **T1547.001 - T1547.002 - T1547.003 - External Communication:** Depending on the function of the called subroutines, these techniques could apply if they are used to communicate with a remote",
+        "system (e.g., a Command and Control (C2) server). The numerous arguments could be network configuration information or data to send.",
+        "* **T1548.002 - Process Discovery:** If `sub_0x00000040A` queries system information to discover running processes or details about them, this would be relevant. However, this is purely",
+        "speculative without reverse-engineering the called functions.",
+        "**Important Note:** These are *potential* MITRE ATT&CK techniques. To definitively determine the relevant techniques, the functionality of `sub_0x00000040A` and `sub_0x000005030` must be",
+        "analyzed. The assembly code itself only shows the setup of function calls and does not reveal the actions of the called functions. Reverse engineering is necessary for a precise mapping to MITRE",
+        "ATT&CK techniques.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code uses the `ShellExecuteA` function, which is commonly used for executing programs or opening documents. This directly relates to **execution**. The preparation before",
-        "the call (`push` instructions) sets up parameters for `ShellExecuteA`. There's no clear evidence of other MITRE ATT&CK techniques based solely on this snippet.",
-        "Therefore, the most relevant MITRE ATT&CK technique is:",
-        "* **T1204.002: Command and Scripting Interpreter: ShellExecute**",
-        "There's no sub-technique that is definitively implied by just this small code snippet. More context (like the content of the memory locations pointed to by the arguments to `ShellExecuteA`)",
-        "would be needed to identify more specific techniques. For example, if `lpFile` pointed to a malicious file, techniques related to **T1566.002: Spearphishing Attachment** or **T1566.001:",
-        "Spearphishing Link** might be involved. But the code itself only shows the *execution* step.",
+        "The provided assembly code snippet shows a function call to two separate subroutines (`sub_0x00000040A` and `sub_0x000005030`). Without knowing the content of these subroutines, we can only",
+        "speculate on the MITRE ATT&CK techniques involved. However, based on the general structure, we can make some educated guesses.",
+        "The code's prologue (`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, pushes of registers) indicates standard function setup, allocating stack space for local variables. The epilogue (`pop edi`,",
+        "`pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret`) cleans up the stack and returns control.",
+        "The interesting parts are the function calls:",
+        "* **`call sub_0x00000040A`**: This call passes the value `0x40609f` as an argument (likely a pointer or handle). Without knowing what `sub_0x00000040A` does, we can't be specific. However, it",
+        "*could* be related to several techniques, depending on its functionality:",
+        "* **T1059.001 - Command and Scripting Interpreter:** If this subroutine executes commands from a string or file. * **T1071.001 - Application Layer Protocol:** If this subroutine interacts with a",
+        "network service using a specific application layer protocol. * **T1548.002 - Abuse Execution Mechanism:** If the subroutine uses a legitimate process or service to execute malicious code. *",
+        "**T1547.001 - Process Injection:** If it injects code into another process. (This is less likely given only one argument).",
+        "* **`call sub_0x000005030`**: This call pushes several arguments (pointers likely). Again, without knowing the function's content, we can only speculate:",
+        "* **T1047 - Windows Management Instrumentation:** If this function interacts with WMI to execute commands or gather information. * **T1055 - Process Hollowing:** If the function creates a hollow",
+        "process to load malicious code. (Less likely without more context.) * **T1547 - Process Injection:** Similar to above, highly dependent on `sub_0x000005030`'s implementation. * **T1566.002 -",
+        "External Proxy:** If it uses an external proxy to communicate. (Again, unlikely without more context.)",
+        "**In summary:** We cannot definitively assign specific MITRE ATT&CK techniques without reverse engineering `sub_0x00000040A` and `sub_0x000005030`. The code provides strong *suspicion* for",
+        "techniques related to process manipulation and command execution, but more information is needed. The most likely candidates are various sub-techniques under **T1547 (Process Injection)** and",
+        "**T1059 (Command and Scripting Interpreter)**, but others are possible.",
         "Close"
     ],
     "gpt4o": [

@@ -17,17 +17,22 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1566.001",
-                "T1059.001",
-                "T1547.001"
+                "T1055.001",
+                "T1055.002",
+                "T1547.001",
+                "T1547.001",
+                "T1057"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1574.001",
-                "T1547.001"
+                "T1552.001",
+                "T1547.001",
+                "T1059.001",
+                "T1059.004",
+                "T1055.001"
             ],
             "valid": []
         },
@@ -77,35 +82,38 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function call to two subroutines (`sub_0x00000040A` and `sub_0x000005004`) with some standard function prologue and epilogue. Without knowing the",
-        "specifics of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. The code itself is not directly indicative of a specific technique, but rather *enables* various",
-        "techniques depending on the functionality of the called subroutines.",
-        "Here's a possible interpretation, keeping in mind the inherent uncertainty:",
-        "* **T1566.001: Spearphishing Attachment:** If `sub_0x00000040A` or `sub_0x000005004` involves the processing of a downloaded file (e.g., an email attachment), this technique could be relevant.",
-        "This is highly speculative without the subroutine's contents.",
-        "* **T1059.001: Command and Scripting Interpreter:** If either subroutine executes commands using a scripting interpreter (like PowerShell or cmd.exe), this is a possibility. Again, this requires",
-        "knowledge of the subroutines.",
-        "* **T1547.001: Data Encoding:** If the subroutines involve encoding or decoding data, this could be applied. The `xor eax, eax` instruction might be part of a larger encoding/decoding scheme,",
-        "but it's too isolated to confirm.",
-        "**Crucially, more information is needed to make any definitive statement.** We need to see the code for `sub_0x00000040A` and `sub_0x000005004` to determine the actual techniques used. The",
-        "addresses (0x40609f, 0x403000, 0x00000040A, 0x000005004) themselves offer no clues without context.",
-        "The provided assembly only shows the setup and cleanup of a function call",
-        "impossible without further analysis.",
+        "The provided assembly code snippet shows a function that makes two function calls (`sub_0x00000040A` and `sub_0x000005004`) after setting up the stack frame. Without knowing the implementation",
+        "details of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the general structure, we can suggest some possibilities:",
+        "* **T1055.001: Process Injection (Shared Libraries):** If `sub_0x00000040A` or `sub_0x000005004` load and execute code from a shared library, this technique would be relevant. The `call`",
+        "instructions are the key indicator here.",
+        "* **T1055.002: Process Injection (DLL Injection):** Similar to above, if the called functions perform DLL injection, this is a possibility.",
+        "* **T1547.001: T1547.001: Windows Management Instrumentation (WMI) Event Subscription:** The addresses (0x40609f and 0x403000) could potentially point to WMI related data or functions. However,",
+        "this is highly speculative without more context.",
+        "* **T1057: Process Discovery:** The code may be part of a larger routine that enumerates processes and looks for certain targets, but the snippet alone does not show this directly.",
+        "**Important Note:** These are *potential* associations. To definitively identify the MITRE ATT&CK techniques, you need to analyze the functions `sub_0x00000040A` and `sub_0x000005004`. Their",
+        "behaviour will determine the precise techniques. The provided code only shows the *setup* for external function calls, not the actions performed by those functions. The assembly alone cannot",
+        "provide a complete MITRE mapping.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code snippet shows a function call and standard function prologue/epilogue. Without knowing the contents of `sub_0x00000040A` and the address pointed to by `0x403000`, we",
-        "can only make inferences about potential MITRE ATT&CK techniques. The code is too generic to definitively assign specific techniques.",
-        "However, based on the observable behavior, we can suggest some *possible* associated techniques, keeping in mind that these are highly speculative without further context:",
-        "* **T1055.001 - Process Injection:** The `call (null)` instruction with parameters suggests that the code might be attempting to execute code in an unexpected location. This could be a",
-        "rudimentary form of process injection, though more information is needed to confirm. This is a very weak association, as it could be used for many benign purposes.",
-        "* **T1574.001 - External Proxy:** The call to `sub_0x00000040A` could potentially be used to communicate with a remote server (although this is highly speculative without more analysis). This is",
-        "a very weak and unreliable inference.",
-        "* **T1547.001 - Boot or Logon Autostart Execution:** While not directly apparent in the code, if this code is executed during boot or logon, it could indicate attempts to establish persistence.",
-        "This is entirely contingent on the *execution context*, not the code itself.",
-        "**Important Note:** The lack of detail on the called functions (`sub_0x00000040A` and the address at `0x403000`) makes it impossible to definitively link this code to any specific MITRE ATT&CK",
-        "technique. The suggested techniques are merely *potential* possibilities based on general patterns that are far from conclusive. A proper analysis requires reverse engineering of the called",
-        "functions and understanding the broader execution environment.",
+        "The provided assembly code snippet shows a function call, stack manipulation, and basic register operations. Pinpointing exact MITRE ATT&CK techniques without more context (like the function",
+        "`sub_0x00000040A`'s behavior and the `(null)` call's target) is impossible. However, we can infer *potential* associated techniques based on the observed actions.",
+        "**Potential MITRE ATT&CK Techniques:**",
+        "* **T1055.001 - Process Injection:** The `call (null)` instruction, followed by a `nop`, suggests potential process injection, as calling a null pointer or an uninitialized address often",
+        "indicates an attempt to inject code into another process. This is speculative without knowing the true target. The technique is *highly* likely if the `(null)` is resolved to a valid address at",
+        "runtime.",
+        "* **T1552.001 - External Proxy:** This is *possible* if the `sub_0x00000040A` function connects to and communicates with an external C2 server. This depends heavily on the reverse engineering of",
+        "that function.",
+        "* **T1547.001 - Remote File Copy:** If `sub_0x00000040A` interacts with a network resource (like downloading a file), this technique could apply. Again, analysis of that function is necessary.",
+        "* **T1059.001 - Command and Scripting Interpreter:** If either of the called functions executes code from a string or external resource, this could be implicated.",
+        "* **T1059.004 - PowerShell:** (Only if `sub_0x00000040A` is somehow linked to powershell). Highly unlikely without more context.",
+        "**Important Considerations:**",
+        "* **Lack of Context:** The assembly snippet is too limited. The functions `sub_0x00000040A` and the target of the `call (null)` are crucial for accurate technique identification. Reverse",
+        "engineering these is required for definitive mapping. * **Obfuscation:** The code might be obfuscated to hinder analysis. * **Specifics:** The exact sub-techniques are difficult to assign",
+        "without in-depth knowledge of the called functions and their activities.",
+        "**In Summary:** Without further information, we cannot definitively map this code to specific MITRE ATT&CK techniques. The list above represents potential techniques based on *general*",
+        "characteristics of the assembly, and they all require additional analysis to confirm their applicability. The `T1055.001` is potentially the strongest candidate, contingent on deeper",
+        "investigation of the `call (null)` instruction's target.",
         "Close"
     ],
     "gpt4o": [

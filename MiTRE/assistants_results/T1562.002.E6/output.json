@@ -14,23 +14,27 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1059.002",
-                "T1059.005",
-                "T1547.001",
-                "T1562.001",
-                "T1071.001"
+                "T1053.005",
+                "T1070.001",
+                "T1543.002",
+                "T1055.001",
+                "T1047",
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1030.001",
+                "T1543.003",
+                "T1055.001",
+                "T1055.001",
+                "T1071.001",
+                "T1562.001"
             ],
             "valid": [
                 "T1562.001"
             ]
-        },
-        "gemini_yes_imports_no_strings": {
-            "all": [
-                "T1547.001",
-                "T1055.001",
-                "T1071.001"
-            ],
-            "valid": []
         },
         "gpt4o": {
             "all": [
@@ -90,39 +94,43 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "Based on the provided assembly code snippets and API calls, several MITRE ATT&CK techniques could be associated. It's difficult to be completely precise without knowing the functionality of the",
-        "`sub_0xXXXXXXX` functions. However, we can make some educated guesses:",
-        "* **T1059.002: Command and Scripting Interpreter:** The code appears to execute various functions (`sub_0x...`). If these functions execute commands or scripts (e.g., via shell execution or",
-        "similar), this technique applies. The repeated calls to different `sub_` functions suggest potentially varied command executions.",
-        "* **T1059.005: Scheduled Task/Job:** The code *might* be related to creating or manipulating scheduled tasks if one of the `sub_` functions interacts with the operating system's task scheduler.",
-        "The lack of explicit scheduler API calls makes this less certain.",
-        "* **T1547.001: Indicators Removal on Host:** The code has several conditional jumps (`jne`) and actions based on the results of comparisons. This could be related to checking for the presence of",
-        "indicators of compromise (IOCs) and removing or modifying them if found. The `or eax, 0xffffffff` instructions, used several times, could be obscuring error conditions or manipulating flags to",
-        "hide successful execution.",
-        "* **T1562.001: Impairment of Security Tools:** Similar to the previous point, the conditional checks and actions could potentially be used to disable or hinder security tools like antivirus or",
-        "endpoint detection and response (EDR) software. Again, without knowing the `sub_` functions, this is speculative.",
-        "* **T1071.001: Application Layer Protocol:** The code makes numerous calls to different subroutines. These might interact with different application layer protocols (e.g., HTTP, DNS) for",
-        "communication with a command and control server or to exfiltrate data. This is highly dependent on the nature of the called subroutines.",
-        "**Important Note:** The lack of context (the functionality of the `sub_` functions, the operating system, etc.) makes a precise mapping to MITRE techniques impossible. The above is a probable",
-        "interpretation based on common malicious code patterns. A thorough reverse engineering analysis is needed to definitively determine the techniques involved. Also note that multiple techniques",
-        "can often be used in conjunction.",
+        "Based on the provided assembly code and API calls, several MITRE ATT&CK techniques are potentially involved. It's impossible to be completely certain without knowing the functionality of the",
+        "`sub_0xXXXXXXX` functions. However, we can make educated guesses based on common patterns:",
+        "**Possible Techniques:**",
+        "* **T1053.005 - Scheduled Task/Job:** The code appears to be setting up and executing tasks based on conditions (e.g., the numerous conditional jumps and function calls). The use of seemingly",
+        "scheduled or timed operations suggests potential use of this technique. This is speculative unless the `sub_0xXXXXXXX` routines are examined.",
+        "* **T1070.001 - Indicator Removal on Host:** The code includes actions that overwrite or modify values (e.g., `mov dword ptr [0x404000], 0x44` ). This *could* be used to remove indicators of",
+        "compromise, depending on what `0x404000` represents. Further investigation is needed.",
+        "* **T1543.002 - Create or Modify System Process:** The code's repeated calls to functions (`sub_0xXXXXXXX`) might involve the creation or modification of system processes or threads. Again,",
+        "requires deeper analysis of those functions.",
+        "* **T1055.001 - Process Injection:** While not explicitly shown, the code's structure and multiple function calls (especially those seemingly interacting with memory locations) suggests the",
+        "potential of process injection. This is highly speculative without knowing more about the functions' internals.",
+        "* **T1047 - Windows Management Instrumentation (WMI):** The code's complexity and the fact that it is doing a lot of setup and conditional logic before doing its \"main\" operations could suggest",
+        "interaction with WMI, as many malicious actors use WMI for persistence and other actions. This is speculative without seeing the subroutines.",
+        "* **T1547.001 - Access Token Manipulation:** The manipulation of various memory locations could indicate attempts to alter access tokens, although this is a very indirect and weak suggestion",
+        "based solely on the provided assembly.",
+        "**Important Note:** These are *potential* associations. To definitively map the code to MITRE ATT&CK techniques, a deep dive into the functionality of the `sub_0xXXXXXXX` functions is necessary.",
+        "The code snippets only show the structure and some memory operations, not the specific actions performed. Disassembling and analyzing the target functions is critical for accurate",
+        "categorization. Furthermore, dynamic analysis (running the code in a controlled environment) would provide crucial insights.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "Based on the provided x86 assembly code, the most relevant MITRE ATT&CK techniques are:",
-        "* **T1547.001: Process Injection - Process Hollowing:** The code uses `CreateProcessA` to create a new process. The subsequent calls to functions retrieved via `GetProcAddress` (and the many",
-        "`call (null)` instructions suggesting additional function calls) strongly suggest that the created process is being manipulated, potentially hollowed out to inject malicious code. The numerous",
-        "calls to functions with unknown addresses are highly suspicious in this context. The length calculations and memory writes further point to code injection.",
-        "* **T1055.001: Process Injection - DLL Injection:** While Process Hollowing is a stronger candidate given the `CreateProcessA` call, DLL injection is also possible. The code's behavior is",
-        "consistent with loading a DLL into a newly created process and then calling functions within that DLL. This is also supported by numerous function calls that are likely part of the injection",
-        "process (again suggested by `call (null)` which would be external functions).",
-        "* **T1071.001: Command and Scripting Interpreter - Command Execution:** While not explicitly showing command execution directly within the provided snippet, the creation of a new process",
-        "(`CreateProcessA`) suggests the possibility of this technique. The use of `lpCommandLine` parameter in `CreateProcessA` strongly implies that a command line is being used to start the process,",
-        "the contents of which could be malicious.",
-        "**Important Note:** The presence of many `call (null)` instructions makes definitive analysis challenging. These likely represent calls to functions whose addresses aren't directly present in",
-        "this code snippet, and their actual functionality is unknown without further analysis of the compiled binary. However, the context strongly suggests post-exploitation behaviors. The combination",
-        "of process creation and numerous subsequent function calls points towards an advanced injection technique, likely process hollowing or DLL injection. Without more context, a definitive",
-        "sub-technique cannot be confirmed, but the possibilities strongly indicate these primary techniques.",
+        "Based on the provided x86 assembly code, the following MITRE ATT&CK techniques are associated:",
+        "* **T1030.001: External Remote Services:** The code retrieves a procedure address using `GetProcAddress` and then calls it (`call dword ptr [ebp - 8]`). This suggests the use of external",
+        "services or libraries to perform malicious actions. The repeated calls to `(null)` might indicate indirect function calls, further obscuring the called functions and making it harder to trace",
+        "the origin of the service.",
+        "* **T1543.003: Create Process with Alternate Commandline:** The code uses `CreateProcessA` to create a new process. The parameters passed to `CreateProcessA` show this process is likely started",
+        "with a command line passed in the code (`push 0x403020 ; lpCommandLine`). The use of an alternate command line might be used to hide or obfuscate the malicious activity.",
+        "* **T1055.001: Process Injection:** While not explicitly shown, the repeated calls to `(null)` following `CreateProcessA` and the manipulation of process handles and memory locations strongly",
+        "suggest process injection. The code obtains the handle to the newly created process (`dword ptr [0x404044]`) and makes multiple calls which potentially write to or manipulate its memory space.",
+        "The size and content of the data being pushed onto the stack before these calls further support this interpretation. The calls manipulate memory of the newly created process. Given the presence",
+        "of `CreateProcessA` and this memory manipulation strongly suggests T1055.001.",
+        "* **T1071.001: Application Layer Protocol:** Although not directly observable from the provided snippet, the use of network functionalities might be hidden within the called functions (`call",
+        "sub_0x00000040A`, the several `(null)` calls). Given the functionality of creating and manipulating a process, the likelihood of network communication is high.",
+        "* **T1562.001: Impair Defenses:** The use of obfuscation techniques, such as indirect function calls (`call (null)`) and potentially code that interacts with anti-virus/EDR technologies (not",
+        "directly shown in the snippet, but a likely scenario with this type of behavior) could be used to impair security tools from detecting or responding to the attack.",
+        "**Important Note:** This analysis is based solely on the provided assembly code snippet. A complete understanding would require analyzing the entire binary and the functions it calls, including",
+        "those represented by `(null)`. The functions called at `(null)` could represent a wide range of additional techniques, potentially shifting the most relevant technique IDs.",
         "Close"
     ],
     "gpt4o": [

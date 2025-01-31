@@ -13,25 +13,27 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1059.002",
-                "T1059.005",
                 "T1547.001",
-                "T1547.001",
-                "T1047",
-                "T1071.001"
+                "T1548.002",
+                "T1055.001",
+                "T1070.001",
+                "T1059.005"
             ],
             "valid": [
-                "T1059.002",
                 "T1059.005"
             ]
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1055.001",
+                "T1059.002",
                 "T1047",
-                "T1055.002"
+                "T1055.001",
+                "T1071.001",
+                "T1546.001"
             ],
-            "valid": []
+            "valid": [
+                "T1059.002"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -87,42 +89,48 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet demonstrates several behaviors that map to multiple MITRE ATT&CK techniques. It's difficult to be completely precise without knowing the functionality of the",
-        "called subroutines (e.g., `sub_0x000005010`, `sub_0x000005020`, etc.). However, based on the code's structure and operations, we can infer likely techniques.",
-        "**Possible MITRE ATT&CK Techniques:**",
-        "* **T1059.002 - Command and Scripting Interpreter: PowerShell:** The code's heavy use of function calls (`sub_0x...`) suggests the possibility of calling external functions or libraries which",
-        "might involve PowerShell or other scripting languages to execute commands. This is highly dependent on the nature of the called subroutines.",
-        "* **T1059.005 - Command and Scripting Interpreter: Native API:** The code directly manipulates memory and makes numerous calls to subroutines. This could indicate the use of native Windows APIs",
-        "for various purposes, such as file system operations, network communication, or process manipulation. Again, the specifics depend entirely on the functionality of the un-named subroutines.",
-        "* **T1547.001 - T1547.001 - Process Injection: Dynamic-link library (DLL) injection:** The code makes numerous function calls and manipulates memory. While there's no explicit DLL injection",
-        "pattern, this behavior is common in DLL injection techniques. The use of `dword ptr [ebp - 8]` suggests the potential for indirect function calling",
-        "methods. This, again, relies heavily on what the functions do.",
-        "* **T1047 - Windows Management Instrumentation (WMI):** WMI is often used by malware to enumerate systems, execute commands, or perform other malicious tasks. While not directly visible in this",
-        "code, the pattern of numerous function calls to native functions is suggestive of interacting with lower-level APIs. If those calls are using WMI, this would be relevant.",
-        "* **T1071.001 - Application Layer Protocol: HTTP:** While not directly shown, if the code interacts with any network resources, HTTP is a very likely protocol. This cannot be determined from the",
-        "assembly itself.",
-        "**Important Considerations:**",
-        "* **Unknown Subroutines:** The absence of information about the subroutines severely limits the precision of the MITRE ATT&CK mapping. The techniques listed above are *possible* mappings;",
-        "definitive assignment requires understanding the functionality of those subroutines. * **Context is Key:** Analyzing this code in isolation isn't sufficient for a definitive mapping. The entire",
-        "malware sample, its behavior, and its network activity are needed for an accurate assessment.",
-        "To provide a more precise mapping, the functionality of the subroutines `sub_0x000005010`, `sub_0x000005020`, `sub_0x000005024`, `sub_0x000005014`, `sub_0x000005018`, `sub_0x00000501C`,",
-        "`sub_0x000005008`, `sub_0x00000500C`, `sub_0x000005004`, `sub_0x000005000` and `sub_0x00000040A` needs to be determined. Disassembly and static/dynamic analysis would be essential for this.",
+        "Based on the provided assembly code and API calls, several MITRE ATT&CK techniques could be associated. It's impossible to be completely certain without knowing the functionality of the",
+        "functions `sub_0x000005010`, `sub_0x000005014`, `sub_0x000005018`, `sub_0x00000501C`, `sub_0x000005020`, `sub_0x000005024`, `sub_0x000005028`, and `sub_0x000005008` etc. However, we can make",
+        "educated guesses based on common patterns.",
+        "The code strongly suggests the use of several techniques related to **process creation, execution, and possibly data manipulation or exfiltration**.",
+        "Possible Techniques:",
+        "* **T1547.001: Process Injection - DLL Injection:** The code's extensive use of function calls (`sub_0x...`), particularly with pushing arguments that seem like memory addresses and potentially",
+        "data sizes, suggests loading external code into another process. The calls with parameters resembling offsets and sizes are highly suspicious. This needs further investigation to confirm but",
+        "it's a strong possibility.",
+        "* **T1548.002: Process Injection - Reflective DLL Injection:** Similar to DLL injection, this technique avoids writing a DLL to disk. Again, the numerous function calls and parameter pushing",
+        "strongly suggest that some sort of code is being injected, but we cannot definitively say without knowing the functions.",
+        "* **T1055.001: Process Hollowing:** Although less likely based on what is directly visible, the code could be manipulating a process in memory (hollowing it) before injecting code. This would",
+        "require a deeper analysis of the referenced functions.",
+        "* **T1070.001: Indicator Removal on Host - Clear Web Browser History:** The conditional jumps (`jne offset_0x...`) and `or eax, 0xffffffff` (which can be used for error handling or manipulating",
+        "return values) indicate logic that may be used for cleaning traces of activity. This is speculation based only on the presence of conditional logic and without details on the `sub_0x....`",
+        "functions.",
+        "* **T1059.005: Command and Scripting Interpreter - PowerShell:** This is highly speculative without knowing the function calls. However, using PowerShell for various malicious activities is",
+        "extremely common. The code structure makes it plausible.",
+        "**Important Note:** This is only a preliminary assessment based on limited information. A more comprehensive analysis would require examining the functions (`sub_0x...`) to definitively identify",
+        "the MITRE ATT&CK techniques used. The behavior is strongly suggestive of malicious activity, but without knowing the functionality of the called subroutines, this is only educated guesswork. The",
+        "presence of `call dword ptr [ebp - 8]` is particularly suspicious and requires deeper analysis to determine its purpose. It suggests indirect function calls, and possibly the execution of code",
+        "loaded earlier.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "Based on the provided assembly code, the following MITRE ATT&CK techniques are likely involved:",
-        "* **T1055.001: Process Injection - CreateRemoteThread:** The code uses `CreateProcessA` to create a new process, and then performs operations that strongly suggest injecting code into that new",
-        "process using `CreateRemoteThread` (implied by the numerous calls to `(null)` after getting a process handle and memory, typical of this technique) . The series of calls after the",
-        "`CreateProcessA` function strongly points towards remote thread injection or some form of process hollowing. The exact method isn't completely clear without knowing what the function pointers",
-        "pointed to by `[ebp - 8]` and the numerous null calls resolve to, but the overall structure is characteristic of this technique.",
-        "* **T1047: Process Discovery:** The code calls `GetModuleHandleA` and `GetProcAddress` to retrieve the address of a function within a module. This is indicative of process discovery to locate",
-        "and use specific functions in a targeted process.",
-        "* **T1055.002: Process Injection - QueueUserAPC:** While not explicitly shown, the use of many `call (null)` functions after successfully creating a process and obtaining its handle increases",
-        "the possibility that the attacker is using `QueueUserAPC` as an alternate injection method. This would involve using the previously obtained handle and injecting the code into the queue of the",
-        "thread. Further analysis is needed to confirm this.",
-        "**Important Note:** The absence of function names in some `call` instructions (`call (null)`) makes definitive identification of specific sub-techniques challenging. The analysis leans heavily",
-        "on the context of `CreateProcessA` and the subsequent actions with the newly created process handle. Reverse engineering the actual functions pointed to by these `(null)` calls is required for a",
-        "more precise classification.",
+        "Based on the provided assembly code and API calls, several MITRE ATT&CK techniques could be associated. It's impossible to be completely certain without knowing the functionality of the various",
+        "`sub_0xXXXXXXX` functions. However, we can make educated guesses based on common patterns:",
+        "**Likely Techniques:**",
+        "* **T1059.002: Command and Scripting Interpreter:** The code appears to be executing external functions (`sub_0xXXXXXXX`). If these functions are loading and executing commands from external",
+        "sources or files, this technique applies. The numerous function calls strongly suggest external interaction.",
+        "* **T1047: Windows Management Instrumentation (WMI):** While not explicitly stated, it's possible that some `sub_0xXXXXXXX` functions interact with WMI. WMI is a common method for attackers to",
+        "execute commands and gather information. This is a suspicion based on the extensive use of external functions, many of which might be wrappers around system functions.",
+        "* **T1055.001: Process Injection:** Again, this depends on the behavior of the unknown functions. If any of the calls to `sub_0xXXXXXXX` inject code into other processes, then this technique is",
+        "relevant.",
+        "* **T1071.001: Application Layer Protocol:** This is a possibility if the `sub_0xXXXXXXX` functions handle network communication, using an application-layer protocol. The code, however, does not",
+        "show any direct indicators.",
+        "* **T1546.001: Data from Configuration Files:** The code loads data from memory locations (e.g., `0x403000`, `0x40300C`, etc.). These memory locations might contain configuration data used to",
+        "tailor the malicious operation.",
+        "**Unlikely Techniques (without more context):**",
+        "Techniques involving direct file system access, registry manipulation, or specific privilege escalation methods are unlikely without more detailed information about the called functions.",
+        "**Important Note:** The analysis is limited by the absence of information about the `sub_0xXXXXXXX` functions. Reverse engineering these functions is crucial for a more precise MITRE ATT&CK",
+        "mapping. The code snippet suggests malicious activity but requires further investigation to provide definitive mappings. The presence of numerous calls to seemingly external functions is the",
+        "strongest indicator of malicious intent.",
         "Close"
     ],
     "gpt4o": [

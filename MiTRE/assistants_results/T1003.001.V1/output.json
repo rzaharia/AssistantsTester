@@ -14,21 +14,21 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1064.002",
-                "T1566.002",
                 "T1055.001",
-                "T1006"
+                "T1055.002",
+                "T1055.011",
+                "T1055.012",
+                "T1547.001",
+                "T1547.001",
+                "T1548"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1055.001",
-                "T1055.001",
-                "T1055",
-                "T1040.002",
-                "T1040.002",
-                "T1040"
+                "T1027.002",
+                "T1027.001",
+                "T1562.001"
             ],
             "valid": []
         },
@@ -78,32 +78,37 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code exhibits characteristics of several MITRE ATT&CK techniques. However, without more context (the functions' actual behavior, strings, system calls, etc.), we can only",
-        "make educated guesses based on the code snippets. The most likely candidates are:",
-        "* **T1064.002: Command and Scripting Interpreter:** The `int3` instruction (breakpoint) is often used in malware to halt execution, potentially waiting for external commands or to evade",
-        "analysis. The sheer number of `int3` instructions points towards an attempt to obfuscate or slow down reverse engineering. While not definitive proof, it strongly suggests an attempt to execute",
-        "commands or scripts indirectly.",
-        "* **T1566.002: External Remote Services:** The numerous jumps (`jmp`) to different memory addresses (e.g., `jmp offset_0x000000490`, `jmp offset_0x0000005F0`, etc.) suggest communication or",
-        "interaction with external resources. The calls to `sub_0x000000419` hint at modularity",
-        "* **T1055.001: Process Injection:** Although not explicitly shown, the function `sub_0x000000450` with standard function prologue (`push ebp`, `mov ebp, esp`, etc.) and call to `sub_0x000000419`",
-        "could indicate code injection. The allocation of stack space (`sub esp, 0x40`) might be used to inject malicious code into another process. More analysis is required to confirm this.",
-        "* **T1006: Network Service Scanning:** While not directly evident, if `sub_0x000000419` (and related functions) interacts with network sockets, it might be indicative of scanning for vulnerable",
-        "services.",
-        "**Important Note:** This analysis is based on limited information. To definitively assign MITRE ATT&CK techniques, a comprehensive analysis of the entire program, including data sections,",
-        "strings, and function calls, is necessary. The presence of specific system calls would significantly aid in a more accurate categorization.",
+        "Based on the provided assembly code, several MITRE ATT&CK techniques could be associated, but without more context (e.g., the functions `sub_0x...`), we can only make educated guesses. The code",
+        "suggests actions related to data manipulation, potentially involving a process creation or execution, and possibly some form of privilege escalation attempt based on conditional checks and",
+        "function calls dependent on return values. Here are some *possible* MITRE ATT&CK techniques, keeping in mind the limitations due to the lack of function details:",
+        "* **T1055.001 - Process Injection: Shared Libraries:** The code uses function calls (`sub_0x...`) heavily, suggesting code execution within the context of a running process. If these functions",
+        "involve injecting code into another process's address space using shared libraries, this technique would be applicable. The specific method of injection can't be determined from the assembly.",
+        "* **T1055.002 - Process Injection: Process Hollowing:** Similar to above, if one of the called functions performs process hollowing, this would fit. However, no clear signs (like process",
+        "creation followed by memory manipulation and replacement) are directly shown in this snippet.",
+        "* **T1055.011 - Process Injection: Reflective DLL Injection:** This is another possibility if the called functions load and execute code from memory without writing to disk. Again, this is",
+        "speculative without knowing the contents of the called functions.",
+        "* **T1055.012 - Process Injection: Thread Execution:** Creating and using threads within a targeted process might be indicated by these actions, but it's not explicitly demonstrated.",
+        "* **T1547.001 - T1547.001 - Process Discovery: Enumeration:** The code performs several comparisons (`cmp dword ptr [ebp - 0x34], 0x1000`, etc.), suggesting it might be gathering information",
+        "about the process environment. This would be a supporting technique used in conjunction with a primary technique like process injection.",
+        "* **T1548 - Exploit Public-Facing Application:** This is a broad category. If the code exploits a vulnerability in a public-facing application, it could be involved but this is very speculative",
+        "based solely on this assembly.",
+        "**Important Note:** It is impossible to provide definitive MITRE ATT&CK technique mappings without understanding the functionality of the referenced subroutines (`sub_0x...`). The code snippets",
+        "provided only show the sequence of operations; the precise attack method remains unclear. To accurately identify techniques, the entire binary and the functions must be analyzed dynamically.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "Based on the provided assembly code, the following MITRE ATT&CK techniques are likely involved:",
-        "* **T1055.001: Process Injection - Shared Libraries:** The code uses `OpenProcess`, `VirtualQueryEx`, and `ReadProcessMemory` to access and potentially read memory from another process. While it",
-        "doesn't explicitly load a DLL, the retrieval of memory regions strongly suggests an attempt to inject code or data into the target process's memory space indirectly. This could involve mapping a",
-        "shared library or injecting shellcode. The lack of explicit DLL loading makes T1055.001 a more fitting sub-technique than others in T1055.",
-        "* **T1040.002: Exfiltration Over C2:** The code's purpose is unclear beyond process memory access. The calls to functions like `sub_0x000000405`, `sub_0x000000419`, and `sub_0x00000040A` (whose",
-        "functionality isn't shown) might be used to exfiltrate the data read from memory, potentially to a command and control (C2) server. Without more context about these functions, this is",
-        "speculative but a reasonable possibility. The use of a custom communication method would lead to T1040.002 rather than more specific sub-techniques within T1040.",
-        "**Important Note:** The provided assembly is a snippet; the functions `sub_0x000000405`, `sub_0x000000419`, and `sub_0x00000040A` are crucial for accurate determination of the full extent of the",
-        "attack techniques. Their implementation would clarify the goal (data theft, code execution etc.) and the exact methods employed. Without knowing their functionality, the mapping to MITRE",
-        "techniques remains partially speculative.",
+        "The provided assembly code shows several unconditional jumps (`jmp`) and a series of `int3` instructions (which often indicate breakpoints or debugging aids). The presence of a function",
+        "(`sub_0x000000450`) with standard function prologue and epilogue suggests normal function execution, but the multiple `jmp` instructions and `int3` interruptions point to obfuscation or an",
+        "attempt to hinder analysis.",
+        "Based on this, the most likely MITRE ATT&CK techniques are:",
+        "* **T1027.002: Obfuscated Files or Information:** The numerous `jmp` instructions and `int3` interrupts are strong indicators of obfuscation. The code is designed to be difficult to understand",
+        "and analyze.",
+        "* **T1027.001: Obfuscated Commands:** This is less certain without more context, but the obfuscation may apply to specific commands or actions within the larger malware.",
+        "* **T1562.001: External Remote Services:** The call to `sub_0x000000419` and the constant `0x40609f` suggest a potential network connection or interaction with an external service, although",
+        "without further analysis we cannot confirm.",
+        "**Important Note:** These are educated guesses based on limited code. A definitive assessment requires analyzing the entire malware sample within a sandbox environment and observing its",
+        "behavior. The `0x40609f` constant is particularly interesting and might reveal more information if cross-referenced. The jumps could be part of a control-flow flatting technique. More analysis",
+        "is needed to ascertain the exact techniques and their purpose.",
         "Close"
     ],
     "gpt4o": [

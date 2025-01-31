@@ -19,19 +19,30 @@
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1068",
+                "T1055.010",
+                "T1055.011",
+                "T1055.012",
+                "T1055.014",
                 "T1547.001",
-                "T1548.002"
+                "T1547.001",
+                "T1574.001"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1003.001",
-                "T1003.002",
-                "T1047"
+                "T1003.001",
+                "T1082",
+                "T1552.003",
+                "T1552.003",
+                "T1566.002",
+                "T1566.002"
             ],
-            "valid": []
+            "valid": [
+                "T1082",
+                "T1082"
+            ]
         },
         "gpt4o": {
             "all": [
@@ -77,33 +88,34 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that allocates stack space ( `sub esp, 0x144`), makes several function calls (`call sub_0x00000040A`, `call sub_0x000004000`), and then cleans",
-        "up the stack. The specifics of `sub_0x00000040A` and `sub_0x000004000` are crucial for determining the exact MITRE ATT&CK techniques. Without knowing what those functions do, we can only",
-        "speculate on *possible* techniques.",
-        "Based solely on the provided code, the most likely associated MITRE ATT&CK techniques are:",
-        "* **T1055.001 - Process Injection: CreateRemoteThread:** The calls to unknown functions strongly suggest the possibility of process injection. `CreateRemoteThread` is a common method for this,",
-        "and the allocation of stack space and subsequent function calls are consistent with this technique. However, this is just speculation without the function definitions.",
-        "* **T1068 - Exploitation for Privilege Escalation:** The code structure suggests malicious activity; exploitation to achieve privilege escalation is entirely possible. Again, without the",
-        "function definitions, this remains a speculation.",
-        "* **T1547.001 - Non-System DLL Injection: DLL Injection:** This is similar to the above. DLL injection is another form of process injection and the code is consistent with this approach.",
-        "However, it needs further context from the called functions.",
-        "* **T1548.002 - Use of Alternative Method of Process Creation:** This would be likely if `sub_0x00000040A` and `sub_0x000004000` use unusual methods to create processes or threads.",
-        "**In short:** The code is suspicious, and the techniques listed above are *possible*, but *not definitive*. To provide accurate MITRE ATT&CK mappings, the functionality of `sub_0x00000040A` and",
-        "`sub_0x000004000` must be analyzed. The code itself only shows the *preparation* for potentially malicious activities. Further analysis is required for precise categorization.",
+        "The provided assembly code snippet shows a function call to `sub_0x00000040A` and then to `sub_0x000004000`. Without knowing the functionality of these subroutines, we can only speculate on the",
+        "MITRE ATT&CK techniques. The code itself suggests the use of the stack for local variable storage and parameter passing which are not techniques themselves, but part of standard function",
+        "behavior. However, we can infer *potential* techniques based on common practices:",
+        "The most likely MITRE ATT&CK techniques, depending on the functionality of the unknown subroutines, are:",
+        "* **T1055.001: Process Injection - CreateRemoteThread:** If `sub_0x00000040A` or `sub_0x000004000` creates a thread in another process, this technique would be applicable. This is a common way",
+        "to inject malicious code.",
+        "* **T1055.010: Process Injection - QueueUserAPC:** If a similar function is used to inject code using APC, this could apply.",
+        "* **T1055.011: Process Injection - Reflective DLL Injection:** If the injected code loads itself without writing to disk, this would be applicable.",
+        "* **T1055.012: Process Injection - Process Hollowing:** If the process is hollowed out to load malicious code, this would be applicable.",
+        "* **T1055.014: Process Injection - Thread Execution Hijacking:** If an existing thread is hijacked to run malicious code.",
+        "* **T1547.001: T1547.001: External Proxy:** If network communication is involved via these routines, and it's used for proxy purposes, this would be a possibility. The code alone doesn't confirm",
+        "this.",
+        "* **T1574.001: Data Staged:** This would depend on what data is manipulated by the called subroutines. The `0x100` and the memory allocations suggest data handling which is not inherently",
+        "malicious, but could be part of a larger malicious operation if `sub_0x00000040A` or `sub_0x000004000` performs data staging actions.",
+        "**Crucially:** Without knowing what `sub_0x00000040A` and `sub_0x000004000` do, these are *only possibilities*. The code itself is just boilerplate for setting up a function call; the malicious",
+        "activity (if any) is hidden within the called subroutines. A proper analysis of those subroutines is necessary to definitively determine the applicable MITRE ATT&CK techniques.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code primarily demonstrates the use of the `GetUserNameA` function to retrieve the current user's name. This relates to several MITRE ATT&CK techniques, depending on the",
-        "context of the larger malware or program. There isn't enough information to definitively assign sub-techniques, as the context is missing.",
-        "However, we can make some likely associations:",
-        "* **T1003.001 - OS Credential Dumping:** The code directly retrieves user information which could be used for credential access. This is the most relevant and likely technique.",
-        "* **T1003.002 - Access Token Manipulation (potentially):** While not explicitly shown, if the retrieved username is used to further obtain access tokens, this would also be applicable. This is",
-        "speculative, based only on the code snippet.",
-        "* **T1047 - Windows Management Instrumentation:** This is less likely, but if this code is part of a larger attack that leverages WMI, then this could apply. This is highly speculative with the",
-        "given code snippet.",
-        "**Important Note:** The assembly code itself is just a small part of a potential attack. To accurately determine the MITRE ATT&CK techniques, a much broader analysis of the entire program's",
-        "functionality and behavior would be necessary. The use of `GetUserNameA` is inherently benign, but its inclusion within a malicious context changes its nature. Therefore, associating MITRE",
-        "techniques based solely on this snippet involves some degree of inference and risk of misidentification.",
+        "The provided assembly code primarily focuses on retrieving the username using the `GetUserNameA` function. This relates to several MITRE ATT&CK techniques:",
+        "* **T1003.001 - OS Credential Dumping (T1003.001):** While not explicitly dumping credentials, the code obtains the username, which is often used as part of credential harvesting or",
+        "reconnaissance. The code retrieves information that could be used to assist in credential dumping.",
+        "* **T1082 - System Information Discovery:** The code gathers system information by retrieving the username, which is a key piece of system information.",
+        "* **T1552.003 - Remote System Discovery (T1552.003):** If this code were executed remotely, the act of retrieving the username would be an aspect of remote system discovery. It's not inherently",
+        "remote, but it's relevant if run in that context.",
+        "* **T1566.002 - Account Discovery (T1566.002):** The action of obtaining a username directly falls under Account Discovery.",
+        "It's important to note that the code itself is relatively benign. The maliciousness comes into play depending on the context of its execution and how the obtained username is subsequently used.",
+        "The code alone doesn't directly perform actions like lateral movement or data exfiltration.",
         "Close"
     ],
     "gpt4o": [

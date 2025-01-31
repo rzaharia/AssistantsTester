@@ -14,16 +14,18 @@
             "all": [
                 "T1055.001",
                 "T1059.002",
-                "T1068",
-                "T1548.002"
+                "T1059.005",
+                "T1071.001",
+                "T1548.002",
+                "T1055.001"
             ],
             "valid": []
         },
         "gemini_yes_imports_no_strings": {
             "all": [
                 "T1055.001",
-                "T1558.002",
-                "T1550.002"
+                "T1027.002",
+                "T1566.002"
             ],
             "valid": []
         },
@@ -69,32 +71,33 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code shows a function that makes several calls to other subroutines (sub_0x00000040A, sub_0x000004004, sub_0x00000400C, sub_0x000004000). Without knowing the functionality",
-        "of these subroutines, we can only speculate on the MITRE ATT&CK techniques. The code itself is indicative of standard function prologue and epilogue, with some potential for data manipulation.",
-        "However, based solely on the structure, we can make some *very weak* associations. The calls to external functions suggest potential for:",
-        "* **T1055.001 - Process Injection:** If the called subroutines perform process injection, this would be a strong association. However, this is purely speculative without reverse-engineering the",
-        "called functions.",
-        "* **T1059.002 - Command and Scripting Interpreter:** Similar to process injection, if the functions execute commands via an interpreter (e.g., cmd.exe, PowerShell), this could be a fit. Again,",
-        "this is highly speculative.",
-        "* **T1068 - Exploitation for Privilege Escalation:** If the called subroutines exploit a vulnerability to gain elevated privileges, this would apply. This is a very general association.",
-        "* **T1548.002 - Abuse Elevation Control Mechanism:** This is another highly speculative possibility if the function interacts with system privileges in an unauthorized manner.",
-        "**It is crucial to understand that these are tentative associations at best.** To accurately determine the MITRE ATT&CK techniques, a thorough analysis of the called subroutines",
-        "`sub_0x00000040A`, `sub_0x000004004`, `sub_0x00000400C`, and `sub_0x000004000` is necessary. The code itself only shows function calls and basic stack manipulation",
-        "actual techniques would depend entirely on what those called functions do.",
+        "The provided assembly code snippet shows a function that makes several calls to other subroutines (sub_0x00000040A, sub_0x000004004, sub_0x00000400C, sub_0x000004000). Without knowing the",
+        "contents of those subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on the structure alone, we can infer some possibilities.",
+        "The most likely technique is **T1055.001 - Process Injection**. The code sets up stack space (`sub esp, 0x4c`), calls external functions, and then returns. This is a common pattern for process",
+        "injection, where the malicious code injects itself into another process's address space. The called subroutines might contain the actual code injection mechanism.",
+        "Other possibilities, depending on the functionality of the called subroutines, include:",
+        "* **T1059.002 - Command and Scripting Interpreter**. If the called subroutines execute commands from the shell or use scripting languages, this technique would be relevant. * **T1059.005 - User",
+        "Execution**. If the subroutines involve exploiting user interaction to execute code, this applies. * **T1071.001 - Application Layer Protocol**. If the subroutines use network communication,",
+        "this is possible. This is less likely without more context. * **T1548.002 - Abuse Elevation Control Mechanism**. If the functions deal with bypassing user account control (UAC) or similar",
+        "protections, this technique would apply.",
+        "**In summary:** Without analyzing the called subroutines, the most likely MITRE ATT&CK technique is **T1055.001 - Process Injection**. The other techniques listed are possibilities depending on",
+        "the unseen parts of the code. To provide a more accurate assessment, the code of `sub_0x00000040A`, `sub_0x000004004`, `sub_0x00000400C`, and `sub_0x000004000` needs to be analyzed.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to an unknown subroutine (`sub_0x00000040A`) and then to three different null pointers. The results of these calls",
-        "are stored on the stack. This strongly suggests the following MITRE ATT&CK techniques:",
-        "* **T1055.001 - Process Injection: Dynamic-Link Library (DLL) Injection:** The calls to unknown locations suggest code injection. While we don't definitively see DLL loading, the method used",
-        "could be a form of process injection. The lack of specifics necessitates using the broader technique rather than a specific sub-technique.",
-        "* **T1558.002 - Executable and Linking Format (ELF) File Execution:** This is less certain but possible. If the `sub_0x00000040A` subroutine loads and executes code from a file (such as an ELF",
-        "file, but could be other formats too), this technique would apply.",
-        "* **T1550.002 - Use After Free:** This *might* apply if the code at the addresses pointed to by (null) is deallocated before those pointers are dereferenced. This is only speculative based on",
-        "the `call (null)` calls. The lack of memory management context in the snippet makes this a weak possibility.",
-        "It's important to note that without more context (like the decompiled C code or the content of `sub_0x00000040A` and the contents at the null pointers), these are educated guesses based on",
-        "suspicious patterns in the code. The `(null)` calls are particularly alarming and indicative of potentially malicious behavior. A more thorough reverse engineering effort is required to",
-        "determine the exact techniques with certainty.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (indicated by `call`), likely for data retrieval or manipulation. The use of `call (null)`",
+        "suggests potential attempts to crash the program or trigger unexpected behavior. This is consistent with techniques used for obfuscation and exploitation. There isn't enough information to",
+        "definitively assign specific sub-techniques, but here's a possible MITRE ATT&CK mapping based on the observed behaviors:",
+        "* **T1055.001 - Process Injection: Process Hollowing:** While not explicitly shown, the code's structure and use of function calls could be part of a process hollowing attack. The code allocates",
+        "stack space (`sub esp, 0x4c`), and then calls external functions. The results from these calls are stored (`mov word ptr`). This could be used to manipulate a hollowed-out process's memory.",
+        "However, this is speculative without more context.",
+        "* **T1027.002 - Obfuscation: Binary Obfuscation:** The use of function calls to seemingly unrelated addresses (`call (null)`, `call sub_0x00000040A`) is a common technique to obfuscate the true",
+        "intent of the code. The calls to `(null)` are particularly suspicious, and could be used to hide malicious actions.",
+        "* **T1566.002 - External Proxy: Multi-hop Proxy:** Though not directly apparent from the assembly, repeated calls to external functions might indicate the use of a proxy to hide the attacker's",
+        "origin, especially if those functions involved network operations (which isn't confirmed here).",
+        "**Important Note:** This analysis is based solely on the provided assembly snippet. A complete understanding requires analyzing the functions called (`sub_0x00000040A` and the multiple `(null)`",
+        "calls), the overall program context, and potentially dynamic analysis to determine the true purpose and malicious intent. The listed techniques are possibilities, not certainties. More code is",
+        "needed to provide a more precise MITRE ATT&CK mapping.",
         "Close"
     ],
     "gpt4o": [

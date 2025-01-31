@@ -15,24 +15,23 @@
         },
         "gemini_no_imports_no_strings": {
             "all": [
-                "T1071.001",
-                "T1047",
-                "T1566.002",
-                "T1547.001",
-                "T1053.005"
+                "T1566.001",
+                "T1055.001",
+                "T1055.002",
+                "T1055.010",
+                "T1055.014",
+                "T1055.015",
+                "T1547.002"
             ],
             "valid": [
-                "T1547.001"
+                "T1547.002"
             ]
         },
         "gemini_yes_imports_no_strings": {
             "all": [
-                "T1112.002",
-                "T1112",
-                "T1112.002",
-                "T1005",
-                "T1005",
-                "T1547.001"
+                "T1055.001",
+                "T1547.001",
+                "T1548.002"
             ],
             "valid": [
                 "T1547.001"
@@ -85,44 +84,34 @@
         "Close"
     ],
     "gemini_no_imports_no_strings": [
-        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing what those",
-        "functions do, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the structure, we can make some educated guesses.",
-        "The code performs the following actions:",
-        "* **Stack manipulation:** `push ebp`, `mov ebp, esp`, `sub esp, 0x44`, `push ebx`, `push esi`, `push edi`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`. This is standard function",
-        "prologue and epilogue, not indicative of a specific MITRE technique on its own.",
-        "* **Function calls:** `call sub_0x00000040A`, `call sub_0x000005000`, `call sub_0x000005004`, `call sub_0x000005008`. This is where the potential MITRE techniques lie, depending on the",
-        "functionality of the called subroutines. The arguments passed suggest possible interactions with external resources or data manipulation.",
-        "* **Conditional jump:** `test eax, eax`, `je offset_0x000000477`. This indicates a conditional execution path, potentially based on the result of a previous operation.",
-        "* **Data manipulation:** The code manipulates data on the stack, possibly constructing arguments for function calls. The `lea eax, [ebp - 4]` instruction suggests using a local variable.",
-        "**Possible MITRE ATT&CK Techniques (Speculative):**",
-        "Without knowing the behavior of the called subroutines, we can only offer possibilities. The techniques listed below are highly dependent on the functionality of `sub_0x00000040A`,",
-        "`sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008`.",
-        "* **T1071.001: Application Layer Protocol:** If any of the called functions interact with a network protocol (e.g., HTTP, DNS), this technique could be relevant.",
-        "* **T1047: Windows Management Instrumentation:** If the code interacts with WMI, this is a possibility.",
-        "* **T1566.002: Spearphishing Attachment:** If the code is part of a malicious attachment, this technique might apply.",
-        "* **T1547.001: Data from Local System:** If data is read from the local system and then used maliciously, this is a likely possibility.",
-        "* **T1053.005: Scheduled Task/Job:** If the code is run via a scheduled task or service, this would be relevant.",
-        "**Conclusion:**",
-        "More context is needed to accurately determine the associated MITRE ATT&CK techniques. Analyzing the called subroutines (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`,",
-        "`sub_0x000005008`) is crucial for accurate mapping to MITRE ATT&CK. The code itself only shows general function behavior; the specific actions within those called functions determine the actual",
-        "attack techniques used.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing the",
+        "functionality of those subroutines, we can only speculate on the MITRE ATT&CK techniques involved. However, based on the general structure, we can make some educated guesses.",
+        "The code strongly suggests the use of **process injection** and/or **execution of arbitrary code**. The calls to external functions could be used to load and execute malicious code. Also, the",
+        "manipulation of the stack ( `push`, `pop`, `mov esp, ebp`) are typical of techniques used to control program flow.",
+        "Based on this, possible MITRE ATT&CK techniques include:",
+        "* **T1566.001: External Access - Command and Scripting Interpreter:** If subroutines are used to execute commands from an external source or interpreter. * **T1055.001: Process Injection -",
+        "Shared Libraries:** If subroutines load and execute malicious code in a legitimate process using shared libraries. * **T1055.002: Process Injection - Reflective DLL Injection:** If malicious",
+        "code is injected and executed directly in memory without writing to disk (highly dependent on the subroutines). * **T1055.010: Process Injection - CreateRemoteThread:** If the subroutines",
+        "leverage the `CreateRemoteThread` Windows API (this cannot be determined from the assembly alone). * **T1055.014: Process Injection - Thread Hijacking:** Similar to CreateRemoteThread, this is",
+        "highly dependent on subroutine details. * **T1055.015: Process Injection - QueueUserAPC:** Requires analysis of the subroutines. * **T1547.002: Remote Services - Shared Web Server:** This is a",
+        "possibility if external functions access or control web services.",
+        "**Important Note:** These are *potential* mappings. To accurately determine the MITRE ATT&CK techniques, a deeper analysis of the referenced subroutines (sub_0x00000040A, sub_0x000005000,",
+        "sub_0x000005004, sub_0x000005008) and their functionality is absolutely necessary. The code provided only gives a glimpse into a potential malicious activity. The specific sub-techniques cannot",
+        "be determined without further information.",
         "Close"
     ],
     "gemini_yes_imports_no_strings": [
-        "The provided assembly code performs registry manipulation. Specifically, it attempts to open a registry key (`RegOpenKeyExA`) and then set a value within that key (`RegSetValueExA`). Finally, it",
-        "closes the key (`RegCloseKey`). Failure to open the key results in a return value of 0; otherwise, it returns 1.",
-        "Based on this, the associated MITRE ATT&CK techniques are:",
-        "* **T1112.002: Registry Run Keys / HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run:** If the target registry key (`lpSubKey` = 0x403000 which needs to be resolved to a string to know for",
-        "sure) is within the Run keys, this sub-technique is applicable. This is highly likely, given the use of `RegSetValueExA`.",
-        "* **T1112: Registry Key Run Keys:** This is the parent technique of T1112.002, which is a broader category encompassing all registry key manipulations for persistence. This is applicable",
-        "regardless of the specific key targeted.",
-        "* **T1005:002: Data Encrypted for Confidentiality:** Although not explicitly shown, the data written to the registry (pointed to by `lpData`) *could* be encrypted. This is speculative without",
-        "knowing the contents at address `0x403040`. This requires further analysis of the broader program context.",
-        "* **T1005:001: Data Obfuscated:** Similar to the above, data manipulation to hide the behavior could also be done. It needs further analysis to ascertain such an obfuscation.",
-        "* **T1547.001: System Services:** If the code attempts to add a service to the system this is applied. This cannot be determined from the provided snippet.",
-        "**Important Note:** The lack of string decoding makes definitively identifying the target registry key and value data impossible from this code snippet alone. The hexadecimal addresses (e.g.,",
-        "`0x403000`, `0x403040`) need to be resolved to their string representations within the memory context of the running program to confirm the specific registry keys and values involved. The",
-        "certainty of the sub-techniques mentioned above depends on the resolution of these addresses.",
+        "The provided assembly code snippet shows a function that makes several calls to other functions (sub_0x00000040A, sub_0x000005000, sub_0x000005004, sub_0x000005008). Without knowing the",
+        "functionality of these called subroutines, we can only speculate on the MITRE ATT&CK techniques. However, based on the structure, we can infer some possibilities:",
+        "* **T1055.001: Process Injection:** The code performs function calls (especially `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) which could be indicative of injecting code into another",
+        "process. This is a strong possibility, given the arguments being passed to these functions, especially the memory addresses. The conditional jump (`je offset_0x000000477`) suggests that the",
+        "success or failure of the injection might influence the execution flow.",
+        "* **T1547.001: Create or Modify System Process:** Similar to process injection, if the called functions create or modify a system process, this technique could apply. Again, without knowing the",
+        "contents of the called functions, this remains speculative.",
+        "* **T1548.002: Abuse Execution Chain:** The sequential calls to different subroutines could indicate an abuse of a legitimate execution chain to achieve malicious purposes.",
+        "**Important Note:** These are *potential* MITRE ATT&CK techniques based on *limited* information. To accurately map the assembly code to MITRE ATT&CK techniques, the functionality of",
+        "`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` must be analyzed. The arguments passed to these functions are key to understanding their intent. Furthermore, the",
+        "context within which this code is executed is crucial for proper identification.",
         "Close"
     ],
     "gpt4o": [
