@@ -1,6 +1,6 @@
-# Assistants Experiements
+# Assistants Experiments
 
-Welcome to the repository for, where we showcase our work on automated source code generation using MITRE techniques and various data needed for the LLM prompts. 
+Welcome to the repository where we showcase our work on automated source code generation using MITRE techniques and various data needed for the LLM prompts. 
 
 This repository contains everything needed to reproduce, analyze, and extend our research.
 
@@ -38,7 +38,7 @@ For more information, refer to the [build/README.md](build/README.md).
 
 ## 📖 Getting Started  
 
-To explore more details about each component, please visit the respective README files inside each folder.
+To explore more details about each component, please visit the corresponding README files inside each folder.
 
 ---
 
