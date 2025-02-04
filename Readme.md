@@ -32,6 +32,7 @@ More details are available in the [scripts/README.md](scripts/README.md).
 ### 📂 build/
 This folder contains the **Visual Studio project** used to build all source files in this repository.  
 - The **AssistantsTester** component (found in the `scripts/AssistantsTester/` folder) is designed to optimize the build process to generate the minimal binary.  
+- This folder also contains the necessary configuration files and instructions for ⬇️ obtaining and configuring GView, the tool used for analyzing the generated binaries.  See the sections below for details.
 
 For more information, refer to the [build/README.md](build/README.md).
 
