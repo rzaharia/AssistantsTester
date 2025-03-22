@@ -89,7 +89,85 @@ class MitreTechnique:
         shutil.copy(src_loc, src_out_loc)
 
 
+# this function will change the key registry using the following mutations:
+# initial value: "Software\Microsoft\Windows\CurrentVersion\Run"
+# 1. "Software\Microsoft\Windows\CurrentVersion\Fun"
+# 2. "Software\Microsoft\Windows\CurrentVersion\Tool"
+# 3. "Software\Demo"
+# 4. "Software\Run"
+# 5. "Windows\CurrentVersion\Run"
+# 6. "Software\Microsoft\Wundows\CurrentVersion\Run"
+# 7. "Software\Microsoft\CurrentVersion\Run"
+
+def clean_get_keys(initial_key_value):
+    keys = []
+    last_value = initial_key_value.split('\\')[-1]
+    first_value = initial_key_value.split('\\')[0]
+    char_list = list(initial_key_value)
+
+    letter_change = char_list[:]
+    letter_change[len(letter_change) - len(last_value)] = 'B'
+    keys.append(''.join(letter_change))
+
+    word_change = char_list[:len(char_list) - len(last_value)]
+    word_change.extend(['T', 'o', 'o', 'l', '"'])
+    keys.append(''.join(word_change))
+
+    first_demo = char_list[:len(first_value)]
+    first_demo.extend(['\\', '\\', 'D', 'e', 'm', 'o', '"'])
+    keys.append(''.join(first_demo))
+
+    first_last = char_list[:len(first_value)]
+    first_last.extend(['\\', '\\'])
+    first_last.extend(char_list[len(char_list) - len(last_value):])
+
+    back_count = char_list.count('\\') // 2
+    from_middle = [f for f in initial_key_value.split('\\')[back_count:] if len(f) > 0]
+    from_middle = '\"' + '\\\\'.join(from_middle)
+    keys.append(from_middle)
+
+    if 'Windows' in initial_key_value:
+        windows_change = initial_key_value.replace('Windows', 'Wundows')
+        keys.append(windows_change)
+
+        no_windows = initial_key_value.replace('Windows\\\\', '')
+        keys.append(no_windows)
+    return keys
+
+
+def generate_clean_sources_from_manual_ones(manual_sources_folder, output_folder):
+    for file in os.listdir(manual_sources_folder):
+        if not file.startswith('T'):
+            continue
+        file_loc = os.path.join(manual_sources_folder, file)
+        with open(file_loc, 'r') as f:
+            content = f.read()
+            if 'KEY_PATH' not in content or 'RegOpenKeyExA' not in content:
+                continue
+            keys = []
+            key_line = ''
+            for line in content.split('\n'):
+                if 'KEY_PATH' in line:
+                    key_line = line
+                    line = line.split('KEY_PATH ')[1].strip()
+                    keys = clean_get_keys(line)
+                    break
+            if len(keys) == 0:
+                continue
+            for index, key in enumerate(keys):
+                file_name = file.replace('T', 'Clean')
+                file_name = '.'.join(file_name.split('.', maxsplit=4)[:3])
+                file_name += f'.E{index}.cpp'
+                out_loc = os.path.join(output_folder, file_name)
+
+                adjusted_key_line = f'#define KEY_PATH {key}\n'
+                adjusted_content = content.replace(key_line, adjusted_key_line)
+                with open(out_loc, 'w') as out_f:
+                    out_f.write(adjusted_content)
+
+
 def generate_all_sources(input_file, manual_sources_folder, output_folder):
+    generate_clean_sources_from_manual_ones(manual_sources_folder, output_folder)
     with open(input_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         last_techinuqe = MitreTechnique([''] * 10)
