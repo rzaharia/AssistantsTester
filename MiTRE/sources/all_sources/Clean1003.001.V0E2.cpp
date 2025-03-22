@@ -12,7 +12,7 @@ STARTUPINFOA si;
 PROCESS_INFORMATION pi;
 
 int main() {
-    RUN("procdump -ma lsass.exe lsassdump");
+    RUN("procdump ma lsass.exe lsassdump");
 
     return 0;
 }
