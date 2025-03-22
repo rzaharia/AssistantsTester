@@ -16,7 +16,7 @@ mitre_intro_pattern = """// Link      = {}
 // Tactics   = {}
 
 """
-mitre_exec_cpp_pattern = "{}.E{}.cpp"
+mitre_exec_cpp_pattern = "{}.{}E{}.cpp"
 
 
 class MitreTechnique:
@@ -27,14 +27,20 @@ class MitreTechnique:
         self.link = row[link_row]
         self.row = row
         self.count = 0
+        self.exec_version = 0
         self.exec_patterns = []
+        self.clean_patterns = []
+        self.clean_pattern_names = ['exec00.txt', 'exec01.txt', 'exec02.txt', 'exec05.txt', 'exec10.txt']
 
     def read_patterns(self):
         patterns = os.listdir('patterns')
         for pattern in patterns:
             with open(os.path.join('patterns', pattern), 'r') as file:
                 if pattern.startswith('exec'):
-                    self.exec_patterns.append(file.read())
+                    file_content = file.read()
+                    self.exec_patterns.append(file_content)
+                    if pattern in self.clean_pattern_names:
+                        self.clean_patterns.append(file_content)
 
     def validate_first(self):
         if 'Technique' not in self.name or self.tactic != 'Tactic' or self.technique != 'Technique' or self.link != 'Link':
@@ -44,14 +50,22 @@ class MitreTechnique:
     def is_exec(self):
         return self.name == 'exec'
 
-    def generate_mitre(self, last_technique: "MitreTechnique", out_location):
+    def generate_mitre(self, last_technique: "MitreTechnique", out_location, is_clean=False):
         if len(self.exec_patterns) == 0:
             self.read_patterns()
 
-        intro = mitre_intro_pattern.format(last_technique.link, last_technique.technique, last_technique.name,
-                                           last_technique.tactic)
+        if is_clean:
+            intro = ''
+        else:
+            intro = mitre_intro_pattern.format(last_technique.link, last_technique.technique, last_technique.name,
+                                               last_technique.tactic)
         for pattern in self.exec_patterns:
-            file_name = mitre_exec_cpp_pattern.format(last_technique.name, self.count)
+            if is_clean and pattern not in self.clean_patterns:
+                continue
+            version = 'V{}'.format(last_technique.exec_version)
+            if not is_clean:
+                version = ''
+            file_name = mitre_exec_cpp_pattern.format(last_technique.name, version, self.count)
             file_loc = os.path.join(out_location, file_name)
 
             run_pattern = "RUN({});".format(self.row[1])
@@ -75,6 +89,10 @@ class MitreTechnique:
         #     file.write(mitre_pattern.format(self.link, self.technique, self.name, self.tactic))
 
         self.count += 1
+        last_technique.exec_version += 1
+
+    def is_clean(self):
+        return self.name == 'clean'
 
     def is_src(self):
         return self.name == 'src'
@@ -170,20 +188,22 @@ def generate_all_sources(input_file, manual_sources_folder, output_folder):
     generate_clean_sources_from_manual_ones(manual_sources_folder, output_folder)
     with open(input_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        last_techinuqe = MitreTechnique([''] * 10)
+        last_technique = MitreTechnique([''] * 10)
         for index, row in enumerate(reader):
             mitre = MitreTechnique(row)
             if index == 0:
-                last_techinuqe = mitre
+                last_technique = mitre
                 mitre.validate_first()
                 continue
             if mitre.is_exec():
-                mitre.generate_mitre(last_techinuqe, output_folder)
+                mitre.generate_mitre(last_technique, output_folder)
             elif mitre.is_src():
-                print(last_techinuqe.name)
+                print(last_technique.name)
                 mitre.copy_src(manual_sources_folder, output_folder)
+            elif mitre.is_clean():
+                mitre.generate_mitre(last_technique, output_folder, is_clean=True)
             else:
-                last_techinuqe = mitre
+                last_technique = mitre
 
 
 if __name__ == '__main__':
