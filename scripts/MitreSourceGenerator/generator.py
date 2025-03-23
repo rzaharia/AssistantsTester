@@ -29,8 +29,6 @@ class MitreTechnique:
         self.count = 0
         self.exec_version = 0
         self.exec_patterns = []
-        self.clean_patterns = []
-        self.clean_pattern_names = ['exec00.txt', 'exec01.txt', 'exec02.txt', 'exec05.txt', 'exec10.txt']
 
     def read_patterns(self):
         patterns = os.listdir('patterns')
@@ -39,8 +37,6 @@ class MitreTechnique:
                 if pattern.startswith('exec'):
                     file_content = file.read()
                     self.exec_patterns.append(file_content)
-                    if pattern in self.clean_pattern_names:
-                        self.clean_patterns.append(file_content)
 
     def validate_first(self):
         if 'Technique' not in self.name or self.tactic != 'Tactic' or self.technique != 'Technique' or self.link != 'Link':
@@ -60,8 +56,6 @@ class MitreTechnique:
             intro = mitre_intro_pattern.format(last_technique.link, last_technique.technique, last_technique.name,
                                                last_technique.tactic)
         for pattern in self.exec_patterns:
-            if is_clean and pattern not in self.clean_patterns:
-                continue
             version = 'V{}'.format(last_technique.exec_version)
             if not is_clean:
                 version = ''
@@ -198,7 +192,7 @@ def generate_all_sources(input_file, manual_sources_folder, output_folder):
             if mitre.is_exec():
                 mitre.generate_mitre(last_technique, output_folder)
             elif mitre.is_src():
-                print(last_technique.name)
+                # print(last_technique.name)
                 mitre.copy_src(manual_sources_folder, output_folder)
             elif mitre.is_clean():
                 mitre.generate_mitre(last_technique, output_folder, is_clean=True)
