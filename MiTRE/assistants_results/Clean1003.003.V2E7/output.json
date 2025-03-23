@@ -1,0 +1,205 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1055.012",
+                "T1574.002",
+                "T1087.001",
+                "T1218.011"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1027.002",
+                "T1055.001",
+                "T1055.001",
+                "T1027.002",
+                "T1055",
+                "T1055.001",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1027.002",
+                "T1574.002",
+                "T1057",
+                "T1059.001",
+                "T1059.001",
+                "T1059.001",
+                "T1027.002",
+                "T1059.001",
+                "T1574.002",
+                "T1057"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.006",
+                "T1055",
+                "T1562.001",
+                "T1055",
+                "T1620",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1569.002",
+                "T1055",
+                "T1210",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1578.006",
+                "T1055",
+                "T1055.001",
+                "T1055.012",
+                "T1106",
+                "T1587.002",
+                "T1055",
+                "T1578.006",
+                "T1055",
+                "T1106",
+                "T1055.012"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows several MITRE ATT&CK techniques related to process injection and DLL injection:",
+        "* **T1055.003 - Process Injection: Thread Execution Hijacking:** The code retrieves the address of `NtCreateThreadEx` using `GetProcAddress`. While the actual call to `NtCreateThreadEx` isn't",
+        "shown in this snippet, its presence strongly suggests the intent to hijack a thread within the target process for code execution.",
+        "* **T1055.012 - Process Injection: Process Hollowing:** The code obtains the address of `NtCreateProcessEx`. It then calls `OpenProcess` with `PROCESS_ALL_ACCESS (0x1fffff)`. Further down, it",
+        "appears to be setting up arguments for a process creation call. The combination of these actions points towards process hollowing, where a new process is created in a suspended state, its memory",
+        "is unmapped, and replaced with malicious code. The presence of `CloseHandle` after checks related to `NtCreateProcessEx` further supports this theory, as handles would need to be managed during",
+        "the hollowing process.",
+        "* **T1574.002 - Hijack Execution Flow: DLL Side-Loading:** While not definitively shown in this snippet, the retrieval of \"ntdll.dll\" and subsequent string operations (e.g., `lstrlenA`) combined",
+        "with process creation/injection activities suggest the possibility of DLL side-loading. The malware might be attempting to load a malicious DLL with a name similar to a legitimate DLL that",
+        "`ntdll.dll` depends on. It would rely on the target process loading the malicious DLL from the current working directory instead of the system directory. This is highly probable given the other",
+        "injection techniques being used.",
+        "* **T1087.001 - Account Discovery: Local Account:** The code snippet doesn't directly show any account discovery activity. This doesn't exclude it from being part of the larger program this",
+        "snippet comes from, but it's not demonstrated here. This callout was likely made based on the common pairing of process injection with credential theft or privilege escalation, but the provided",
+        "assembly doesn't contain evidence of this specific technique.",
+        "* **T1218.011 - Signed Binary Proxy Execution: Rundll32:** There's no direct use of `rundll32.exe` or functions commonly associated with it (such as `ShellExecute`) in the provided assembly. So",
+        "this tagging is not directly supported by the code. Similar to the account discovery point, the larger program could leverage this technique, but this snippet doesn't show it.",
+        "It's important to note that this analysis is based on a limited code snippet. A full analysis of the complete binary is necessary to confirm these techniques and identify any additional",
+        "malicious behavior.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The assembly code shows signs of process injection and likely DLL injection. Here's a breakdown and the relevant MITRE ATT&CK techniques:",
+        "**Code Analysis:**",
+        "1. **Resource Allocation:** `sub esp, 0x70` allocates space on the stack, likely for local variables used in the injection process.",
+        "2. **API Call Resolution:** `call sub_0x00000040A` This is likely resolving API addresses dynamically. This is done to avoid static linking which would make detection easier. (**T1027.002 -",
+        "Obfuscated Files or Information: Dynamically Linked Libraries**)",
+        "3. **Memory Allocation:** The code repeatedly calls functions like `sub_0x00000501C`, `sub_0x000005020`, and `sub_0x00000500C`. These are highly suspicious and likely represent `VirtualAllocEx`,",
+        "`WriteProcessMemory`, and `CreateRemoteThread` or similar API calls for process injection. (`sub_0x00000501C` with argument `0x403000` is very suspicious for getting a handle to a process or a",
+        "section of memory). (`sub_0x000005020` being called after is highly indicative of writing to the allocated memory) (**T1055.001 - Process Injection: Dynamic-link Library Injection**)",
+        "4. **Error Handling:** The code consistently checks return values (e.g., `cmp dword ptr [ebp - 4], 0` and `jne`) and branches to an error handling routine if the API calls fail.",
+        "5. **String References:** `0x40300c`, `0x403020`, `0x403038` These are likely string literals being pushed onto the stack as arguments to the API calls. They might be DLL names or function",
+        "names. Points further to DLL injection.",
+        "6. **Clean Up:** `sub_0x000005000` likely represents a call to functions like `VirtualFreeEx` or `CloseHandle` indicating an attempt to clean up after the injection.",
+        "**MITRE ATT&CK Techniques:**",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** The code exhibits classic signs of DLL injection: memory allocation in a remote process, writing to that memory, and then",
+        "creating a remote thread (or hijacking an existing thread). * **T1027.002 - Obfuscated Files or Information: Dynamically Linked Libraries:** Dynamically resolving API calls through functions",
+        "like `sub_0x00000040A` obfuscates the code and makes static analysis more difficult. This helps evade detection. * **T1055 - Process Injection:** This is the parent technique of T1055.001. It's",
+        "more general but still applicable. * **T1140 - Deobfuscate/Decode Files or Information:** This *might* be applicable if the strings at `0x40300c`, `0x403020`, and `0x403038` are encoded or",
+        "obfuscated in some way, though the code doesn't provide direct evidence of this. More context would be needed.",
+        "It's important to note that without debugging symbols or more information about the called subroutines, this analysis is based on common patterns and indicators. A definitive conclusion requires",
+        "further investigation.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of process injection and likely DLL injection. Here's a breakdown and the associated MITRE ATT&CK techniques:",
+        "* **Dynamically Resolved API Calls (GetModuleHandleA, GetProcAddress):** The code retrieves the addresses of `GetModuleHandleA` and `GetProcAddress` dynamically. This is a common technique to",
+        "obfuscate API calls and evade static analysis. This maps to **T1027.002 - Obfuscated Files or Information: Dynamically Linked Libraries**. It also uses these to resolve further API calls,",
+        "potentially malicious ones, which is indicative of **T1574.002 - Hijack Execution Flow: DLL Side-Loading**.",
+        "* **Process Enumeration/Identification (potentially via the unidentifiable `call (null)`):** There's a `call (null)` instruction before the call to `OpenProcess`. This could be dynamically",
+        "resolving and calling an API function like `GetCurrentProcessId` or some other method of obtaining a process ID. Without more context on what that null address resolves to, it is hard to give a",
+        "conclusive answer. However, it *could* imply **T1057 - Process Discovery**.",
+        "* **Process Access (OpenProcess):** `OpenProcess` is called with `0x1FFFFF` as `dwDesiredAccess`, granting nearly all possible access rights to the target process. This aligns with **T1059.001 -",
+        "Process Injection: Dynamic-link Library Injection**. The desired access level suggests it is looking for extensive control.",
+        "* **Memory Allocation (potentially via `call (null)`):** There are several more `call (null)` instructions later in the code. One of these is likely `VirtualAllocEx` in the target process, which",
+        "would be necessary for **T1059.001 - Process Injection: Dynamic-link Library Injection** and allocating memory for the injected code. We cannot be certain without symbols for these `call (null)`",
+        "instructions. Another call looks like it is resolving and then calling `lstrlenA`. There is also a call to what looks like `WriteProcessMemory`, and also potentially to `CreateRemoteThread`.",
+        "* **Code Injection (potentially via `CreateRemoteThread` inferred, not observed directly):** While we don't see `CreateRemoteThread` directly (again, likely hidden behind a `call (null)`), the",
+        "overall pattern strongly suggests DLL injection. `OpenProcess`, combined with calls that appear to resolve and call other important win32 functions such as `WriteProcessMemory` and potentially",
+        "`CreateRemoteThread`, is highly suggestive of **T1059.001 - Process Injection: Dynamic-link Library Injection**. The code retrieves a string with `lstrlenA`, allocates memory, and writes to it.",
+        "This is likely the path to the DLL to inject or arguments for execution.",
+        "* **Handle Management (CloseHandle):** The code uses `CloseHandle` to clean up handles. While good practice, this can also be a part of making the injection stealthier, removing evidence after",
+        "use.",
+        "**In summary, the most likely MITRE ATT&CK techniques based on the provided assembly are:**",
+        "* **T1027.002 - Obfuscated Files or Information: Dynamically Linked Libraries** * **T1059.001 - Process Injection: Dynamic-link Library Injection** (This is highly probable given the sequence of",
+        "API calls, even though `CreateRemoteThread` or other explicit thread creation functions are not observed directly.) * **T1574.002 - Hijack Execution Flow: DLL Side-Loading** (possible, since it",
+        "resolves imports dynamically) * **T1057 - Process Discovery** (possible, depending on what the first `call (null)` resolves to).",
+        "It's crucial to remember that without complete symbols or the context of the unresolved `call (null)` instructions, this analysis is partially based on inference and common patterns in injection",
+        "techniques. A debugger or disassembler would be necessary to definitively identify all API calls and therefore solidify the techniques involved.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code appears to perform several actions that involve dynamically resolving Windows API functions and making system calls. Based on the code, here are some MITRE ATT&CK",
+        "techniques that could be relevant:",
+        "1. **Dynamic Resolution of API functions**: The code uses `GetModuleHandleA` and `GetProcAddress` to resolve functions such as `NtCreateThreadEx` and `NtCreateProcessEx` dynamically. This is",
+        "often done to evade detection. - **T1059.006 - Command and Scripting Interpreter: Native API**: While the technique ID is usually focused more on scripting languages that use native APIs, the",
+        "usage of `GetProcAddress` to load functions dynamically aligns with the spirit of utilizing APIs programmatically.",
+        "2. **Process Injection**: The function might be preparing to perform process injection. - **T1055 - Process Injection**: Specifically, resolving `NtCreateThreadEx` suggests that the code may be",
+        "preparing to perform actions like creating remote threads within another process.",
+        "3. **Accessing Low-Level Functions via NTDLL**: The use of `NtCreateThreadEx` and `NtCreateProcessEx` suggests low-level operations are likely being performed with direct system call access. -",
+        "**T1562.001 - Impair Defenses: Disable or Modify Tools**: Direct usage of `Nt*` APIs is often used to bypass security mechanisms such as AV/EDR.",
+        "4. **Handle Manipulation**: The use of `OpenProcess` and `CloseHandle` APIs indicates working with process handles to manipulate processes. - **T1055 - Process Injection**: These operations are",
+        "often part of process injection techniques.",
+        "5. **Indeterminate Functions**: The calls to `(null)` suggest some indeterminate or custom function resolutions, which, in practice, may align with: - **T1620 - Reflective Code Loading**: This",
+        "technique describes the use of reflection or dynamic method invocation, which involves similar patterns where function calls are resolved at runtime.",
+        "6. **Execution with Referenced Libraries**: By focusing on using `ntdll.dll`, the code shows a preference for leveraging known and trusted libraries. - **T1059.001 - Command and Scripting",
+        "Interpreter: PowerShell**: Although not PowerShell itself, the concept of leveraging trusted binaries to execute malicious payloads applies.",
+        "Overall, these activities suggest attempts to perform stealthy operations by obfuscating the actual behavior through dynamic resolution and low-level API usage. However, exact mappings to",
+        "sub-techniques may vary, especially when considering the specifics of the payload being executed by the indeterminate calls.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code suggests some behaviors typically associated with certain MITRE ATT&CK techniques. These behaviors include process injection, API hooking, or code injection, which",
+        "modify process execution or memory in potentially malicious ways. Analysis of this code involves identifying function calls, memory manipulation, and external API usage indicative of such",
+        "techniques.",
+        "Given the code snippet, here's a breakdown related to MITRE ATT&CK techniques:",
+        "1. **Dynamic Function Resolution** - The code shows calls to functions via pointers and resolving addresses dynamically. This can relate to: - **T1569.002**: Dynamic Function Injection - Using",
+        "techniques like `CALL` with resolved function pointers suggests invoking functions dynamically, common in code injection.",
+        "2. **Process Injection** - There are several indications of manipulating process memory and context: - **T1055** series: Process Injection could be relevant here if the code is injected into",
+        "another process to manipulate it.",
+        "3. **Exploitation of Remote Services** - The use of highly privileged calls and possible manipulation of system calls or APIs may map to exploitation of remote services when the process runs as",
+        "a privileged user: - **T1210**: Exploitation of Remote Services - Although not explicit in the snippet, leveraging external APIs dynamically can be part of exploiting services.",
+        "4. **API Calls** - The involvement of API calls with parameters that suggest system interaction often maps to: - **T1106**: Native API - This technique applies to malware usage of Windows API in",
+        "unexpected ways or unusual contexts, which can be seen in the general structure of the snippet.",
+        "Examining external API calls mapped in the analysis to their respective functions would further connect these to specific techniques; however, based on available information, concrete",
+        "subtechniques are derived from function-specific actions. A detailed reverse engineering of those functions (`sub_0x...`) is required to confirm and specify further sub-techniques accurately.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code is indicative of several MITRE ATT&CK techniques, based on the API calls and operations shown. Let's walk through some of the key actions that correlate to ATT&CK",
+        "techniques:",
+        "1. **Dynamic-Linked Libraries (DLLs)**: - The `GetModuleHandleA` and `GetProcAddress` functions are being used to locate the base address of a module and to retrieve the address of exported",
+        "functions within the module. This behavior is common for loading dynamic libraries and is associated with: - **T1578.006 - Dynamic-Link Library Injection**: This technique involves injecting a",
+        "DLL into the address space of another process and running it from inside that process.",
+        "2. **Process Injection**: - `OpenProcess` is used to open a handle to a process, typically for injecting code into it. - `GetProcAddress` is used to retrieve the address of functions,",
+        "potentially for use in process injection. - **T1055 - Process Injection**: This involves injecting code into the memory of another process to execute it. The specific sub-techniques depend on",
+        "further context (like how the `call (null)` is resolved), but potential sub-techniques include: - **T1055.001 - Dynamic-link Library Injection** - **T1055.012 - Process Hollowing**: If this is",
+        "used to replace the process memory.",
+        "3. **Execution through API**: - The presence of `call (null)` implies indirect calls are happening through function pointers, which may indicate: - **T1106 - Native API**: This involves making",
+        "API calls, which can be part of executing functions or payloads within other processes.",
+        "4. **Resource Development**: - The `lstrlenA`, `CloseHandle`, and general setup for resource allocation and management (seen in the sequence with memory allocation and accessing modules) align",
+        "with: - **T1587.002 - Develop Capabilities**: Specifically in the context of tailoring software for environments.",
+        "Overall, without the exact resolution of `call (null)`, the precise behavior isn't fully clear for deeper sub-technique identification, but the outline of `T1055` techniques related to process",
+        "injection and use of dynamic libraries is apparent. Here is a consolidated list of the applicable MITRE ATT&CK techniques:",
+        "- **T1578.006 - Dynamic-Link Library Injection** - **T1055 - Process Injection** - **T1106 - Native API**",
+        "If specific calls within `call (null)` are resolved to certain functions involved in techniques such as `T1055.012 - Process Hollowing`, further refinement of the sub-techniques is possible.",
+        "Close"
+    ]
+}

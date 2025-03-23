@@ -1,0 +1,158 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.005",
+                "T1059.001",
+                "T1059.005",
+                "T1486",
+                "T1562.001",
+                "T1053.005",
+                "T1059.005"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.012",
+                "T1055.001",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.001",
+                "T1055.012",
+                "T1055.004",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1053.005",
+                "T1059.001",
+                "T1047"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.002",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1027",
+                "T1027"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **T1059.005.002 - Command and Scripting Interpreter: Windows Command Shell**.",
+        "Here's why:",
+        "* **`schtasks /create ...`**: This clearly indicates the use of the `schtasks` command, which is a Windows command-line utility for managing scheduled tasks. This directly aligns with the",
+        "technique description of using the Windows Command Shell for execution.",
+        "* **`cmd.exe /c ...`**: This further reinforces the use of `cmd.exe`, the Windows Command Shell interpreter. The `/c` switch tells `cmd.exe` to execute the following string as a command and then",
+        "terminate.",
+        "* **`powershell -Command \"...\"`**: This shows the use of PowerShell, another command-line interpreter, being invoked from within `cmd.exe`. While PowerShell itself is T1059.001, its invocation",
+        "*from* `cmd.exe` still falls under T1059.005.",
+        "* **Disabling Network Adapters**: The PowerShell command `Fetch-MyWmiObject-class Win32_NetworkAdapter | ForEach{ If($.NetEnabled) { $.Disable() } }` specifically targets and disables network",
+        "adapters. While this action itself isn't directly mapped to a MITRE ATT&CK technique, it's important context. Disabling network adapters could be part of a larger attack, such as **T1486 - Data",
+        "Destruction** or **T1562.001 - Impair Defenses: Disable or Modify System Firewall**. It could also be used to hinder incident response and forensics.",
+        "* **`> NULL`**: Redirecting output to NULL suggests an attempt to suppress output and avoid detection. This reinforces the malicious nature of the code.",
+        "* **Scheduled Task Creation**: Creating a scheduled task (`schtasks /create`) allows for persistent execution at a later time. This could be related to techniques like **T1053.005 - Scheduled",
+        "Task/Job: Scheduled Task**. However, the immediate focus of this code snippet is the use of the command shell for execution, hence the primary classification of T1059.005.002.",
+        "It's important to note that the provided code snippet is a small piece of a larger puzzle. Analyzing the entire program or associated files would provide more context and potentially reveal",
+        "additional MITRE ATT&CK techniques being employed.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates behavior indicative of process injection, specifically through **T1055.001 - Process Injection: Dynamic-link Library Injection**.",
+        "Here's why:",
+        "* **`push 0x403000`**: This pushes a value onto the stack, likely representing the address of a string (probably a DLL path). The `0x403000` address suggests it's within the program's data",
+        "section. This address might hold the path to the DLL to be injected. * **`push 5`**: This pushes the value 5 onto the stack. This is significant because it's the value of the `LOAD_LIBRARY_A`",
+        "flag often used with the `CreateRemoteThread` API call for DLL injection. * **`call sub_0x000005004`**: This calls a subroutine. Given the preceding pushes, it's highly probable that this",
+        "subroutine is either `CreateRemoteThread` itself or a wrapper function that ultimately calls it to initiate the injection process. The combination of a potential DLL path and the",
+        "`LOAD_LIBRARY_A` flag strongly points towards this.",
+        "The other parts of the assembly deal with standard function prologue and epilogue (setting up stack frames, saving registers, etc.) and are less directly indicative of the injection technique",
+        "itself. The call to `sub_0x00000040A` likely does some preparatory work, but without further context, its precise role is unknown.",
+        "It is *possible*, though less likely given the presented context, that this represents **T1055.012 - Process Injection: Thread Execution Hijacking**, if `sub_0x000005004` suspends a thread,",
+        "modifies its context to point to the provided address, then resumes it. We don't have enough information to say with absolute certainty without seeing `sub_0x000005004`, however, the use of the",
+        "5 (LOAD_LIBRARY_A) strongly suggests DLL Injection (T1055.001). Therefore, T1055.001 remains the most likely.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.002 - Process Injection: Dynamic-link Library Injection**",
+        "**Rationale:**",
+        "1. **`push 5` and `push 0x403000`**: These instructions push arguments onto the stack. The value `5` corresponds to the `LOAD_LIBRARY_A` flag, a standard Win32 API function used for loading DLLs",
+        "into a process's address space. The address `0x403000` likely represents a pointer to a null-terminated string containing the path to the DLL to be loaded.",
+        "2. **`call (null)`**: This is a crucial indicator of DLL injection. Calling a null address after pushing the `LOAD_LIBRARY_A` arguments signifies the use of a technique to resolve the address of",
+        "`LoadLibraryA` at runtime. This is frequently done within injected code to avoid directly referencing the function in the importing table, which would be more easily detectable. Malware often",
+        "obtains the address of `LoadLibraryA` dynamically using techniques like traversing the process environment block (PEB) and the In-Memory Order Module List (IOML) or by manually walking the",
+        "import address table (IAT) of kernel32.dll.",
+        "It's important to note that we can't definitively determine *how* `LoadLibraryA`'s address is resolved without further context or analysis of `sub_0x00000040A`. It's possible that this",
+        "subroutine handles the dynamic resolution. However, the combination of pushing `LOAD_LIBRARY_A` arguments followed by a call to a null address is *highly suspicious* and strongly points towards",
+        "DLL injection.",
+        "Other techniques *could* be involved, but we lack the evidence to identify them definitively based on the given snippet:",
+        "* **Code Injection (T1055.001/T1055.012):** While conceptually similar, we see the specific markers for DLL injection here ( `LOAD_LIBRARY_A` usage). Other forms of code injection might involve",
+        "writing shellcode directly into memory and creating a thread to execute it, but this code doesn't directly indicate such actions. * **Process Hollowing (T1055.004):** This involves unmapping a",
+        "legitimate process's image and replacing it with malicious code. The provided assembly doesn't show any signs of unmapping or writing new sections into memory.",
+        "Therefore, **T1055.002** is the most appropriate classification given the available information.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code snippet includes actions that align with specific MITRE ATT&CK techniques due to its behavior and structure. Here are the observed techniques and their",
+        "corresponding MITRE IDs:",
+        "1. **Scheduled Task/Job**: The snippet attempts to create a scheduled task using `schtasks`, which is indicative of the technique used to execute malicious code at a scheduled time. - MITRE",
+        "Technique ID: `T1053.005` (Scheduled Task/Job: Scheduled Task)",
+        "2. **Command and Scripting Interpreter**: The usage of `powershell -Command` suggests leveraging PowerShell for executing commands via scripts. - MITRE Technique ID: `T1059.001` (Command and",
+        "Scripting Interpreter: PowerShell)",
+        "3. **Windows Management Instrumentation (WMI)**: The command involves `Get-WmiObject`, which aligns with using WMI for system management, either interactively or as part of scripts. - MITRE",
+        "Technique ID: `T1047` (Windows Management Instrumentation)",
+        "These techniques reflect the assembly code's intentions to schedule tasks, execute commands via PowerShell, and interact with the system using WMI.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The x86 assembly code you've posted appears to perform several common operations that could relate to different tactics and techniques in the MITRE ATT&CK framework. While the specific MITRE",
+        "technique IDs are generally linked to observed behavior in context, below are some potential MITRE techniques that might be associated with similar assembly patterns:",
+        "1. **Stack Pivoting and Prologue/Epilogue Manipulation**: The manipulation of the stack frame (pushing and popping registers, saving the base pointer, adjusting the stack pointer) could be",
+        "related to evasive behaviors or process injection techniques: - **T1055 - Process Injection**: In particular, sub-techniques involving hooking or altering execution flow might use similar",
+        "patterns.",
+        "2. **API Calls or Shellcode Execution**: The sequence involving preparing stack arguments and making calls (e.g., `call sub_0x00000040A` and `call sub_0x000005004`) could be indicative of",
+        "shellcode or API call execution: - **T1055.002 - Process Hollowing**: If the calls involve loading or injecting code into another process, it might be related to process hollowing or other",
+        "injection techniques.",
+        "3. **Nop Sled or Execution Flow Adjustment**: The use of `nop` instruction (no-operation) could be related to execution flow obfuscation or padding. - **T1027 - Obfuscated Files or",
+        "Information**: In the context of obfuscated code execution.",
+        "Without the full context of what `sub_0x00000040A` and `sub_0x000005004` represent, it's challenging to assign specific technique IDs confidently. However, these general patterns illustrate how",
+        "such assembly patterns potentially fit into techniques described by the MITRE ATT&CK framework.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given x86 assembly code snippet demonstrates techniques commonly used in malware or advanced persistent threat (APT) activities. When analyzing the code, we should consider the following",
+        "aspects and their associated MITRE ATT&CK techniques:",
+        "1. **Function Prologue/Epilogue**: - The pattern of `push ebp`, `mov ebp, esp`, and `mov esp, ebp` is indicative of a standard function prologue and epilogue in x86 assembly. This is typical for",
+        "setting up and tearing down a function stack frame, which alone does not indicate a specific ATT&CK technique.",
+        "2. **Function Call**: - The usage of `call sub_0x00000040A` indicates calling a function, but without knowing what this function does, we cannot directly map this to a specific technique without",
+        "further context.",
+        "3. **Indirect Call**: - The line `call (null)` might suggest some kind of obfuscation or an indirect function call. If this involves dynamic resolution of function addresses or changing control",
+        "flow to increase complexity (implying an indirect pointer or function resolution), this could relate to indirect execution tactics: - **Obfuscated Files or Information (T1027)**: If the address",
+        "`0x403000` is dynamically resolved or manipulated before the call, this can fall under obfuscation techniques.",
+        "4. **Stack Modification**: - The `sub esp, 0x40` suggests modification of the stack to allocate local variables or space, which is normal in function operations. However, excessive manipulation",
+        "might hint at techniques to manipulate control flow, but not clearly defined here.",
+        "5. **NOP Instruction**: - The use of `nop` can be indicative of padding to align instructions or make reverse engineering more difficult, relating to obfuscation: - **Obfuscated Files or",
+        "Information (T1027)**: Use of NOPs can sometimes be part of code obfuscation to thwart analysis.",
+        "Without further context or information about what the function `sub_0x00000040A` or address `0x403000` accomplish, the direct mapping to specific MITRE techniques remains speculative. However,",
+        "the presence of indirect calls and potential obfuscation-related patterns suggests an association with techniques focusing on indirect execution and obfuscation.",
+        "For complete and accurate mapping, more context on the specific goals and behaviors of these functions at runtime is needed.",
+        "Close"
+    ]
+}

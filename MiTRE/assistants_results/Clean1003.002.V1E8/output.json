@@ -1,0 +1,175 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1003.002",
+                "T1547.001",
+                "T1059.001",
+                "T1218.002",
+                "T1012",
+                "T1003.002",
+                "T1547.001",
+                "T1059.001",
+                "T1218.002",
+                "T1012"
+            ],
+            "valid": [
+                "T1003.002",
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1005.001",
+                "T1218.011",
+                "T1086"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1055.002",
+                "T1543.003",
+                "T1031.002",
+                "T1218.002",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1569.002",
+                "T1055",
+                "T1105",
+                "T1574.010"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1218",
+                "T1573",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1543.001"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows the creation of a new process using the `CreateProcessA` Windows API call. The command being executed attempts to save the system registry hive. This maps to several",
+        "MITRE ATT&CK techniques:",
+        "* **T1003.002:** OS Credential Dumping: Security Account Manager (SAM)",
+        "The command \"reg sav HKLM\\system system\" is used to save a copy of the SYSTEM registry hive. The SAM hive, which contains hashed user credentials, is located within the SYSTEM hive. Dumping this",
+        "hive is a common technique used by attackers to obtain user credentials for offline cracking.",
+        "* **T1547.001:** Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder",
+        "While not explicitly using Run Keys or Startup folder, the action of saving the registry could be part of a larger effort to achieve persistence. Modifying registry keys before saving the hive",
+        "could set up malicious code to run on subsequent boots. This is an indirect link and depends on further analysis to confirm the full intent.",
+        "* **T1059.001:** Command and Scripting Interpreter: PowerShell",
+        "The command is being executed via \"cmd /c\", which uses the command prompt. While not PowerShell, it falls under the same broader technique of using command interpreters for malicious activity.",
+        "PowerShell itself might be used to perform the registry save (or other malicious activities), but as presented the usage is `cmd`.",
+        "* **T1218.002:** Signed Binary Proxy Execution: Control Panel",
+        "Although `CreateProcessA` is being used directly and not through a control panel applet, the technique itself involves using a legitimate system binary (`cmd.exe` in this case) to execute a",
+        "malicious command. It leverages the trust placed in signed Windows binaries to bypass detection.",
+        "* **T1012:** Query Registry",
+        "The act of saving the registry hive necessitates querying it first to gather the required data. This technique is almost implicit given `reg sav` command.",
+        "Therefore, the most relevant MITRE ATT&CK techniques based on the provided code snippet are **T1003.002**, **T1547.001** (potential, requires further analysis), **T1059.001** (using `cmd`),",
+        "**T1218.002**, and **T1012**.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, primarily focused on process injection and memory allocation:",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** The sequence of calls to `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` along with pushing memory addresses",
+        "(`0x404044`, `0x404000`, `0x403000`) strongly suggests DLL injection or a similar technique. `sub_0x000005004` likely refers to `CreateRemoteThread` or a related API. The addresses likely point",
+        "to a DLL, the function to be executed within the injected DLL, and the target process, respectively.",
+        "* **T1005.001 - Process Injection: Thread Execution Hijacking:** While less likely given the presence of what appears to be a `CreateRemoteThread`-like call, the manipulation of memory and",
+        "potential thread creation could indicate thread hijacking. More context would be needed to confirm this.",
+        "* **T1218.011 - Signed Binary Proxy Execution: Rundll32:** If `sub_0x000005004` is actually `rundll32.exe` being called, it implies the use of a signed binary (rundll32) to load and execute",
+        "malicious code. This depends on whether `0x404044` refers to a DLL and how the rest of the arguments are structured.",
+        "* **T1086 - PowerShell:** This is a very weak indicator. The presence of the `nop` instruction *could* be interpreted as an attempt to obfuscate the assembly, and PowerShell scripts can",
+        "sometimes generate such instructions. However, without more context, this is highly speculative.",
+        "**Reasons for uncertainty and further analysis:**",
+        "* **Missing Symbols:** The lack of symbolic names for the functions (`sub_xxxx`) makes definitive identification of the techniques difficult. If you could obtain these symbols (e.g., through",
+        "debugging symbols), the analysis would be far more precise. * **Context is Key:** The broader context of where this code is found is crucial. Is it part of a larger program, a shellcode, or",
+        "extracted from a malware sample",
+        "would provide concrete evidence of its functionality and the corresponding MITRE ATT&CK techniques.",
+        "It's important to note that this analysis is based on static code review and is therefore speculative. Dynamic analysis or further information about the code's context is needed to confirm the",
+        "exact MITRE ATT&CK techniques being used.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of process creation and execution, which aligns with several MITRE ATT&CK techniques. Specifically:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe:** While the code doesn't explicitly mention `cmd.exe`, the use of `CreateProcessA` suggests the potential execution of a command-line",
+        "program. If the command line argument passed to `lpCommandLine` (at address `0x403000`) contains a command to be executed by the shell, this technique would apply. We can't be certain without",
+        "knowing the contents of that memory location.",
+        "* **T1055.002 - Process Injection: CreateRemoteThread:** This is a possibility but less likely given the available code. `CreateProcessA` is used, which creates a new process rather than",
+        "injecting into an existing one. If `dwCreationFlags` was configured to create a suspended process and further code (not shown here) used `WriteProcessMemory` and `CreateRemoteThread` or similar",
+        "functions, then process injection would be applicable. But based solely on the code provided, we can't confirm this.",
+        "* **T1543.003 - Create or Modify System Process: Windows Service:** This is unlikely based on the code provided. There's no indication of interaction with the Service Control Manager or any",
+        "service-related API calls. Creating a new process doesn't automatically imply creating a service.",
+        "* **T1031.002 - Modify Existing Service:** Similarly to the previous point, this is also unlikely. There are no service-related calls evident in the code.",
+        "* **T1218.002 - Signed Binary Proxy Execution: Control Panel:** Again, unlikely. The code doesn't show any interaction with control panel applets. Just using `CreateProcessA` doesn't mean a",
+        "control panel applet is being used as a proxy.",
+        "**In Summary:**",
+        "Based purely on the assembly, the most likely MITRE ATT&CK technique is **T1059.001**, *if* the string at `0x403000` represents a command line to be executed. However, without further context",
+        "about the contents of memory and the overall program logic, definitive classification remains uncertain. The other mentioned techniques are less probable based on the limited visibility provided",
+        "by the code snippet.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you've provided shows an attempt to create a process using the `CreateProcessA` function with the command line executing `\"wmic process call create \"cmd /c reg sav HKLM\\system",
+        "system\"\"`. This command is indicative of potentially malicious behavior involving process creation and potentially manipulating the Windows Registry. The technical actions observed in the code",
+        "can be mapped to the following MITRE ATT&CK techniques:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The use of `cmd /c` to execute a command illustrates the use of the Windows command shell for executing system",
+        "commands. 2. **T1569.002 - System Services: Service Execution**: Using `wmic` to create a process that runs a command can be associated with executing a service.",
+        "3. **T1055 - Process Injection**: Although not explicit in this code, creating processes to run commands that modify system state (e.g., registry modifications) could be part of a broader",
+        "process injection tactic if it were used to inject code into another process.",
+        "4. **T1105 - Ingress Tool Transfer**: The use of the `reg sav` command might not directly align with this technique, but saving registry hives could indicate transferring data that aligns with",
+        "this tactic.",
+        "5. **T1574.010 - Hijack Execution Flow: Services Registry Permissions Weakness**: If this behavior is used to abuse services or modify entries in a way that weakens service permissions or",
+        "execution flow.",
+        "For a more accurate mapping, specifics of the payloads and post-creation actions will inform which techniques apply. The context in which this assembly is utilized strongly dictates the relevant",
+        "sub-techniques.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "This x86 assembly code snippet appears to involve stack manipulation, function calls, and possibly the invocation of APIs or custom functions, which is common in various contexts including",
+        "malware activities. Based on the operations observable in this snippet, several MITRE ATT&CK techniques might be relevant:",
+        "1. **T1055 - Process Injection**: The code manipulates memory and makes several function calls that could be indicative of process injection techniques. These techniques are used by adversaries",
+        "to execute code within the address space of another process. The way the code interacts with memory and calls subfunctions might be indicative of some kinds of injection practices, depending on",
+        "what `sub_0x00000040A`, `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` represent.",
+        "2. **T1106 - Native API**: If the `call` instructions refer to system or Windows API functions invoked directly, this could align with the use of Native APIs to interact with the operating",
+        "system.",
+        "3. **T1218 - Signed Binary Proxy Execution**: If any of the invoked functions relate to DLL loading or execution of signed binaries, then this might apply.",
+        "4. **T1573 - Encrypted Channel**: (speculative) If any of the function calls are delivering payloads or communicating over an encrypted channel, this technique would be relevant, although this",
+        "is not directly visible from the assembly code here.",
+        "5. **T1140 - Deobfuscate/Decode Files or Information**: If the function calls are decrypting or deobfuscating data, this technique would be relevant.",
+        "Without more context or information about what each subroutine call (e.g., `sub_0x00000040A`, `sub_0x000005004`, etc.) actually does, this analysis remains somewhat speculative. Actual",
+        "identification would require deeper analysis of these subroutines, the context in which the code is executing, and any related behavior.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code primarily demonstrates process creation and management using Windows API functions, including calls to `CreateProcessA`, `WaitForSingleObject`, and `CloseHandle`.",
+        "The most relevant MITRE ATT&CK technique for this behavior is:",
+        "- **T1059.001**: Command and Scripting Interpreter: PowerShell (or another scripting/code execution environment depending on the broader context of execution, but here it's more about process",
+        "creation than scripting directly).",
+        "However, specifically for the use of `CreateProcessA` to spawn a new process, a more direct technique is:",
+        "- **T1106**: Native API - since it directly interacts with Windows API functions like `CreateProcessA`.",
+        "Additionally, if the context around this assembly code is part of adversarial behavior in executing malicious processes, the following technique is applicable:",
+        "- **T1543.001**: Create or Modify System Process: Launch of a specific process using the Windows CreateProcess API function.",
+        "The usage of these functions indicates a potential technique of creating and managing processes, which could further be associated with additional context such as persistence or privilege",
+        "escalation depending on how the overall code is used in a malware or legitimate software.",
+        "Close"
+    ]
+}

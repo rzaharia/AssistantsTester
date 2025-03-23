@@ -1,0 +1,222 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1047",
+                "T1562.001",
+                "T1562.001",
+                "T1047",
+                "T1055",
+                "T1055.003",
+                "T1059.001",
+                "T1547.001",
+                "T1055.003",
+                "T1562.001",
+                "T1055",
+                "T1059.001"
+            ],
+            "valid": [
+                "T1562.001",
+                "T1562.001",
+                "T1562.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1045",
+                "T1055.002",
+                "T1106",
+                "T1049",
+                "T1082",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1055.001",
+                "T1059.001",
+                "T1059.003",
+                "T1547.001",
+                "T1086",
+                "T1059.001",
+                "T1564.003",
+                "T1047",
+                "T1105",
+                "T1053.005",
+                "T1218.011",
+                "T1005"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055",
+                "T1059.003",
+                "T1562.004",
+                "T1562",
+                "T1222",
+                "T1082",
+                "T1021.002"
+            ],
+            "valid": [
+                "T1562.004",
+                "T1562",
+                "T1562"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1140",
+                "T1106",
+                "T1059.006"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1003.001",
+                "T1560.001",
+                "T1055",
+                "T1495",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of several MITRE ATT&CK techniques:",
+        "* **T1055.003 - Process Injection: Process Hollowing:** The code allocates memory, writes data to it (\"MZ\" header suggests writing a PE file), and then uses `CreateProcessA` with a likely",
+        "suspended process. The subsequent `WriteFile`, combined with earlier memory writes and multiple calls to `CloseHandle` (likely closing handles from `CreateProcessA`'s output), strongly suggests",
+        "process hollowing. This technique involves creating a process in a suspended state, unmapping its memory, writing a different program's image to the process's memory space, and resuming",
+        "execution.",
+        "* **T1047 - Windows Management Instrumentation:** Although WMI isn't directly used in this code snippet, the string \"netsh advfirewall firewall delete rule name=\"My Rule\"\" indicates manipulation",
+        "of the firewall. While this _could_ be done via WMI, the code directly uses `WriteFile` to potentially interact with the command-line execution of `netsh`. It's important to distinguish",
+        "is *not* conclusive evidence of WMI. A more complete code analysis is needed. Consider **T1562.001 - Impair Defenses: Disable or Modify Tools** as more likely if direct `netsh` manipulation is",
+        "occurring.",
+        "* **T1562.001 - Impair Defenses: Disable or Modify Tools:** The command \"netsh advfirewall firewall delete rule name=\"My Rule\"\" aims to disable a firewall rule. This clearly falls under",
+        "impairing defenses. This is more likely than T1047 unless further analysis reveals WMI usage.",
+        "* **T1055 - Process Injection:** This is the parent technique of process hollowing (T1055.003). We include it because the more specific sub-technique is present.",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe:** The string \"cmd.exe\" indicates the use of the command prompt, likely for executing further commands or scripts.",
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** While not directly evident in the code, the combined behaviors (process injection, disabling firewall,",
+        "possible use of `cmd.exe`) raise suspicion of potential persistence mechanisms, which often involve registry run keys or startup folder modifications. This is *not* definitive, just a point to",
+        "consider for further investigation.",
+        "Therefore, the identified MITRE ATT&CK techniques are:",
+        "* **T1055.003** * **T1562.001** * **T1055** * **T1059.001**",
+        "It's important to note that this analysis is based on a limited snippet of assembly. A full analysis of the entire program is necessary for definitive identification of all employed techniques.",
+        "For example, the `call (null)` instructions could be indicative of other techniques if those null pointers are resolved to other API calls at runtime. Also, the data written to memory addresses",
+        "like `0x404000`, `0x404008`, etc., might reveal further details upon inspection. The lack of arguments for some API calls (e.g., missing handles or options) could also indicate specific",
+        "variations or obfuscation attempts.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the assembly code provided, several MITRE ATT&CK techniques could be inferred. However, without knowing what the called subroutines (e.g., `sub_0x000005010`, `sub_0x00000500C`, etc.)",
+        "actually do, it's difficult to be precise. The analysis relies heavily on educated guesses based on common assembly patterns.",
+        "Here's a breakdown and potential MITRE techniques:",
+        "* **Process Injection (T1055):** The code manipulates memory addresses and calls various subroutines, which could indicate process injection. Specifically, the use of `VirtualAllocEx` (guessed",
+        "based on memory allocation patterns) and `WriteProcessMemory` (inferred from writing to potentially remote memory locations) would strengthen this hypothesis. If `sub_0x000005018`,",
+        "`sub_0x00000501C`, or related functions are creating remote threads or similar, this further solidifies process injection.",
+        "* **T1055.001 (Process Hollowing):** If the code is writing to sections of a newly created/hollowed process, this would apply. More context about the purpose of the memory writes is needed to",
+        "confirm.",
+        "* **Memory Allocation (T1045):** The presence of what appears to be memory allocation routines might indicate this technique is being used as part of a larger objective (e.g., process injection,",
+        "shellcode execution).",
+        "* **Code Injection (T1055.002):** If the writes to memory regions are shellcode or other malicious code intended for execution in another process, this sub-technique would be relevant. This",
+        "often goes hand-in-hand with process injection.",
+        "* **Native API (T1106):** The code uses calls (`call` instructions) which suggests the use of Windows API functions (or similar native APIs). Almost all malware interacting with the OS at a low",
+        "level will leverage Native APIs, so this is a very general technique.",
+        "* **Defense Evasion:** The numerous jumps and conditional statements (`jne`, `jmp`) *could* indicate attempts to obfuscate control flow, making reverse engineering more difficult. However, this",
+        "could also be standard program logic. Without more information, it's difficult to confidently associate a specific defense evasion technique.",
+        "* **Query Information (T1049) or System Information Discovery (T1082):** Depending on what information `sub_0x000005000`, `sub_0x000005014` or other subroutines are accessing, these techniques",
+        "might be relevant. For example, querying system information, process lists, etc. would fall under this category.",
+        "**Example with Hypothetical Subroutine Mapping:**",
+        "Let's *assume* `sub_0x000005018` is `CreateRemoteThread`. Then we can be more confident in stating:",
+        "* **T1055.012 (Thread Execution Hijacking):** Because `CreateRemoteThread` can be used to hijack existing threads in a target process to execute injected code.",
+        "**Key Takeaway:**",
+        "Without further analysis of the called subroutines, the specific MITRE ATT&CK techniques remain speculative. Dynamic analysis of the code in a controlled environment would be the most reliable",
+        "way to pinpoint the exact techniques in use. Identify the API calls those subroutines make, and then you can map to the MITRE framework much more accurately.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code suggests the following MITRE ATT&CK techniques:",
+        "* **T1055.003: Process Injection: Thread Execution Hijacking:** While not definitively shown in this snippet, the multiple calls to `(null)` combined with setting up stack frames and pushing",
+        "arguments could indicate an attempt to hijack a thread by overwriting its instruction pointer. More context (values pushed onto the stack before the null calls) is needed to confirm.",
+        "* **T1055.001: Process Injection: Dynamic-link Library Injection:** Not directly evident in this specific code. We'd need to see attempts to load a DLL into another process (e.g., using",
+        "`LoadLibrary`, `CreateRemoteThread`).",
+        "* **T1059.001: Command and Scripting Interpreter: PowerShell:** Not evident. We'd need to see interaction with `powershell.exe` or related libraries.",
+        "* **T1059.003: Command and Scripting Interpreter: Windows Command Shell:** Possible, but not conclusive. The use of `CreateProcessA` without seeing the command line arguments (at address",
+        "0x403000) makes it difficult to determine if `cmd.exe` or other shell interpreters are being invoked.",
+        "* **T1547.001: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** Not evident in this code snippet. Persistence mechanisms using registry keys or startup folders wouldn't",
+        "typically be performed directly through assembly instructions like these.",
+        "* **T1086: PowerShell:** Not evident. Similar reasoning as T1059.001.",
+        "* **T1564.003: Hide Artifacts: NTFS File Attributes:** No manipulation of file attributes is visible here.",
+        "* **T1047: Windows Management Instrumentation:** No WMI-related function calls are seen.",
+        "* **T1105: Remote File Copy:** Although `WriteFile` is used, there's nothing here definitively suggesting remote file copy. It could be writing to a local file. More context is needed.",
+        "* **T1053.005: Scheduled Task/Job: Scheduled Task:** No interaction with the Task Scheduler API is seen.",
+        "* **T1218.011: Signed Binary Proxy Execution: Rundll32:** No use of `rundll32.exe` is evident.",
+        "* **T1005: Data from Local System:** Possible. The code reads data from various memory locations (e.g., `[ebp - 4]`, `[ebp - 0x10]`), which *could* be system-related data, but we need more",
+        "context.",
+        "**Key Observations and Additional Suspicions:**",
+        "* **Process Creation:** The use of `CreateProcessA` strongly suggests the creation of a new process. Examining the command-line arguments at 0x403000 is crucial to understanding the intent. *",
+        "**File Handling:** `WriteFile`, `CloseHandle` indicate interaction with files. Analyzing the handles and buffers involved would provide further insight. * **Synchronization:**",
+        "`WaitForSingleObject` implies waiting on a kernel object (process, thread, mutex, etc.), likely related to the newly created process. * **Obfuscated Calls:** The `(null)` calls are highly",
+        "suspicious and warrant further investigation. They could be dynamically resolved function calls or attempts to execute shellcode. * **String Operations:** `lstrlenA` suggests string",
+        "manipulation.",
+        "In summary, the code snippet shows signs of process creation, file operations, and possible process injection (although more context is needed to confirm the latter). Examining the data at",
+        "addresses like 0x403000 (command line), 0x404000 (some structure), and the parameters pushed before the `(null)` calls would help pinpoint the exact techniques being used.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code is indicative of several potential MITRE ATT&CK techniques based on its behavior and API calls. Here are the relevant techniques:",
+        "1. **Process Injection**: The use of certain instructions and API calls, particularly `CreateProcessA`, suggests the creation and manipulation of a process, potentially for injection purposes. -",
+        "**MITRE Technique**: `T1055` (Process Injection)",
+        "2. **Process Execution**: The call to `CreateProcessA` with `cmd.exe` as an argument indicates the execution of a command shell. - **MITRE Technique**: `T1059.003` (Command and Scripting",
+        "Interpreter: Windows Command Shell)",
+        "3. **Command and Scripting Interpreter**: The string \"netsh advfirewall firewall delete rule name=\"My Rule\"\" is executed, indicating the use of command execution to manipulate firewall settings,",
+        "which may fall under command line interface usage. - **MITRE Technique**: `T1562.004` (Impair Defenses: Disable or Modify System Firewall)",
+        "4. **Defense Evasion**: Leveraging command line scripts to alter firewall settings can be seen as an attempt to evade defenses. - **MITRE Technique**: `T1562` (Impair Defenses)",
+        "5. **File and Directory Permissions Modification**: Use of `WriteFile` with specific strings suggests modifying system files or application configurations, potentially also indicating data",
+        "manipulation. - **MITRE Technique**: `T1222` (File and Directory Permissions Modification)",
+        "6. **System Information Discovery**: The structure of the code could imply reconnaissance activities, especially if those activities use certain pointers or register manipulations. - **MITRE",
+        "Technique**: `T1082` (System Information Discovery)",
+        "7. **Use of WaitForSingleObject and CloseHandle**: These API calls are typically used for synchronization and resource deallocation, respectively, in process execution efforts, especially in",
+        "control of the execution flow. - **MITRE Technique**: Part of T1021.002 (Remote Services: SMB/Windows Admin Shares)",
+        "Based on the assembly code and the associated API calls, the above techniques are some of the potential tactics the code might imply in a broader context within the MITRE ATT&CK framework.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing the provided assembly code can be challenging without knowing the exact nature of each subroutine being called (e.g., `sub_0x000005010`, `sub_0x000005004`, etc.) or the context of the",
+        "program. However, we can infer some potential MITRE ATT&CK techniques based on typical behaviors often found in such code.",
+        "From your description, the assembly code contains several actions that might relate to the following MITRE ATT&CK techniques:",
+        "1. **T1055 - Process Injection**: The code involves a fair amount of stack manipulation, memory allocation, and subroutine calls with various suspicious arguments. If the subroutines are indeed",
+        "used to inject code into another process, then process injection could be involved here.",
+        "2. **T1140 - Deobfuscate/Decode Files or Information**: If some of the subroutines are deobfuscating or unpacking the payload, this technique might be relevant.",
+        "3. **T1106 - Native API**: The code suggests API calls via these subroutine calls. Native API usage might imply that the program is utilizing Windows APIs in potentially non-standard ways.",
+        "4. **T1059.006 - Command and Scripting Interpreter: Native API**: If the subroutines are executing shell commands or scripts through system calls, this technique would apply.",
+        "Without more information about what each `sub_0xXXXXXX` function does or additional context about the binary as a whole, such as through dynamic analysis or reverse engineering of the",
+        "subroutines, the exact MITRE ATT&CK sub-techniques may remain speculative.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided x86 assembly code, we can identify several MITRE ATT&CK techniques and sub-techniques. Here's a breakdown:",
+        "1. **Process Creation**: The `CreateProcessA` API call is a clear indicator of process creation, which aligns with: - **T1059.001**: Command and Scripting Interpreter: PowerShell, or -",
+        "**T1106**: Native API (for general process creation)",
+        "2. **Persistence/Boot or Logon Autostart Execution**: - While the code snippet doesn",
+        "Execution (depending on how the process is configured) 3. **File Write Operations**: - The `WriteFile` API call is used to write data to a file. This is often used for: - **T1003.001**:",
+        "Credentials from Password Stores (if writing credentials), or - **T1560.001**: Archive Collected Data: Archive via Utility (if writing data for exfiltration)",
+        "4. **Process Injection/Memory Manipulation**: - There appears to be potential calls involving manipulation of other processes or memory (`call (null)`), which can relate to process injection: -",
+        "**T1055**: Process Injection (specifically if trying to execute code within another process)",
+        "5. **Resource Hijacking**: - The `WaitForSingleObject` and `CloseHandle` calls could relate to attempting to effectively manage or hijack system resources. - **T1495**: Resource Hijacking (if",
+        "resources are being repurposed)",
+        "6. **General API Execution**: - The numerous API calls can be indicative of: - **T1106**: Native API",
+        "Each technique sub-technique ID you choose might depend on additional context about the intent and target. The IDs given here are potential matches based on typical use cases for these",
+        "functions.",
+        "Close"
+    ]
+}

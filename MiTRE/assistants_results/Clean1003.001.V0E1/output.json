@@ -1,5 +1,19 @@
 {
     "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.001",
+                "T1003.001",
+                "T1055.002",
+                "T1059.003",
+                "T1059.003",
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001",
+                "T1003.001"
+            ]
+        },
         "gemini_no_imports_no_strings": {
             "all": [
                 "T1055.003",
@@ -44,6 +58,28 @@
             "valid": []
         }
     },
+    "gemini": [
+        "The assembly code shows signs of process execution and potential credential dumping, mapping to a few MITRE ATT&CK techniques:",
+        "* **T1059.001 - Command and Scripting Interpreter: PowerShell:** While the code uses `CreateProcessA`, the command line argument (`procdump ma lsass.exe lsassdump`) suggests the use of",
+        "`procdump` to dump the `lsass.exe` process memory. `procdump` is often used in conjunction with tools like Mimikatz to extract credentials. Though not directly PowerShell, this action often",
+        "precedes PowerShell-based credential extraction. Therefore, this *could* be an indicator, depending on subsequent actions not shown in this snippet. It's a weak signal in isolation.",
+        "* **T1003.001 - OS Credential Dumping: LSASS Memory:** Dumping `lsass.exe` is explicitly targeting the process containing system credentials, making this the strongest indicator.",
+        "* **T1055.002 - Process Injection: Process Hollowing:** While this code snippet doesn't directly show process hollowing, the presence of `CreateProcessA` with a seemingly benign application name",
+        "(null in this case) followed by potential manipulation of the created process (not shown here, but possible given the context), raises suspicion. We only see process *creation*, not *injection*.",
+        "More code would be needed to confirm process hollowing definitively. Therefore, this is only a possible indicator, and it's crucial to remember that simply creating a process doesn't",
+        "automatically mean injection is occurring.",
+        "* **T1059.003 - Command and Scripting Interpreter: Windows Command Shell:** Although not directly evident in this code, `procdump` can be executed from `cmd.exe` as well. This makes T1059.003 a",
+        "*possible* precursor or follow-up action but isn't directly represented within the assembly itself. Like the PowerShell mention, this is a very weak indicator based solely on the provided",
+        "snippet.",
+        "**Important Considerations:**",
+        "* **Limited Context:** The provided assembly code is a small snapshot. The broader context is critical for accurate classification. What happens before and after this code executes significantly",
+        "influences the overall attack narrative. * **Indirect Indicators:** Several of the above mappings are based on the likely intent behind the actions rather than direct evidence within the code.",
+        "For instance, the code itself doesn't perform credential dumping; it executes `procdump`, which is *often* used for that purpose. * **Potential for False Positives:** Tools like `procdump` have",
+        "legitimate uses. Without more information, we can't definitively say this code is malicious.",
+        "In summary, **T1003.001 - OS Credential Dumping: LSASS Memory** is the most directly supported technique based on the provided assembly. The other potential techniques require additional context",
+        "and analysis to confirm.",
+        "Close"
+    ],
     "gemini_no_imports_no_strings": [
         "The assembly code shows signs of process injection (specifically, creating a new thread in a remote process), along with some memory allocation and cleanup. This maps to several MITRE ATT&CK",
         "techniques:",

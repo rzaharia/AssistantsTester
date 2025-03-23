@@ -1,0 +1,141 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1055.001",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1218.002",
+                "T1059.003",
+                "T1218.002",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1569.002",
+                "T1203"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1055",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1204",
+                "T1059",
+                "T1059",
+                "T1204"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows execution of `cmd.exe` with the argument `net.exe stop MSSQLSERVER`. This maps to the following MITRE ATT&CK techniques:",
+        "* **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**",
+        "The code uses `ShellExecuteA` to run `cmd.exe`, which is the Windows command shell. The parameters passed to `cmd.exe` further execute `net.exe` to stop the MSSQLSERVER service. This clearly",
+        "falls under the use of a command interpreter.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates characteristics associated with process injection, specifically using **CreateRemoteThread:**",
+        "* **T1055.003 - Process Injection: Thread Execution Hijacking**",
+        "Here's why:",
+        "1. **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` ... `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret` This is",
+        "standard function prologue and epilogue code, setting up the stack frame and saving registers. While not specific to injection itself, it forms the structure within which the injection code",
+        "operates.",
+        "2. **Suspicious Call (1):** `mov ecx, 0x40609f`, `call sub_0x00000040A` This loads a value (possibly a function pointer or data address) into `ecx` and then calls another function. This could be",
+        "retrieving or setting up data needed for later injection, potentially a handle to the target process. Without more context on `sub_0x00000040A`, it's difficult to be certain.",
+        "3. **Key Indicator (Call 2):** `push 0`, `push 0`, `push 0x403000`, `push 0x403038`, `push 0x403044`, `push 0`, `call sub_0x000005030` This is the strongest indicator. Pushing multiple values",
+        "onto the stack before a call is frequently seen when setting up arguments for API calls. The addresses being pushed (e.g., `0x403000`, `0x403038`, `0x403044`) look like potential code addresses",
+        "or data within the process's address space. The presence of zeros might indicate NULL parameters. Critically, if `sub_0x000005030` resolves to `CreateRemoteThread` (or a similar function like",
+        "`RtlCreateUserThread`), this confirms the thread execution hijacking technique.",
+        "**Why not other techniques",
+        "* **T1055.001 - Process Hollowing:** Hollowing typically involves unmapping or overwriting legitimate code sections within a target process. This snippet doesn't show signs of that activity. *",
+        "**T1055.002 - Process Doppelg",
+        "with file system APIs. * **Other Process Injection Techniques:** Other techniques often involve writing to the target process's memory (e.g., `WriteProcessMemory`) followed by creating a thread.",
+        "While this code *could* be part of a larger injection sequence, the specific pattern of pushes before a call points most directly towards `CreateRemoteThread`.",
+        "**Important Note:** Without analyzing the called subroutines (`sub_0x00000040A` and `sub_0x000005030`), this assessment is based on common patterns and heuristics. Dynamic analysis or a deeper",
+        "disassembly would be necessary to definitively confirm `CreateRemoteThread` usage and fully understand the injection process.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of `ShellExecuteA`. This maps to **T1218.002 Create or Start a Service**. While `ShellExecuteA` *can* be used for other purposes, creating/starting a service is a",
+        "common malicious use, especially when arguments are being pushed onto the stack as seen here. It's also possible this represents a more general technique like **T1059.003 Command and Scripting",
+        "Interpreter**. Additional context about the strings being passed to `ShellExecuteA` (located at 0x403000, 0x403038, and 0x403044) would be needed to determine the specific command being executed",
+        "and refine the MITRE ATT&CK mapping.",
+        "It's important to note that there's no *definitive* MITRE ATT&CK technique without further context. `ShellExecuteA` is a legitimate function, and this code snippet is insufficient to",
+        "definitively determine malicious intent or precisely what the command is doing.",
+        "Here's a breakdown of why simply saying \"Process Injection\" or other similar techniques isn't appropriate based on this code alone:",
+        "* **No Process Injection Evidence:** The code doesn't demonstrate any typical process injection techniques like `CreateRemoteThread`, `WriteProcessMemory`, or other similar methods. *",
+        "**ShellExecuteA's Function:** `ShellExecuteA` runs a command *externally*. It doesn't inject code into another running process. It can start a *new* process, but that's different from injection.",
+        "* **Context is Key:** The arguments passed to `ShellExecuteA` (the file path, parameters, and operation) are crucial to understanding the true intent.",
+        "Therefore, while **T1218.002** or the broader **T1059.003** are potential candidates, further analysis is necessary for a precise classification.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code appears to be using the `ShellExecuteA` function to execute a command using `cmd.exe`. Specifically, it's attempting to stop the MSSQLSERVER service by executing",
+        "`net.exe stop MSSQLSERVER`. This behavior can be associated with the MITRE ATT&CK technique related to command-line interface execution and service manipulation.",
+        "The most relevant MITRE ATT&CK technique for this assembly code is:",
+        "- **T1569.002** - System Services: Service Execution",
+        "This technique involves using a system service to execute commands. The code aims to manipulate system services, which aligns with stopping a service on a Windows operating system using the",
+        "command line.",
+        "Another relevant technique is:",
+        "- **T1203** - Exploitation for Execution",
+        "This could also be related to using `ShellExecuteA` for executing a process.",
+        "It's important to recognize that the behavioral context in which this code is used would provide more precise technique identification.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code contains several typical low-level operations such as stack management, function calling, and register manipulation. Determining the corresponding MITRE ATT&CK",
+        "techniques requires an understanding of what the code is doing and the context in which it is used. Given the snippet provided, here are a few possible MITRE ATT&CK techniques that might be",
+        "applicable based solely on the operations seen in the assembly:",
+        "1. **T1055 - Process Injection**: If any of the calls (e.g., `call sub_0x00000040A` or `call sub_0x000005030`) involve injecting code into another process, this would relate to process",
+        "injection.",
+        "2. **T1027 - Obfuscated Files or Information**: If this snippet is part of a larger piece of obfuscated code to hide its behavior (e.g., using function calls to hide malicious intent), it might",
+        "relate to obfuscation techniques.",
+        "3. **T1055.1 - Dynamic-link Library Injection**: If one of the functions being called involves loading a DLL into another process's address space, it would relate to DLL injection.",
+        "4. **T1106 - Native API**: The code may be invoking Windows API calls, typically seen in post-exploitation activities or malware, which usually rely on native API calls.",
+        "Consideration of each function call (`sub_0x00000040A` or `sub_0x000005030`) is crucial because they might implement behavior that directly maps to specific techniques like credential dumping,",
+        "network communication, or persistence. Without additional context or function definitions, precise mapping is speculative. If you have more context or know the content or purpose of those",
+        "specific subroutines, that information would greatly assist in providing a more accurate mapping.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided x86 assembly code, it appears to involve the following:",
+        "1. **Function Prologue and Epilogue:** - The `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, and subsequent `mov esp, ebp` and `pop ebp` are typical function prologue and epilogue instructions used",
+        "in stack frame management. These instructions themselves are not directly tied to a specific MITRE ATT&CK technique, but they set up the function stack frame for further operations.",
+        "2. **Function Call:** - There is a call to an unspecified function `sub_0x00000040A`, which could potentially be any benign or malicious behavior. This alone doesn't clearly map to a specific",
+        "technique without more context.",
+        "3. **ShellExecuteA Call:** - The call to `ShellExecuteA` with various parameters (like `lpFile`, `lpOperation`, etc.) suggests that the program is attempting to execute an application or open a",
+        "document. - This is related to execution techniques in the MITRE ATT&CK framework.",
+        "The use of `ShellExecuteA` for executing a command or running an application can be associated with the following MITRE ATT&CK technique:",
+        "- **Technique:** User Execution - **ID:** T1204 - **Sub-technique:** This specific code appears to illustrate a more general use of ShellExecute for execution, and may not align with a",
+        "sub-technique directly if focusing on User Execution. - If attempting to execute a script, program, or similar process this could align with: - **T1059:** Command and Scripting Interpreter -",
+        "Additionally, given the specific construction of the call using `ShellExecuteA`, it may suggest the execution by abuse of application functions.",
+        "In conclusion, the x86 assembly code could potentially be categorized under multiple MITRE techniques depending on the full context, but the direct use of `ShellExecuteA` aligns most clearly",
+        "with:",
+        "- **MITRE Technique:** T1059 (Command and Scripting Interpreter) or T1204 (User Execution), depending on the context.",
+        "Without a specific user interaction component or script interpreter invocation observable directly here, the exact match to MITRE will depend on further context.",
+        "Close"
+    ]
+}

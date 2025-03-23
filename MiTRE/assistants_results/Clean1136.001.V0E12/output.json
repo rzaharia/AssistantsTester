@@ -1,0 +1,159 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1086.001",
+                "T1086",
+                "T1086.001",
+                "T1069",
+                "T1078.002"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055",
+                "T1005",
+                "T1027",
+                "T1005",
+                "T1059.001",
+                "T1218.011",
+                "T1047",
+                "T1055",
+                "T1055.001",
+                "T1005"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001",
+                "T1203"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1059",
+                "T1106",
+                "T1134"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1620"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code indicates the execution of a command using `powershell.exe`. The command being executed is `net user /ad test`. This attempts to add a user named \"test\" to the Active",
+        "Directory.",
+        "This maps to the following MITRE ATT&CK technique:",
+        "**T1086.001 - Account Discovery: Local Account**",
+        "While the command targets Active Directory and not strictly *local* accounts, the underlying behavior aligns with account discovery",
+        "for potential exploitation. There isn't a perfect sub-technique for interacting specifically with Active Directory in this context within T1086. T1086.001 is the closest match, as it represents",
+        "attempts to gain information about existing accounts, and this code attempts to create a new one (which would implicitly confirm whether it existed previously). A more specific technique like",
+        "T1069 (Permission Groups Discovery) would be appropriate *if* the command was querying group membership instead of just creating a user.",
+        "It's important to note: If the `net user /ad` command is successful, subsequent actions using this newly created account could align with other MITRE ATT&CK techniques like **T1078.002 - Valid",
+        "Accounts: Local Accounts** or potentially privilege escalation depending on the further steps.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet suggests a few potential MITRE ATT&CK techniques, but without more context, it's difficult to be definitive. Here's a breakdown and the *most likely*",
+        "associated techniques:",
+        "* **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` (prologue) and `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`,",
+        "`pop ebp`, `ret` (epilogue) are standard function setup and teardown. This doesn't directly map to a MITRE ATT&CK technique, but it's the foundation upon which other techniques might be",
+        "implemented.",
+        "* **Call to `sub_0x00000040A`:** `mov ecx, 0x40609f`, `call sub_0x00000040A` suggests calling a subroutine. The value `0x40609f` loaded into `ecx` could be a function pointer, a data address, or",
+        "a parameter. Without knowing what `sub_0x00000040A` does, it's impossible to assign a MITRE technique. It *could* be involved in:",
+        "* **T1055.001 - Dynamic-link Library Injection:** If `sub_0x00000040A` is responsible for injecting a DLL, this would be a match. The value in `ecx` could be the address of the DLL or a function",
+        "within it. * **T1055 - Process Injection:** More generally, if this call injects code into another process, it fits this technique. * **T1005 - Data from Local System:** If `0x40609f` points to",
+        "data being read from the system (e.g., configuration files, registry), this could be applicable. However, this is less likely given the other code. * **T1027 - Obfuscated Files or Information:**",
+        "If `sub_0x00000040A` performs decryption or deobfuscation, this could be a match.",
+        "* **Call to `sub_0x000005004`:** `push 5`, `push 0x403000`, `call sub_0x000005004` is another subroutine call. `0x403000` might be a memory address, and `5` could be a length or an option.",
+        "Possible techniques (again, highly context-dependent):",
+        "* **T1005 - Data from Local System:** If `0x403000` is the address of a system-related data structure, then reading from it falls under this technique. * **T1059.001 - Command and Scripting",
+        "Interpreter:** If this call executes a command or script using something like `CreateProcess` or similar, it could be a match. * **T1218.011 - Signed Binary Proxy Execution:** Less likely but",
+        "possible, especially if `0x403000` points to a legitimate signed binary being used for malicious purposes. * **T1047 - Windows Management Instrumentation:** Less likely, but if `sub_0x000005004`",
+        "interacts with WMI, this could be relevant.",
+        "* **`nop` Instructions:** The `nop` instructions don't directly map to a MITRE technique. They could be padding, alignment adjustments, or potentially part of anti-debugging techniques (although",
+        "that's less likely with just single `nop`s).",
+        "**In summary:** Without more context, it's impossible to definitively say. The *most likely* candidates are **process injection (T1055)**, **DLL injection (T1055.001)**, or actions related to",
+        "**data from local system (T1005)**. You need to analyze the called subroutines (`sub_0x00000040A` and `sub_0x000005004`) to get a more accurate classification. Disassembling those subroutines is",
+        "crucial for proper MITRE ATT&CK mapping.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.001 - Process Injection: Dynamic-link Library Injection**",
+        "**Rationale:**",
+        "1. **Setting up Stack Frame:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi`",
+        "stack for local variables and saving the state of registers. While common to many functions, it's necessary groundwork for more complex operations like injection.",
+        "2. **Loading a Memory Address:** `mov ecx, 0x40609f`",
+        "or some other data required for injection. The `sub_0x00000040A` function is probably used to resolve or manipulate this address or the data it points to (e.g., obtaining a handle to",
+        "`kernel32.dll` and the address of `LoadLibraryA`).",
+        "3. **Mystery Function Call:** `call sub_0x00000040A` - This calls a subroutine, the purpose of which we can only guess at without more context. It's HIGHLY probable this is setting up for the",
+        "injection. For example, it might be getting the address of `LoadLibraryA` or some other API function crucial to DLL injection.",
+        "4. **Pushing Arguments:** `push 5`, `push 0x403000`",
+        "address of the DLL to be injected or the path to it. The value `5` is less clear but could be a flag or some other parameter.",
+        "5. **Calling Null:** `call (null)`",
+        "technique used to trigger a software breakpoint for a debugger when the code is being analyzed. In a real attack scenario, this `null` would be replaced with the address of a Windows API",
+        "function like `LoadLibraryA` or `CreateRemoteThread` which are essential for performing DLL injection. This null might be a placeholder in shellcode where the real address will be written later.",
+        "6. **Cleanup and Return:** The remaining instructions restore the saved registers, deallocate stack space, and return from the function, suggesting a standard function epilogue.",
+        "**In summary:** The assembly code strongly resembles the setup for DLL injection. The `call (null)` serves as a strong indicator that a crucial API call for injection (like `LoadLibraryA`) is",
+        "intended to be there. Therefore, T1055.001 is the most likely MITRE ATT&CK technique associated with this code.",
+        "It's important to note that without the context of `sub_0x00000040A` and a deeper understanding of the surrounding code, this analysis is based on common DLL injection patterns. A definitive",
+        "conclusion requires further investigation.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code appears to be associated with process injection or execution of additional code, particularly with the line where it pushes a string that includes `powershell` and a",
+        "command to be executed. This behavior is often linked to executing a script or command.",
+        "Based on the assembly code, it appears to involve the execution of a command via `powershell`, which can be associated with the following MITRE ATT&CK techniques:",
+        "- **T1059.001: Command and Scripting Interpreter: PowerShell** - This MITRE technique involves using PowerShell to interact with the system, execute payloads, or perform other tasks.",
+        "- **T1203: Exploitation for Client Execution** - This may be relevant if the code execution relies on exploiting some aspect of the system or process to achieve execution.",
+        "The line `push 0x403000 ; \"powershell -Command \"...` indicates an execution of a PowerShell command, which aligns with the Command and Scripting Interpreter technique, specifically PowerShell.",
+        "This is a common method used to execute commands on Windows systems, especially in the context of malware or unauthorized activity.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code snippet shows a typical function prolog and epilog, along with some calls to other functions or subroutines. Based on this type of code, here are a few potential",
+        "MITRE ATT&CK techniques that might be associated with the given assembly:",
+        "1. **T1055 - Process Injection**: If the `call` instructions are invoking shellcode or code located in a different process, this could indicate process injection, which is often used to execute",
+        "code in the context of another process.",
+        "2. **T1027 - Obfuscated Files or Information**: If the instructions involve manipulating stack frames or registers in a way to obscure what the code is doing (e.g., calling subroutines that",
+        "themselves contain obfuscated logic), it might be related to this technique.",
+        "3. **T1059 - Command and Scripting Interpreter**: If the subroutine calls eventually lead to executing commands or scripts from within the assembly, that might relate to this technique.",
+        "4. **T1106 - Native API**: The code might be interacting with system calls or native APIs. If `sub_0x00000040A` or `sub_0x000005004` resolve to such system interactions, this might be relevant.",
+        "5. **T1134 - Access Token Manipulation**: If the code is part of a larger routine that manipulates execution tokens, this might also apply.",
+        "Without further context or the content of the subroutines being called, it's challenging to assign a specific MITRE ID conclusively. In practical terms, disassembling the subroutine code and",
+        "analyzing the complete context would be necessary for more precise attribution to specific techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code snippet involves a few operations that align with different MITRE ATT&CK techniques. The techniques are typically used in the context of adversarial activities.",
+        "Here are the relevant techniques for your code:",
+        "1. **Stack Pivoting and Function Prologue Manipulation:** The `push ebp`, `mov ebp, esp`, and `sub esp, 0x40` lines are setting up a stack frame, commonly used in function prologue manipulation,",
+        "which can relate to stack pivoting or evasion techniques. However, simply setting up a stack frame isn't directly a harmful action unless combined with malicious intent.",
+        "2. **Dynamic Function Call:** The `call sub_0x00000040A` and `call (null)` indicate either a dynamic function call or use of indirect address calling. This might indicate the use of **T1055 -",
+        "Process Injection**, especially if substitutions or evasions are involved.",
+        "3. **Memory Manipulation:** If the `call (null)` results in a call to a null pointer (or self-modifying code), this may indicate usage of **T1620 - Reflective Code Loading**, which involves",
+        "loading code into memory and executing it.",
+        "For precise mapping, understanding the actual intent behind these instructions and their context (what `sub_0x00000040A` does, for instance) is crucial. Without more context, it",
+        "assign a more specific MITRE ID related directly to proven adversarial behavior.",
+        "Close"
+    ]
+}

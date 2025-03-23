@@ -1,0 +1,197 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1047",
+                "T1112",
+                "T1005",
+                "T1562.001",
+                "T1055.001",
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1001.001",
+                "T1055.004",
+                "T1218.011",
+                "T1047.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1055.001",
+                "T1055.012",
+                "T1055",
+                "T1055.001",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055",
+                "T1059",
+                "T1134",
+                "T1134.002",
+                "T1074",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.012",
+                "T1055.002",
+                "T1027",
+                "T1059",
+                "T1140",
+                "T1082"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1480",
+                "T1565.001",
+                "T1106",
+                "T1218"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of multiple MITRE ATT&CK techniques. Here's a breakdown:",
+        "* **T1055.003 - Process Injection: Process Hollowing:** The code allocates memory, writes data to it (\"MZ\" header suggests a PE file), and then uses `CreateProcessA` with a likely suspended",
+        "process. Combined with the later calls to `WriteFile` (presumably writing to the created process's memory), `CloseHandle` (closing initial process handles), and null calls that are likely to",
+        "`ResumeThread`, this strongly suggests process hollowing.",
+        "* **T1047 - Process Discovery:** While not definitively shown in this snippet, the presence of process hollowing heavily implies prior process discovery. The attacker needs to choose a process",
+        "to hollow, so they likely enumerated running processes beforehand. This might be done using tools or API calls not visible in this code segment.",
+        "* **T1112 - Modify Registry:** The string \"reg save HKLH\\\\sam sam\" passed to `WriteFile` clearly indicates registry manipulation. This likely aims to save a copy of the SAM registry hive, which",
+        "contains sensitive user account information (passwords hashes, etc.). This enables offline cracking or other credential theft.",
+        "* **T1005 - Data from Local System:** The attempt to dump the SAM hive demonstrates the attacker's intent to steal credentials and other sensitive information from the local system.",
+        "* **T1562.001 - Impair Defenses: Disable or Modify Tools:** While speculative based on this limited snippet, dumping the SAM hive could be part of a larger effort to disable security tools that",
+        "rely on the integrity of system accounts. Disrupting the normal operation of security software can facilitate further malicious activities.",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** The calls to unidentifiable functions (represented by `call (null)`) could potentially be API calls related to DLL injection.",
+        "More context would be needed to confirm this. However, since process hollowing is evident, DLL injection is less likely as the primary injection technique in this specific instance.",
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** This technique isn't directly shown in the code, but it is a common follow-up action after establishing",
+        "persistence. After gaining a foothold, attackers often add entries to registry run keys or the startup folder to ensure their malicious code executes on subsequent system boots or user logins.",
+        "This is often done after privilege escalation and control is established. The code provided here is primarily focused on the initial compromise.",
+        "It's important to note that this analysis is based on a limited code sample. Further context and analysis of the complete binary are required to confirm these findings and identify any",
+        "additional techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet suggests several potential MITRE ATT&CK techniques, but without knowing the functionality of the called subroutines (e.g., `sub_0x000005010`,",
+        "`sub_0x00000500C`, etc.), it's impossible to definitively map them. We can, however, make some educated guesses based on common patterns.",
+        "**Potential Techniques (with caveats):**",
+        "* **T1005.001 - Data from Local System:** The code reads data from various memory locations (e.g., `dword ptr [ebp - 4]`, `dword ptr [0x40404c]`). This *could* be indicative of reading local",
+        "system data, but it depends entirely on what that data represents.",
+        "* **T1001.001 - Data Obfuscation: String Concealment:** The code initializes some memory locations with specific values (e.g., `mov dword ptr [0x404000], 0xc`). This *might* be part of a string",
+        "obfuscation technique, where strings are constructed or decrypted at runtime. The use of `or eax, 0x100` also suggests potential bitwise manipulation that *could* be related to obfuscation.",
+        "However, without more context, it's difficult to be certain.",
+        "* **T1055.004 - Process Injection: Thread Execution Hijacking:** The code seems to be setting up parameters for a function call (e.g., around `sub_0x000005018`). Depending on what",
+        "`sub_0x000005018` does, this *could* be setting the stage for process injection via thread execution hijacking or other process manipulation. The use of `lea eax, [ebp - 0x1018]` and other",
+        "stack-based address manipulations strengthens this suspicion. It's also possible that the `call sub_0x00000501C` function call plays a role in injection based on its position within the code.",
+        "* **T1218.011 - Signed Binary Proxy Execution: Rundll32:** While we don't see a direct call to `rundll32.exe`, the sequence of memory manipulations, followed by calls to potentially external",
+        "functions (`sub_xxxx` functions), *might* indicate setting up parameters for a `rundll32` execution to load and execute malicious code from a signed DLL. This is highly speculative without",
+        "knowing more about those functions.",
+        "* **T1047.001 - System Service Discovery:** There's nothing directly suggesting system service discovery in this code. However, we don't know the purpose of some API calls.",
+        "**Key Reasons for Uncertainty:**",
+        "* **Unknown Subroutines:** The `sub_xxxx` functions are crucial. Without knowing what they do, we can't accurately determine the code's purpose. * **Lack of Context:** We need to know where this",
+        "code snippet comes from (e.g., which process, what part of the process) for proper analysis. * **Speculative Nature of Assembly Analysis:** Assembly code can be tricky. Similar instructions can",
+        "be used for benign and malicious purposes.",
+        "**Next Steps for More Accurate Analysis:**",
+        "1. **Identify the `sub_xxxx` functions:** Use a debugger or disassembler to analyze these functions and understand their purpose. 2. **Analyze in Context:** Examine the surrounding code and the",
+        "overall program behavior. 3. **Dynamic Analysis:** Run the code in a controlled environment (e.g., a sandbox) and observe its behavior. This will give you much more insight than static analysis",
+        "alone.",
+        "By taking these steps, you can move beyond speculation and determine the true intent and associated MITRE ATT&CK techniques of this code.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows strong indicators of **Process Injection (T1055)**, specifically **T1055.001 - Process Hollowing**. Here's a breakdown:",
+        "* **`CreateProcessA` with a zero `lpApplicationName`:** This is a common technique used in process hollowing. The `lpCommandLine` likely points to a legitimate executable, which is created in a",
+        "suspended state.",
+        "* **`WriteFile`:** This is used to write the malicious code into the memory space of the newly created process.",
+        "* **`GetThreadContext`, `SetThreadContext` (inferred from the context setup around \"call (null)\"):** These functions are essential for manipulating the execution flow of the target process.",
+        "Retrieving and modifying the thread context allows redirection of execution to the injected code. Specifically, there are several `call (null)` instructions that could be these API calls or",
+        "similar context manipulation.",
+        "* **`ZwUnmapViewOfSection or NtUnmapViewOfSection` (implied, not shown directly):** Before writing the malicious code, the legitimate code of the suspended process needs to be unmapped. Although",
+        "not directly visible in the provided assembly, it's a necessary step in process hollowing and often invoked indirectly.",
+        "* **`ResumeThread` (inferred from context setup around \"call (null)\"):** After the malicious code is written and the entry point is modified, `ResumeThread` starts the execution of the hollowed",
+        "process, now running the injected code.",
+        "* **`CloseHandle`:** Cleaning up by closing handles to the injected process and thread.",
+        "Therefore, the primary MITRE ATT&CK technique observed is:",
+        "* **T1055.001 - Process Hollowing**",
+        "Additional techniques that could be involved but are not definitively confirmed from the given snippet (due to the presence of unresolved \"call (null)\" instructions and lack of wider code",
+        "context) include:",
+        "* **T1055.012 - Process Doppelg",
+        "More context would be needed to confirm.",
+        "* **T1055 - Process Injection (Generic):** This is a broader technique and is already covered by the more specific T1055.001. We avoid using the generic ID when a more precise sub-technique",
+        "applies.",
+        "It's important to note that without knowing what is at the address values being pushed onto the stack before the `call (null)` instructions, definitive classification of every action taken isn't",
+        "possible. However, the presence of `CreateProcessA`, `WriteFile`, along with the context manipulation and process and thread handle management strongly suggest **T1055.001 - Process Hollowing**.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code performs actions that map to several MITRE ATT&CK techniques. Here are some relevant techniques based on the operations observed in the assembly code:",
+        "1. **Process Injection**: The use of direct system calls and manipulation of process-related memory locations suggest techniques related to process injection. - **T1055.x**: This is a broad",
+        "technique category with various sub-techniques indicating different methods for process injection. The specific sub-technique would depend on the method used (e.g., DLL Injection, APC Injection,",
+        "etc.). 2. **Create or Modify System Process**: The use of `CreateProcessA` to launch a new process is indicative of this technique. - **T1059/002**: Command and Scripting Interpreter: Windows",
+        "Command Shell. This relates to spawning `cmd.exe` as seen in the command line argument.",
+        "3. **Abuse Elevation Control Mechanism**: The code is manipulating process attributes, which could indicate a privilege escalation attempt. - **T1134**: Access Token Manipulation, or other",
+        "similar techniques depending on details (e.g., **T1134.002**: Create Process with Token).",
+        "4. **File and Directory Manipulation**: The use of `WriteFile` to write to a file or device typically maps to techniques related to data manipulation. - **T1074/002**: Data Staged: Command",
+        "Execution or Data Manipulation Files. This could be for the registry save operation \"reg save HKLM\\\\sam sam\".",
+        "5. **Defensive Evasion and Execution**: The use of API calls like `lstrlenA`, and `WaitForSingleObject` possibly indicates techniques related to API abuse. - **T1106**: Native API. This involves",
+        "utilizing direct system calls as shown in multiple `(null)` API calls.",
+        "These techniques describe higher-level behaviors that align with operations seen in the assembly code. Actual mapping to the exact sub-techniques would require more context about the behavior",
+        "and environment in which this code executes.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code provided performs various operations that could be associated with different MITRE ATT&CK techniques based on the context and behavior it exhibits. Below are possible MITRE",
+        "techniques that can be inferred:",
+        "1. **T1055 - Process Injection**: - The use of assembly such as `push`, `mov`, `call`, and manipulation of memory addresses could suggest process injection techniques, which are used to execute",
+        "arbitrary code in the address space of a separate live process. This is especially common for hiding execution.",
+        "2. **T1055.012 - Process Hollowing**: - If these operations are meant to manipulate or replace code in a running process, it could align with this sub-technique of process injection.",
+        "3. **T1055.002 - Portable Executable Injection**: - If the provided code is modifying or preparing sections of memory for payload execution, it could relate to this sub-technique where it",
+        "involves writing a PE file to memory and executing it.",
+        "4. **T1027 - Obfuscated Files or Information**: - Use of nops and conditional jumps like `jmp` and `jne`, along with function calls and address calculations, can indicate obfuscation or",
+        "anti-analysis techniques.",
+        "5. **T1059 - Command and Scripting Interpreter**: - If these operations are forming part of a larger script that manipulates the behavior of other processes or executes commands, this technique",
+        "might apply.",
+        "6. **T1140 - Deobfuscate/Decode Files or Information**: - If the code involves deobfuscating strings or payloads before execution, it can map to this technique.",
+        "7. **T1082 - System Information Discovery**: - If any of those `call` operations involve querying system information or environment, it can be related to system discovery techniques.",
+        "Without specific context about the purpose of each subroutine or API call, these inferences are generalized based on typical use cases of such assembly patterns. Further detail about what",
+        "`sub_0x...` functions are doing or specifics about API calls can help in narrowing down the techniques further.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code contains several indicators of potentially malicious activities commonly associated with specific MITRE ATT&CK techniques. Here's a breakdown of the notable parts",
+        "of this assembly code and their corresponding MITRE ATT&CK techniques:",
+        "1. **Process Injection**: The frequent use of `call (null)` and `call CreateProcessA` suggests the possibility of process creation and potential injection techniques, as process memory may be",
+        "manipulated to execute arbitrary or injected code. - **MITRE Technique**: T1055 (Process Injection)",
+        "2. **Process Creation**: The use of the `CreateProcessA` function to initiate a new process is indicative of the Windows API's capability for creating a process on the system, which can be",
+        "exploited by adversaries to run malicious binaries. - **MITRE Technique**: T1106 (Native API)",
+        "3. **Handle Manipulation**: The `call CloseHandle` and `call WaitForSingleObject` are used to manage process and thread handles; these can also indicate potential attempts to synchronize or",
+        "terminate processes. - **MITRE Technique**: T1480 (Execution Prevention, specifically related to handle manipulation which can be part of various techniques)",
+        "4. **Data Manipulation**: Instructions involving `WriteFile` and memory operations suggest potential tampering with file contents or planting of data, which is often seen in file-related",
+        "techniques. - **MITRE Technique**: T1565.001 (Data Manipulation: Stored Data Manipulation)",
+        "5. **Use of System APIs**: General usage of various API calls (`lstrlenA`, `WriteFile`) to interact with the system, write to files, and manage processes and memory. - **MITRE Technique**: T1106",
+        "(Native API) 6. **In-Memory Execution**: The multiple `call (null)` instructions suggest potential reflective DLL injection or in-memory execution techniques which could bypass writing malicious",
+        "payloads to disk. - **MITRE Technique**: T1218 (System Binary Proxy Execution), often exploited using reflective techniques.",
+        "Note that while these mappings are inferred based on typical patterns and behaviors seen in the assembly code, additional context and behavioral analysis would be necessary for precise mapping",
+        "in a real-world scenario. Direct execution traces, memory analysis, and further dynamic execution traces would be necessary to confirm these techniques definitively.",
+        "Close"
+    ]
+}

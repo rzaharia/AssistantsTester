@@ -1,0 +1,139 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1003.002"
+            ],
+            "valid": [
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1055.003"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1564.003",
+                "T1204.002",
+                "T1564.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1003.002"
+            ],
+            "valid": [
+                "T1003.002"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1106",
+                "T1134",
+                "T1059.006"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1203",
+                "T1059.001",
+                "T1059.003",
+                "T1203"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows the use of `ShellExecuteA` with arguments suggesting the execution of `cmd.exe` with the parameter `\"reg save HKLH\\sam sam\"`. This indicates an attempt to save the",
+        "Security Account Manager (SAM) database, a key component for storing user credentials and security information. Saving the SAM database to a file could allow an attacker to extract sensitive",
+        "credential information. Therefore, this aligns with credential dumping.",
+        "This translates to the following MITRE ATT&CK technique:",
+        "* **T1003.002 Credential Dumping: Security Account Manager**",
+        "The other parts of the code, such as the function prologue/epilogue (`push ebp`, `mov ebp, esp`, etc.) and stack manipulation are standard calling conventions and don't directly map to specific",
+        "MITRE ATT&CK techniques. They are simply the mechanism by which the malicious action (the `ShellExecuteA` call) is facilitated. The call to `sub_0x00000040A` is unknown without more context and",
+        "may or may not be related to other techniques. However, based on the provided code, the primary MITRE ATT&CK technique clearly observed is credential dumping.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code shows signs of process injection, specifically a variation that involves creating a new thread in a remote process. Let's break down why:",
+        "* **Setting up a stack frame:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` This is standard function prologue code, setting up the stack for local variables",
+        "and preserving registers.",
+        "* **Calling a potentially decoding function:** `mov ecx, 0x40609f`, `call sub_0x00000040A` This could be a function that decodes or decrypts the shellcode to be injected. The address `0x40609f`",
+        "is likely a pointer to the encoded shellcode.",
+        "* **Calling a crucial Windows API function (likely CreateRemoteThread):** `push 0`, `push 0`, `push 0x403000`, `push 0x40301c`, `push 0x403028`, `push 0`, `call sub_0x000005030` This is the core",
+        "of the injection. The arguments being pushed onto the stack align with the parameters of `CreateRemoteThread`:",
+        "* `0`: Likely the `lpThreadAttributes` (NULL for default security attributes). * `0`: Likely the `dwStackSize` (0 for default stack size). * `0x403000`: Likely the `lpStartAddress` (the address",
+        "where the injected code will start executing in the target process). * `0x40301c`: Likely the `lpParameter` (an argument to be passed to the injected thread). * `0x403028`: This could be some",
+        "shellcode or data related to the injection. Its meaning depends on what the injected code expects. * `0`: Likely the `dwCreationFlags` (0 for immediate execution).",
+        "The fact that there's a call shortly after pushing these arguments strongly suggests it's calling `CreateRemoteThread` (or a very similar API function). `sub_0x000005030` is likely resolving and",
+        "calling `CreateRemoteThread`.",
+        "* **Function epilogue:** `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret` Standard function cleanup, restoring the stack and registers.",
+        "Therefore, the MITRE ATT&CK technique that best describes this activity is **T1055.003 - Process Injection: Thread Execution Hijacking**. This technique involves creating a remote thread in the",
+        "target process to execute malicious code. While the code doesn't definitively prove it's hijacking an *existing* thread, creating a new thread and redirecting its execution is a form of thread",
+        "execution hijacking in the broader sense.",
+        "So, the answer is **T1055.003**.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of `ShellExecuteA`. This maps to **T1564.003 - Hide Artifacts: File Deletion**. While `ShellExecuteA` *can* be used for file deletion, this particular code",
+        "snippet doesn't explicitly show that. It's calling `ShellExecuteA` with arguments that suggest it's *executing* a file, not deleting it.",
+        "Here's a breakdown:",
+        "* **`lpOperation` (0x403028):** This argument usually specifies the operation to perform (e.g., \"open\", \"print\", \"explore\"). The code points to a memory address, so we don't know the exact",
+        "string used without further analysis of that location. Crucially, it's very unlikely to be \"delete\" given the other arguments. * **`lpFile` (0x40301c):** This argument specifies the file to",
+        "execute. Again, the actual filename is at the provided memory address. * **`lpParameters` (0x403000):** This points to command-line parameters that will be passed to the executed file.",
+        "The other arguments (zeroes for `hwnd`, `lpDirectory`, and `nShowCmd`) are consistent with simply running an executable.",
+        "Therefore, a more accurate MITRE ATT&CK technique would be **T1204.002 - Command and Scripting Interpreter: Windows Command Shell**. `ShellExecuteA` is frequently used to indirectly run commands",
+        "and executables, making this a more appropriate classification in the absence of evidence pointing to file deletion.",
+        "It's *possible* that the file being executed performs deletion or other malicious activities. However, based on the provided code alone, we cannot definitively say that T1564.003 applies. More",
+        "context is needed.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The x86 assembly code you've provided makes a call to the function `ShellExecuteA` with parameters that indicate an attempt to execute a command using `cmd.exe`. Specifically, the command",
+        "appears to involve saving a registry hive (`reg save HKLM\\sam sam`), which is related to accessing sensitive system information.",
+        "In the MITRE ATT&CK framework, this activity can be associated with the following techniques:",
+        "1. **Execution** - The use of `ShellExecuteA` to run `cmd.exe` is an example of process creation, which can be categorized under execution techniques: - T1059.003: Command and Scripting",
+        "Interpreter: Windows Command Shell",
+        "2. **Credential Dumping** - Accessing the SAM registry hive can be part of a process to dump credentials or equivalent information: - T1003.002: OS Credential Dumping: Security Account Manager",
+        "(SAM)",
+        "These techniques highlight the potential goals of the assembly logic: executing a command to interact with the Windows system and possibly retrieving sensitive security information.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The given x86 assembly code snippet appears to be part of a typical function prologue and epilogue, with some calls to other subroutines and stack manipulation. Here are some observations on",
+        "possible MITRE ATT&CK techniques that could be related depending on the context and purpose of the code:",
+        "1. **T1055 - Process Injection**: If `sub_0x00000040A` or `sub_0x000005030` are performing actions related to injecting code into another process, this technique could be relevant. The code",
+        "preparation (like stack manipulation and pushing of values) suggests setting up for such actions.",
+        "2. **T1027 - Obfuscated Files or Information**: Use of nops (`nop`) could be indicative of obfuscation to thwart disassembly analysis.",
+        "3. **T1106 - Native API**: If the called functions are leveraging Windows APIs (like in shellcode or dynamic payloads), this could be applicable.",
+        "4. **T1134 - Access Token Manipulation**: If `sub_0x000005030` is manipulating access tokens, this technique could be involved.",
+        "5. **T1059.006 - Command and Scripting Interpreter: PowerShell/Scripting**: If any called subroutine runs scripts, or dynamically constructs OS commands, these could align.",
+        "In the absence of comments or the full context on what `sub_0x00000040A` or `sub_0x000005030` specifically do, associating a specific technique ID can be speculative. Further analysis of the",
+        "full program context, what those subroutines perform, or more indicative opcodes would be required for precise classification. Please review the overall program design and purpose to match more",
+        "accurately with MITRE ATT&CK tactics and techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code you provided makes a call to the `ShellExecuteA` function, which is commonly used to execute applications or open files. When analyzing code snippets for MITRE ATT&CK",
+        "techniques, calling this function is usually associated with executing a process.",
+        "The relevant MITRE ATT&CK technique for this operation is:",
+        "- **T1203** - Exploitation for Client Execution",
+        "However, if the specific context of the function call is used to launch another process or execute a command, you might consider:",
+        "- **T1059.001** - Command and Scripting Interpreter: PowerShell (or other relevant sub-techniques if it's executing something specific)",
+        "But specifically for executing a process via this kind of function call:",
+        "- **T1059.003** - Command and Scripting Interpreter: Windows Command Shell",
+        "Given the lack of specific context beyond the `ShellExecuteA` function, the broader technique associated with `ShellExecuteA` in a straightforward execution context would be:",
+        "- **T1203** - Exploitation for Client Execution",
+        "If the purpose of the execution is to bypass restrictions or conduct privilege escalation, other techniques might apply based on the context of execution.",
+        "Close"
+    ]
+}

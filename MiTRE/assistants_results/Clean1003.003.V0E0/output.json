@@ -1,0 +1,141 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1218.002",
+                "T1059.003",
+                "T1003.002",
+                "T1059.003",
+                "T1003.002",
+                "T1218.002"
+            ],
+            "valid": [
+                "T1003.002",
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.003",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1629",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.003",
+                "T1203",
+                "T1106",
+                "T1059.003"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **T1218.002 Create or Modify System Process: Windows Service**. It also exhibits behavior consistent with **T1059.003 Command and Scripting Interpreter: Windows",
+        "Command Shell**. Additionally, given the arguments passed to ShellExecuteA, there's a strong indication of **T1003.002 OS Credential Dumping: LSASS Memory**. Let's break down why:",
+        "* **ShellExecuteA with cmd.exe:** The code calls `ShellExecuteA`, a Windows API function used to execute files or commands. The arguments passed to `ShellExecuteA` point to \"cmd.exe\". This",
+        "clearly indicates the use of the Windows command shell for executing a command. This aligns with **T1059.003**.",
+        "* **\"msadcs.exe\" argument:** The `lpParameters` argument to `ShellExecuteA` contains a string that includes \"msadcs.exe\". `msadcs.exe` is a tool sometimes used for interacting with Active",
+        "Directory. The supplied parameters suggest it's being used to dump credentials (potentially from LSASS process memory) with arguments indicative of targeting the SYSTEM account and outputting",
+        "results to files (\"a.txt\" and \"a.csv\"). This combination strongly suggests **T1003.002 OS Credential Dumping: LSASS Memory**.",
+        "* **Potential Service Manipulation (Less Certain):** While not definitive from the provided snippet, the function prologue (push ebp, mov ebp, esp, sub esp...) and epilogue (xor eax, pop edi...",
+        "ret) are standard for a function call, suggesting this code might be part of a larger program. The presence of `sub esp, 0x40` allocates stack space, potentially for structures related to",
+        "service manipulation. However, without more context (the called function at `sub_0x00000040A`), this remains speculative. It's *possible* this code is executed within the context of a service,",
+        "hence the mention of **T1218.002**. More code is needed to confirm this hypothesis.",
+        "**Important Note:** The presence of \"msadcs.exe\" with those parameters is the strongest indicator. This tool is frequently associated with malicious activity. The other MITRE techniques",
+        "mentioned are possibilities based on the limited view provided by the code snippet. A broader analysis of the surrounding code is required for greater certainty.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code shows signs of process injection, specifically, a variation where memory is allocated and code is written to it before execution. Here's a breakdown and the associated",
+        "MITRE ATT&CK techniques:",
+        "* **`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi`**: Standard function prologue, setting up the stack frame. Not directly indicative of a specific ATT&CK",
+        "technique.",
+        "* **`mov ecx, 0x40609f`, `call sub_0x00000040A`**: This looks like it's loading an address (possibly of a string or shellcode) into `ecx` and then calling a subroutine. This *could* be part of",
+        "shellcode decryption or a similar preparatory step for process injection. Without more context on `sub_0x00000040A` we can't say for sure.",
+        "* **`push 0`, `push 0`, `push 0x403000`, `push 0x403050`, `push 0x40305c`, `push 0`, `call sub_0x000005030`**: This is the most interesting part. It pushes several arguments onto the stack",
+        "before calling another subroutine. The addresses `0x403000`, `0x403050`, and `0x40305c` strongly suggest memory addresses within the process. This pattern is very common in Windows API calls",
+        "related to process injection. The presence of zero values might indicate NULL handles or flags. `sub_0x000005030` is highly suspicious.",
+        "Based on the provided code, the following MITRE ATT&CK techniques are likely relevant:",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** While we don't see direct calls to `CreateRemoteThread` or `LoadLibrary`, the memory allocation and writing, combined with",
+        "the suspicious call to `sub_0x000005030`, strongly suggest this technique. The arguments pushed onto the stack before this call could be setting up parameters for functions like",
+        "`VirtualAllocEx`, `WriteProcessMemory`, and `CreateRemoteThread`.",
+        "* **T1055.012 - Process Injection: Thread Execution Hijacking:** It's possible this technique is being employed, especially if `sub_0x000005030` is manipulating threads within another process.",
+        "However, we lack the necessary context to definitively confirm this.",
+        "It is crucial to emphasize that **without more information about the called subroutines and overall program flow, this analysis is speculative.** Disassembling and analyzing `sub_0x00000040A`",
+        "and `sub_0x000005030` is absolutely necessary to confirm the specific injection technique being used. Analyzing the values at the addresses pushed onto the stack would also give more clarity.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of `ShellExecuteA`. This maps to **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**.",
+        "`ShellExecuteA` is a Windows API function often used to execute commands and launch applications, which aligns with the described behavior of T1059.003. While the specific command being executed",
+        "isn't directly visible in the assembly (it depends on the data at address 0x40305c), the use of `ShellExecuteA` itself is a strong indicator of this technique.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The given assembly code is executing a `ShellExecuteA` function call. This API call is typically used to run executables or to open files/documents in the default program associated with that",
+        "file type. This can be associated with a technique from the MITRE ATT&CK framework related to execution, specifically using a command or script interpreter, or leveraging techniques to launch",
+        "programs.",
+        "The relevant MITRE technique for executing commands that can run additional programs or perform further activities would be from the Execution tactic. In this case, using `ShellExecuteA` is",
+        "indicative of using the command-line interface or automating a task that would usually require user interaction.",
+        "The corresponding MITRE ATT&CK technique and sub-technique are:",
+        "- **T1059.003: Command and Scripting Interpreter: Windows Command Shell**",
+        "`ShellExecuteA` running `cmd.exe` specifically relates to executing commands via a Windows command shell. The program being called with parameters indicates using this to execute potentially",
+        "malicious commands or scripts.",
+        "If there is a specific purpose or context to using `ShellExecuteA` that aligns with other techniques beyond command execution, those might also be relevant, but without additional context,",
+        "T1059.003 is the most appropriate match.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code demonstrates common operations often seen in function prologues and epilogues, as well as function calls with specific arguments pushed onto the stack. However,",
+        "without more context regarding what the `sub_0x00000040A` and `sub_0x000005030` functions do, it is challenging to definitively map these operations to specific MITRE ATT&CK techniques.",
+        "That said, here are some potential MITRE techniques that might be relevant to such assembly patterns:",
+        "1. **Function Prologue/Epilogue**: The sequence of `push ebp`, `mov ebp, esp`, and `sub esp, 0x40` sets up a stack frame for a function. The sequence of `mov esp, ebp`, `pop ebp`, and `ret` is",
+        "part of the function epilogue where the stack is cleaned up. This by itself is not directly tied to a specific MITRE technique but is common in general programming.",
+        "2. **API Calls**: The `call sub_0x00000040A` and `call sub_0x000005030` instructions indicate that functions are being called. If either of these functions is used to call system-level functions",
+        "for executing other processes or injecting code (e.g., in process hollowing), it might be part of:",
+        "- **T1055** - Process Injection: If the calls are for injecting code or modifying the memory of another process. - **T1106** - Native API: If they involve calling Windows API functions directly.",
+        "3. **Stack Pivoting or Stack Manipulation**: The manual manipulation of the stack with `push` and `pop` instructions, as well as the specific `sub esp, 0x40`, might relate to:",
+        "- **T1629** - Resource Hijacking: If these manipulations are used to execute shellcode or redirect execution flow maliciously. - **T1140** - Deobfuscate/Decode Files or Information: If the stack",
+        "manipulations help in deobfuscating or decoding information during the program's execution.",
+        "While these are potential MITRE techniques that could be related, the specific purpose of these assembly instructions and the functions being called would provide more clarity on which MITRE",
+        "ATT&CK techniques they align with. If the functions called (`sub_0x00000040A` and `sub_0x000005030`) are benign routine operations, then they might not be indicative of any specific malicious",
+        "technique. Further analysis of the functions and the overall purpose of the code is necessary.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code appears to be involved in executing a program using the `ShellExecuteA` function call. This function is a common method used by malware to execute another application",
+        "or script, often to run a payload or maintain persistence on the system.",
+        "The relevant MITRE ATT&CK technique for this behavior is associated with command and script execution, specifically through API calls such as `ShellExecute`. The technique is:",
+        "- **T1059.003: Command and Scripting Interpreter: Windows Command Shell**",
+        "While `ShellExecuteA` is not an interpreter per se, using Windows API calls to execute commands or programs is a method that aligns with executing via the Windows Command Shell concepts.",
+        "If you are looking for other relevant techniques that involve executing another program via API calls typically seen in Windows environments, you might consider:",
+        "- **T1203: Exploitation for Client Execution** (if this is part of a larger exploit chain) - **T1106: Native API** (using native Windows API for execution)",
+        "Given just the shell function execution, T1059.003 should be directly related when focusing on use cases involved with shell execution specifically in the context of Windows environment.",
+        "Close"
+    ]
+}

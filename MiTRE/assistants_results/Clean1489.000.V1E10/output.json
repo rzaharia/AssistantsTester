@@ -1,0 +1,159 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1050.002",
+                "T1050",
+                "T1036",
+                "T1486",
+                "T1499"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.012",
+                "T1055.001",
+                "T1055.012",
+                "T1055.001",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1569.002",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1569.002",
+                "T1570",
+                "T1622",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1564",
+                "T1055",
+                "T1622"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1050.002 (New Service)**",
+        "**Rationale:**",
+        "The code shows the creation of a new Windows service (\"MyService\") with a suspicious binary path. Let's break down the key indicators:",
+        "* **`push 0x403000`**: This pushes the address of a string onto the stack. The string contains the command to create a service. * **`\"sc create MyService binPath= cmd.exe /c",
+        "C:\\Windows\\System32\\net.exe stopp MSSQLSERVER\"`**: This is the most telling part. It uses the `sc` (Service Control) utility to create a service named \"MyService.\" Crucially, the `binPath` is",
+        "set to execute `cmd.exe` with the argument `/c`, followed by a command to stop the MSSQLSERVER service. This is highly suspicious, as legitimate services rarely use `cmd.exe` in this manner, and",
+        "stopping other services suggests disruptive intent. * **`call (null)`**: This null pointer is likely a placeholder which, in the actual running malware, would represent an address dynamically",
+        "loaded from an imported API function, possibly related to service creation. This would be a function within something like `advapi32.dll`.",
+        "**Additional Considerations:**",
+        "* **Masquerading:** The use of `net.exe` to stop the SQL Server might be an attempt to perform the malicious action in a less obvious way. Although not directly reflected in a specific",
+        "sub-technique of T1050, it's related to broader techniques like **T1036 (Masquerading)**. * **Impact:** Stopping the MSSQLSERVER service would disrupt database operations, which could be part of",
+        "a larger attack aimed at denial of service or data manipulation. This potentially aligns with impact-focused techniques like **T1486 (Data Destruction)** or **T1499 (Endpoint Denial of",
+        "Service)**, though it's essential to analyze the full context of the malware to confirm the ultimate objective. * **Code Injection (Possible, but not conclusive):** While the code doesn't",
+        "explicitly demonstrate code injection, the use of `cmd.exe` and the unusual `binPath` raises suspicion. Further analysis would be necessary to determine if this technique is being employed in",
+        "conjunction with the service creation.",
+        "It's important to note that analyzing a small snippet of assembly code provides limited visibility into the complete attack. The presence of other malicious behaviors is likely. This analysis",
+        "focuses on the most prominent technique indicated by the provided code.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code shows signs of process injection (specifically, DLL injection) but doesn't offer enough detail to pinpoint exact MITRE ATT&CK techniques with high confidence. Here's a",
+        "breakdown and the *most likely* mappings, along with why further context is essential:",
+        "* **Code Setup (Prologue):** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, etc. This is standard function prologue code, setting up the stack frame. Not directly indicative of any",
+        "specific ATT&CK technique.",
+        "* **Suspicious Call 1:** `mov ecx, 0x40609f`, `call sub_0x00000040A`. This loads a value (possibly a function pointer or string address) into `ecx` and calls another function. Without knowing",
+        "what `sub_0x00000040A` does, it's difficult to be specific. This *could* be related to: * **T1055.001 (Process Injection: Dynamic-link Library Injection):** If `sub_0x00000040A` resolves API",
+        "calls like `LoadLibraryA` or `GetProcAddress` or manually maps a DLL, this would strengthen this hypothesis. * **T1055.012 (Process Injection: Thread Execution Hijacking):** Less likely with",
+        "this snippet alone, but possible if the called function manipulates thread contexts.",
+        "* **Suspicious Call 2:** `push 5`, `push 0x403000`, `call sub_0x000005004`. Pushing `5` is intriguing. It might represent a system call number (but this is platform-dependent). `0x403000` could",
+        "be an address. Depending on what `sub_0x000005004` does, this reinforces the possibility of injection. The value 5, in the context of Windows system calls, could correspond to",
+        "`NtCreateThreadEx`, which is frequently used in injection. So, this strengthens the T1055.001 and T1055.012 assessments.",
+        "* **Code Cleanup (Epilogue):** `xor eax, eax`, `pop edi`, etc. Standard function epilogue, restoring the stack and registers. Not indicative of any ATT&CK technique.",
+        "**Why More Context Is Crucial:**",
+        "* **Function Identities:** We *must* know what `sub_0x00000040A` and `sub_0x000005004` do to be certain. Disassembling or debugging these functions is essential. * **Values Loaded:** The meaning",
+        "of `0x40609f` and `0x403000` depends on the broader program context. Are they pointers to strings, function pointers, or something else",
+        "Linux, etc.) is critical for interpreting system call numbers and API usage patterns.",
+        "**In summary, with the available information, the *most likely* MITRE ATT&CK techniques are:**",
+        "* **T1055.001 (Process Injection: Dynamic-link Library Injection):** This is a strong possibility given the function calls and pushed arguments. * **T1055.012 (Process Injection: Thread",
+        "Execution Hijacking):** This is less likely without more context, but still possible.",
+        "Further analysis is absolutely required to confirm these or identify other relevant techniques. Without it, any mapping remains speculative.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.001 - Process Injection: Dynamic-link Library Injection**",
+        "**Rationale:**",
+        "1. **`push 5` and `push 0x403000` followed by `call (null)`**: This sequence is highly indicative of DLL injection. `0x403000` likely represents the address of a string containing the path to",
+        "the DLL to be injected. The value `5` corresponds to the `LoadLibraryA` function ordinal. The `call (null)` instruction would resolve to a function pointer obtained earlier, likely representing",
+        "the address of `LoadLibraryA` within kernel32.dll. This is a common shellcode pattern for injecting a DLL.",
+        "2. **Prolog and Epilog:** The `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` instructions at the beginning form a standard function prolog, setting up the stack",
+        "frame. The corresponding instructions at the end (`xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret`) restore the registers and return from the function. This",
+        "structure is typical for a self-contained piece of code, possibly shellcode, that performs a specific task",
+        "3. **`call sub_0x00000040A`**: This call to an unknown subroutine is suspicious. It could be responsible for tasks related to the injection process, such as resolving the address of",
+        "`LoadLibraryA` or obtaining a handle to the target process.",
+        "**Additional Considerations:**",
+        "It's crucial to note that this analysis is based solely on the provided assembly code snippet. Without further context (e.g., the surrounding code, the target process, dynamic analysis), it's",
+        "impossible to be completely certain about the intent. The `call sub_0x00000040A` instruction hides critical details. However, the identified pattern strongly suggests DLL injection.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code appears to be part of a larger function that involves creating a service using the `sc create` command. This action is commonly associated with persistence or",
+        "privilege escalation techniques.",
+        "1. **Creating a Service**: The code includes a `sc create` command, which suggests the goal is to create a Windows service. This activity pertains to creating or modifying a service, which is a",
+        "common malware persistence mechanism.",
+        "- **MITRE ATT&CK Technique**: T1569.002 - **System Services: Service Execution**: This technique indicates the execution of commands or binaries by creating or modifying Windows services.",
+        "2. **Command and Scripting Interpreter**: The command line `cmd.exe /c` is used within the `sc create` command to execute commands. This is indicative of using command-line interfaces for",
+        "executing system commands.",
+        "- **MITRE ATT&CK Technique**: T1059.003 - **Command and Scripting Interpreter: Windows Command Shell**: This technique is used for executing commands via a command-line interface, like the",
+        "Windows Command Prompt.",
+        "While the code logic includes some function calls and stack manipulations, the significant MITRE techniques are related to the command execution through service creation. These actions",
+        "collectively suggest attempts at persistent system modification and command execution.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code shows several common assembly instructions such as managing the stack frame, moving values to registers, calling subroutines, and cleaning up the stack. However,",
+        "based on the given operations, there isn't a specific MITRE ATT&CK technique that can be directly mapped to this code without additional context. Here are some thoughts on what this code snippet",
+        "could be related to in terms of potential MITRE techniques:",
+        "1. **Process Injection**: If the subroutines being called with specific addresses (e.g., `sub_0x00000040A` and `sub_0x000005004`) are intended to inject code into another process or manipulate",
+        "memory in another process, the technique could be: - **T1055**: Process Injection",
+        "2. **Calling Functions or APIs**: If the code is calling specific API functions (especially if `sub_0x00000040A` and `sub_0x000005004` correspond to known functions like `LoadLibrary`,",
+        "`GetProcAddress`, etc.), it might involve: - **T1569.002**: System Services: Service Execution - **T1570**: Lateral Tool Transfer (if it deals with remote code execution)",
+        "3. **Obfuscation or Anti-Analysis**: If the nops (`nop`) or other parts are used to avoid analysis or employ anti-debugging, related techniques might involve: - **T1622**: Debugger Evasion -",
+        "**T1027**: Obfuscated Files or Information",
+        "Without further context on what this assembly code is part of, such as whether it's part of malware, a specific legitimate application, or if it interacts with certain APIs or processes, it is",
+        "difficult to pinpoint the exact MITRE technique. If you have more context or if there are specific functions or routines referenced by these calls, it will help provide a more precise mapping to",
+        "MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code snippet showcases some key techniques commonly associated with malware behaviors and tactics. Here's the breakdown using the MITRE ATT&CK framework format:",
+        "1. **Stack Pivoting/Frame Manipulation**: - **Sub-technique**: The use of `push ebp`, `mov ebp, esp`, `mov esp, ebp`, and `pop ebp` are common operations to set up, manipulate, and restore stack",
+        "frames during function calls. - **MITRE ID**: T1564.1 - Indicator Removal on Host: Block Command Message",
+        "2. **Process Injection** (possible, based on `call sub_0x00000040A` and the manipulation of the stack): - **Call to Other Functions/Subroutines**: The use of `call` instructions could indicate",
+        "execution of other functions potentially used in process injection or function hooking. - **MITRE ID**: T1055.x - Process Injection (performing injections into other processes, though not",
+        "explicitly clear just from this code).",
+        "3. **Use of NOPs**: - **Anti-Analysis and Evasion**: The `nop` instruction can be used for debugging, analysis evasion by padding code to avoid detection, or as part of a larger strategy. -",
+        "**MITRE ID**: T1622 - Debugger Evasion (inserted NOP is often used in sandbox evasion).",
+        "Without additional context (e.g., memory addresses, external dependencies), it's challenging to definitively determine which sub-technique is being applied specifically. However, common MITRE",
+        "techniques relevant to the usage patterns in the assembly snippet have been identified above. For a more accurate mapping, more code context or runtime behavior analysis would be necessary.",
+        "Close"
+    ]
+}

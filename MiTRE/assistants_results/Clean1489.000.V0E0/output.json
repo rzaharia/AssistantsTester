@@ -1,0 +1,158 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003",
+                "T1059.001",
+                "T1059.003",
+                "T1086",
+                "T1086",
+                "T1562.001",
+                "T1562.001",
+                "T1105",
+                "T1105",
+                "T1059.003",
+                "T1086",
+                "T1562.001",
+                "T1105"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.003",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1059",
+                "T1071",
+                "T1134"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.003",
+                "T1218",
+                "T1203"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code demonstrates the following MITRE ATT&CK techniques:",
+        "* **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**",
+        "The code clearly uses `cmd.exe` with `ShellExecuteA`. The `lpParameters` argument passed to `ShellExecuteA` contains a PowerShell command. This might lead one to also consider T1059.001",
+        "(PowerShell), but since `cmd.exe` is being explicitly called and PowerShell is invoked as a parameter within it, T1059.003 is the more direct and accurate technique.",
+        "* **T1086 - Power Shell**",
+        "While `cmd.exe` is used to launch the attack, the core malicious activity is executed using a PowerShell command. The `lpParameters` string shows a PowerShell command designed to disable network",
+        "adapters. Therefore, T1086 should be included.",
+        "* **T1562.001 - Impair Defenses: Disable or Modify System Firewall**",
+        "Although not explicitly manipulating the firewall, disabling network adapters effectively isolates the system from the network, significantly hindering network-based defenses. This disruption of",
+        "network connectivity aligns with the intent of impairing defenses, hence T1562.001 is applicable. This assumes the targeted network adapters are related to external communication. If they are",
+        "internal, this technique might not be completely accurate. Further analysis of the complete codebase and environment would be necessary to definitively confirm this.",
+        "* **T1105 - Ingress Tool Transfer**",
+        "Though not directly shown in this snippet, the PowerShell command \"Fetch-MyWmiObject\" suggests the potential download or retrieval of additional tools or code. While this snippet only shows the",
+        "disabling of network adapters, the use of \"Fetch\" implies that other code might be retrieved and executed. Therefore, T1105 *might* be relevant, but we need more context to be certain. This",
+        "snippet alone does not provide definitive proof of this technique.",
+        "In summary, with high confidence based on the code provided:",
+        "* **T1059.003** * **T1086** * **T1562.001** (with the caveat about potential internal adapters)",
+        "And with lower confidence, needing more context:",
+        "* **T1105**",
+        "It's crucial to remember that static analysis of a small code snippet provides limited context. A more comprehensive analysis of the entire program is necessary for complete and accurate",
+        "technique identification.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates characteristics associated with process injection, specifically **T1055.001 - Process Injection: Dynamic-link Library Injection**.",
+        "Here's why:",
+        "1. **Function Prologue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` - This standard function prologue sets up the stack frame for a new function. This",
+        "itself isn't malicious, but it's part of the overall context.",
+        "2. **Suspicious Call (1):** `mov ecx, 0x40609f`, `call sub_0x00000040A` - The `mov` instruction loads an address (`0x40609f`) into `ecx`. This address likely represents a string (possibly a DLL",
+        "name or a function within a DLL). The subsequent `call` suggests this is a call to a function that might resolve the address of a DLL or a function within it (e.g., `LoadLibraryA` or",
+        "`GetProcAddress`).",
+        "3. **Suspicious Call (2):** The sequence of `push` instructions followed by `call sub_0x000005030` is highly suggestive of a Windows API call related to process manipulation. Specifically,",
+        "pushing multiple addresses and a zero suggests it might be a call to `CreateRemoteThread` or a similar API function used for DLL injection. * `push 0` (Null/LPVOID) - Could be reserved, or a",
+        "parameter indicating no security attributes. * `push 0` (Null/DWORD) - Could be stack size. * `push 0x403000` (LPTHREAD_START_ROUTINE) - This address looks very much like the address of the",
+        "function to be executed in the remote process (the entry point for the injected code). * `push 0x403090` (LPVOID) - Potentially the parameter to be passed to the thread function. * `push",
+        "0x40309c` (HANDLE) - This could be the handle to the target process. * `push 0` (DWORD) - Creation flags. * `call sub_0x000005030` - Likely a wrapper or direct call to `CreateRemoteThread` or a",
+        "related function.",
+        "4. **Function Epilogue:** `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret` - This cleans up the stack and returns control to the caller.",
+        "**In Summary:**",
+        "The assembly code provides strong indicators of DLL injection via `CreateRemoteThread` which falls under **T1055.001**. The code resolves an address (likely a DLL) and then calls a function,",
+        "probably `CreateRemoteThread`, to inject and execute code within another process. The specific addresses pushed onto the stack before the second call suggest the parameters for process",
+        "injection.",
+        "It's important to note that without more context (like the disassembly of the called subroutines, especially `sub_0x000005030`), this is a strong suspicion, not definitive proof. Static analysis",
+        "alone can't always confirm malicious behavior with 100% certainty. Dynamic analysis would be necessary for conclusive evidence.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of `ShellExecuteA`. This maps to **T1059.003**. This technique is \"Command and Scripting Interpreter: Windows Command Shell\". The sub-technique 003 specifically",
+        "refers to using \"ShellExecute\".",
+        "Therefore, the MITRE ATT&CK technique is **T1059.003**.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code appears to perform process injection or script execution through the `ShellExecuteA` API, which is commonly used in various Windows techniques to execute",
+        "additional scripts, files, or commands. In this specific instance, it calls PowerShell through `cmd.exe` to execute a command that disables network adapters.",
+        "Based on this behavior, the MITRE ATT&CK technique that most closely matches is:",
+        "- **Command and Scripting Interpreter: Windows Command Shell (T1059.003)**",
+        "This technique involves the use of operating system command-line interpreters to execute commands or scripts that can perform various actions on behalf of an adversary. In this case, `cmd.exe`",
+        "is used to execute a PowerShell command designed to disable network adapters.",
+        "If other elements of the context suggested exploitation of the `ShellExecuteA` function specifically to bypass restrictions or evade defenses, this could also align with defense evasion",
+        "techniques, but given the detail provided, T1059.003 is the primary technique.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing the provided x86 assembly code snippet, there are several MITRE ATT&CK techniques that this code might correspond to, depending on the context in which it is used. Here",
+        "of the techniques associated with the assembly structures present in the code:",
+        "1. **T1055 - Process Injection**: - This code could potentially be part of a process injection technique if `sub_0x000005030` or `sub_0x00000040A` performs operations such as memory allocation",
+        "in another process's space or triggering remote thread execution. The context and actual implementation of these subroutines are needed to confirm this.",
+        "2. **T1027 - Obfuscated Files or Information**: - The use of numerous pushes and nested calls without further context could suggest obfuscation. Obfuscation can involve confusing or hiding the",
+        "logic, making the analysis more challenging.",
+        "3. **T1059 - Command and Scripting Interpreter**: - If `sub_0x00000040A` or `sub_0x000005030` involves scripting or command execution, this could fall under executing code through an",
+        "interpreter.",
+        "4. **T1071 - Application Layer Protocol**: - If any of the subroutines are involved in network communication using standard protocols at the application layer, this technique might be",
+        "applicable.",
+        "5. **T1134 - Access Token Manipulation**: - If access tokens are modified or spoofed inside the subroutines, this technique might be relevant.",
+        "Since the real identification depends largely on the functionality of `sub_0x00000040A` and `sub_0x000005030`, without the surrounding code or analysis of these specific functions, the exact",
+        "techniques applied remain speculative. To strictly adhere to MITRE's format: T<techniqueID>.<sub-techniqueID> based on the incomplete provided code alone without specific sub-technique context",
+        "from the ATT&CK framework is a challenge. However, I can surmise these broader categories as potential fits. Therefore, further examination with the actual implementation and context around",
+        "these functions is crucial to generate confident mappings of MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code includes a call to the `ShellExecuteA` function, which can be used to execute or open files, applications, or URLs. Within the context of the MITRE ATT&CK",
+        "framework, this behavior is typically associated with the following technique:",
+        "- **T1059.003: Command and Scripting Interpreter: Windows Command Shell**",
+        "This technique involves using command and scripting interpreters for execution, and `ShellExecuteA` is one method to achieve this within the Windows environment. However, depending on the",
+        "broader context and additional behaviors, it might also relate more specifically to:",
+        "- **T1218: System Binary Proxy Execution**",
+        "This broader technique involves abusing trusted system processes or applications to execute malicious payloads.",
+        "If the intention behind this code is to run a potentially malicious application or perform unauthorized actions, it could also suggest:",
+        "- **T1203: Exploitation for Client Execution**",
+        "Depending on the actual goals and how `ShellExecuteA` is used.",
+        "However, I should note that `ShellExecuteA` is commonly leveraged in benign contexts, and the specific technique ID might vary based on how this function call is utilized within a full malware",
+        "sample's behavior or overall attack chain.",
+        "Close"
+    ]
+}

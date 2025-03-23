@@ -1,0 +1,151 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1562.001"
+            ],
+            "valid": [
+                "T1562.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1055.001",
+                "T1059.001",
+                "T1218.011",
+                "T1055.004"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001",
+                "T1059.003",
+                "T1562.004"
+            ],
+            "valid": [
+                "T1562.004"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1140",
+                "T1059.006",
+                "T1055",
+                "T1203"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "* **T1562.001. Impair Defenses: Disable or Modify Tools**",
+        "**Rationale:**",
+        "The code snippet shows a call to `System` (implied by `call (null)` after pushing a string resembling a command and the value 5, which is the `System` function ID in Windows APIs). The command",
+        "being executed is `\"netsh advfirewall firewall delete rule name=\"My Rule\"\"`. This command specifically disables a firewall rule. Disabling a firewall rule weakens system defenses, allowing",
+        "potentially malicious traffic or activity to go unchecked. This aligns directly with the \"Disable or Modify Tools\" sub-technique of \"Impair Defenses.\"",
+        "It's important to note that while this analysis is highly probable, without complete context (the nature of `sub_0x00000040A`, for instance), we cannot be 100% certain. However, the evidence",
+        "strongly points toward the identified technique.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet suggests a few potential MITRE ATT&CK techniques, but without more context, it's difficult to pinpoint the exact intention. Here's a breakdown and the most",
+        "likely associated techniques:",
+        "* **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` (prologue) and `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`,",
+        "`pop ebp`, `ret` (epilogue) are standard function setup and teardown. This doesn't directly map to a MITRE technique, but it's the foundation for any code execution.",
+        "* **Call to `sub_0x00000040A`:** `mov ecx, 0x40609f`, `call sub_0x00000040A` This indicates a call to another function. The value `0x40609f` moved into `ecx` is likely a parameter or a pointer",
+        "to data. Without knowing what `sub_0x00000040A` does, it's impossible to map it to a MITRE technique. It *could* be involved in various actions.",
+        "* **Call to `sub_0x000005004`:** `push 5`, `push 0x403000`, `call sub_0x000005004` Similar to the previous call, this invokes a function at address `0x000005004`. The pushed values `5` and",
+        "`0x403000` are parameters. `0x403000` looks like a memory address, possibly a string or data structure. Again, without context on `sub_0x000005004`'s purpose, we can't definitively assign a",
+        "MITRE technique. However, given the memory address being passed as a parameter, some possibilities include:",
+        "* **T1005.001 - Process Injection (Process Hollowing):** If `sub_0x000005004` is writing to the memory location pointed to by `0x403000` and that memory belongs to another process, this could be",
+        "process hollowing. * **T1055.001 - Process Injection (Dynamic-link Library Injection):** The `5` value pushed onto the stack might be a flag or argument related to DLL injection. * **T1059.001 -",
+        "Command and Scripting Interpreter:** The value at `0x403000` might be a command to be executed. * **T1218.011 - Signed Binary Proxy Execution:** The called function could be loading and",
+        "executing a signed binary from the specified address. * **T1055.004 - Process Injection (Thread Execution Hijacking):** Less likely but possible, given the specific arguments.",
+        "* **`xor eax, eax`:** Sets the `eax` register to zero. This is a common practice for clearing registers or setting a return value of 0. Not directly a MITRE technique.",
+        "**In summary:**",
+        "Due to the lack of context around the called functions, it's extremely difficult to tie this code to specific MITRE techniques with certainty. The most we can do is speculate based on the",
+        "observed function calls and parameters. Further analysis of `sub_0x00000040A` and `sub_0x000005004` is absolutely crucial for a more accurate assessment. If you have more information about those",
+        "functions, such as what they do or the surrounding code, a more precise mapping to MITRE ATT&CK would be possible.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.001 - Process Injection: Dynamic-link Library Injection**",
+        "**Rationale:**",
+        "1. **`push 5` and `push 0x403000` followed by `call (null)`:** This sequence strongly indicates a call to the `LoadLibrary` API function. `0x403000` likely represents the address of a string",
+        "containing the DLL name or path. The value `5` (or `LOAD_WITH_ALTERED_SEARCH_PATH` flag) modifies DLL search order. While not strictly necessary for DLL injection, its presence further supports",
+        "this hypothesis.",
+        "2. **`call sub_0x00000040A`:** This call to an unknown subroutine *could* be responsible for resolving the address of `LoadLibrary` dynamically using `GetProcAddress`, a common technique to",
+        "obfuscate API calls and evade static analysis. The address `0x40609f` moved into `ecx` before the call likely serves as an argument (e.g., a handle to `kernel32.dll` or the name of",
+        "`LoadLibraryA`).",
+        "3. **Standard function prologue/epilogue:** The `push ebp`, `mov ebp, esp`, etc. instructions form a standard function prologue and epilogue, suggesting this code snippet is a function dedicated",
+        "to performing a specific action - in this case, likely injecting a DLL. The stack frame setup (`sub esp, 0x40`) allocates local space, possibly for storing strings or other data used during the",
+        "injection process.",
+        "**Caveats:**",
+        "Without the code of `sub_0x00000040A` or further context, this assessment is based on strong circumstantial evidence. We are making an educated guess about the purpose of `sub_0x00000040A` and",
+        "the value stored at `0x40609f`. If `sub_0x00000040A` does something other than obtain the `LoadLibrary` address or if the `call (null)` instruction is repurposed (e.g., a jump to a calculated",
+        "address after resolving a function pointer), then the technique might be different. A dynamic analysis of the code in a controlled environment would be necessary to confirm with 100% certainty.",
+        "**No evidence for other common injection techniques:**",
+        "* We don't see code patterns associated with techniques like `CreateRemoteThread`, `QueueUserAPC`, or `SetWindowsHookEx`. * There's no shellcode injection apparent in this snippet.",
+        "It's *possible* that other techniques are also in use, but based on the limited information available, **T1055.001** is the most likely candidate.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The given x86 assembly code includes actions that suggest process injection or manipulation of firewall settings via command execution. Specifically, the presence of:",
+        "1. A call that appears to execute a function (likely `sub_0x00000040A`) and 2. The use of system commands like modifying firewall rules (indicated by the `netsh` command string for deleting a",
+        "firewall rule),",
+        "common tactics associated with manipulating system operations. These can map to the following MITRE ATT&CK techniques:",
+        "1. **T1059.001 - Command and Scripting Interpreter: PowerShell**: The code is using a command that can be run via a command shell to manipulate firewall rules. Although the direct technique for",
+        "Windows Command Shell is T1059.003, the example provided seems more indicative of scripting or command execution.",
+        "2. **T1562.004 - Impair Defenses: Disable or Modify System Firewall**: The action of deleting a firewall rule with a command is an example of impairing defenses by modifying the system's",
+        "firewall configuration.",
+        "These are the MITRE techniques that are most relevant to the actions shown in your assembly code snippet.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code provided might be indicative of a few MITRE ATT&CK techniques, depending on the context and behavior of the functions being called and the overall purpose of this routine.",
+        "Here",
+        "1. **T1055: Process Injection** - If functions like `sub_0x00000040A` or `sub_0x000005004` involve code injection methods, such as `CreateRemoteThread`, `SetWindowsHookEx`, or similar techniques",
+        "commonly used to inject code into other processes, this would be a relevant technique.",
+        "2. **T1027: Obfuscated Files or Information** - Given the use of function calls with seemingly arbitrary constants and if these functions are implementations of encoded or encrypted payloads,",
+        "this technique could apply.",
+        "3. **T1106: Native API** - If the subroutine calls interact directly with Windows API or other native APIs to perform tasks that could achieve defense evasion or other purposes, this technique",
+        "would be involved.",
+        "Without specific details on what the `sub_0x00000040A` and `sub_0x000005004` functions are doing, these are educated guesses. If more context is provided about what those functions entail, more",
+        "precise mapping to MITRE techniques could be made.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "This assembly code snippet demonstrates several operations that could be associated with different MITRE ATT&CK techniques. Here's an analysis of some potential techniques based on the provided",
+        "assembly code:",
+        "1. **Stack Pivoting / Stack Manipulation**: - The instructions `push ebp`, `mov ebp, esp`, `sub esp, 0x40` involve setting up a stack frame, a standard operation in many functions, where a new",
+        "stack frame is created. However, together with the operations of manipulating the stack and registers (`push` and `pop` instructions), these can be associated with attempts to manipulate the",
+        "stack, which could fall under: - **T1140**: Deobfuscate/Decode Files or Information - If this manipulation was used for indirect execution or code obfuscation by using the stack in unusual ways.",
+        "2. **Function Call**: - The `call sub_0x00000040A` instruction indicates a call to a subroutine, potentially executing additional code. This can relate to: - **T1059.006**: Command and Scripting",
+        "Interpreter: Operating System Control - if it's used to call system functions or influence control flow. 3. **API Call / Code Injection**: - The `call (null)` pattern (which points to a",
+        "potentially dynamically resolved API function) can indicate attempts to directly control execution flow through dynamic resolution or injection. This can fall under: - **T1055**: Process",
+        "Injection - if it involves calling routines in another process space or using API to interact dynamically and redirect code execution. 4. **NOP Sled**: - The `nop` instruction is traditionally",
+        "used in buffer overflow exploits and code alignment. In the context of exploitation: - **T1203**: Exploitation for Client Execution - if the `NOP` sled is used as part of a buffer overflow",
+        "strategy. Note that while these techniques offer potential mappings, the actual context of the assembly code and surrounding activities in a broader program or malware sample are essential for a",
+        "more precise mapping to MITRE ATT&CK techniques. Each technique involves specific behavior patterns that might overlap or require multiple points of evidence from the entire behavior of a system",
+        "or malware.",
+        "Close"
+    ]
+}

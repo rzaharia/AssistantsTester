@@ -1,0 +1,209 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1059.001",
+                "T1005",
+                "T1560.001",
+                "T1047",
+                "T1055.003",
+                "T1059.001",
+                "T1005",
+                "T1560.001",
+                "T1047"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1055.001",
+                "T1059.001",
+                "T1140",
+                "T1490",
+                "T1086"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1543.003",
+                "T1059",
+                "T1543",
+                "T1055.002",
+                "T1055.012",
+                "T1086",
+                "T1547.001",
+                "T1005",
+                "T1552.001",
+                "T1542.003",
+                "T1574.010",
+                "T1059",
+                "T1543",
+                "T1086"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1106",
+                "T1027",
+                "T1055",
+                "T1036",
+                "T1569.002",
+                "T1203",
+                "T1070.004",
+                "T1105"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1553",
+                "T1112",
+                "T1016",
+                "T1083",
+                "T1057",
+                "T1105"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1082",
+                "T1222",
+                "T1489",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of process injection (creating a new process and writing data to it) and potential data exfiltration. Based on the provided code, here's a breakdown of the",
+        "potential MITRE ATT&CK techniques:",
+        "* **T1055.003 - Process Injection: Process Hollowing:** The code allocates memory, writes data to it, and then creates a process using `CreateProcessA`. The arguments passed to `CreateProcessA`",
+        "suggest potential process hollowing. The use of `0` for `lpApplicationName` and potential manipulation of the process memory after creation (indicated by writing to memory regions based on",
+        "values stored in `ebp - 4` and `ebp - 0x10`) are consistent with this technique.",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd:** The `lpCommandLine` argument to `CreateProcessA` is \"cmd.exe\", indicating use of the command interpreter. This is a common technique",
+        "used for executing further commands.",
+        "* **T1005 - Data from Local System:** The string \"msadcs.exe \"NTDS.dit\" -s \"USER_SYSTEM\" -p a.txt --users-csv a.csv\" suggests an attempt to access and potentially exfiltrate data from the Active",
+        "Directory database (NTDS.dit). This strongly implies targeting sensitive system data. The use of `WriteFile` to a handle likely acquired from the injected process further supports this.",
+        "* **T1560.001 - Archive Collected Data: Archive via Utility:** The presence of \"a.txt\" and \"a.csv\" in the command line string suggests that the exfiltrated data is being written to files,",
+        "indicating potential data archiving for later exfiltration or analysis.",
+        "* **T1047 - Windows Management Instrumentation:** While not directly visible in the assembly code, the presence of `msadcs.exe` suggests possible interaction with WMI for accessing system",
+        "information, which could be used for discovery or lateral movement. This is a weaker inference based on the provided information.",
+        "**It is important to note:** This analysis is based on limited assembly code. Dynamic analysis and a fuller understanding of the surrounding code would be crucial for confirming these techniques",
+        "and identifying any others that may be in play. For example, the indirect calls (calls to `null`) could represent any number of functions, including other malicious activities. The use of",
+        "`WaitForSingleObject` suggests waiting for the created process or a related handle, which is typical in process injection scenarios.",
+        "Therefore, based on the available information, the most likely MITRE ATT&CK techniques are: **T1055.003, T1059.001, T1005, and T1560.001**. T1047 is a possibility but requires further",
+        "investigation.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, several MITRE ATT&CK techniques are potentially relevant. It's important to note that static analysis of assembly code can be challenging and may not provide",
+        "a complete picture without understanding the broader context of the program's execution environment. However, based on the provided snippets, here's a breakdown of possible techniques and their",
+        "rationale:",
+        "* **T1005.001.Process Injection:** The code appears to be manipulating memory regions (`mov dword ptr [0x404000]...`, `mov dword ptr [0x404020]...`, etc.), allocating memory (`lea eax, [ebp -",
+        "0x1018]...`), and potentially writing shellcode (`push 0x403010...`, `call sub_0x00000501C`). This combined with calls to other functions which might be API calls like `VirtualAllocEx` or",
+        "`WriteProcessMemory` (which we don't know the exact implementation without more context) strongly suggests process injection might be taking place.",
+        "* **T1055.001.Process Hollowing:** The combination of potential process injection with operations like `mov eax, dword ptr [ebp - 4]` followed by `call sub_0x00000500C` suggests possible",
+        "manipulation of process memory which could be indicative of hollowing out a legitimate process to replace its image with malicious code. However, without further analysis of `sub_0x00000500C` we",
+        "can't be sure.",
+        "* **T1059.001.Command and Scripting Interpreter:** The presence of `lea ecx, [ebp - 0x1010]` followed by a potentially incomplete call instruction suggests that a command or script might be",
+        "being constructed or interpreted. This, combined with the other memory manipulation hints, makes this technique a possibility. It could be used to execute additional commands within the injected",
+        "or hollowed process.",
+        "* **T1140.Deobfuscate/Decode Files or Information:** The numerous memory reads, writes, and manipulations could be part of a deobfuscation process, preparing the shellcode or other malicious",
+        "payload for execution. The jumping around different code blocks (`jne offset_0x0000004AC`, `jmp offset_0x000000607`, etc.) also adds to the suspicion of potential code obfuscation being",
+        "unravelled at runtime.",
+        "* **T1490.Inhibit System Recovery:** While less certain based solely on the assembly snippet, if some of those memory addresses refer to system-critical locations or functions, the writes to",
+        "them could be designed to disable system recovery mechanisms to maintain persistence. More context would be required to confirm this.",
+        "* **T1086.PowerShell:** It's difficult to definitively confirm PowerShell usage solely from assembly, but since PowerShell is frequently used for process injection and post-exploitation",
+        "activities, it remains a possibility within the context of the observed suspicious activities. Additional artifacts and analysis are needed.",
+        "It's crucial to emphasize that these are just potential techniques based on the limited information. Deeper analysis with a debugger or disassembler, and understanding the full functionality of",
+        "the called subroutines is needed for accurate attribution. Furthermore, looking at the full code in context and analyzing the surrounding instructions would greatly improve the precision of",
+        "mapping the behavior to MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of process creation and file writing, suggesting possible process injection or execution. Here's a breakdown and the associated MITRE ATT&CK techniques:",
+        "* **`CreateProcessA`**: This API call is used to create a new process. This is a strong indicator of **T1059.001 (Command and Scripting Interpreter: PowerShell)** if the command line arguments",
+        "suggest PowerShell execution or **T1543.003 (Create or Modify Process: Windows Service)** if a service is being created. Without knowing the contents of `0x403000` (lpCommandLine), it's",
+        "difficult to be more specific, but generically this could be **T1059 (Command and Scripting Interpreter)** or **T1543 (Create or Modify Process)**. It is also very commonly used in **T1055.002",
+        "(Process Injection: CreateRemoteThread)** and **T1055.012 (Process Injection: Thread Execution Hijacking)**, although I don't see direct evidence of that here (we don't see `VirtualAllocEx`,",
+        "`WriteProcessMemory`, `CreateRemoteThread`, `SetThreadContext`, etc).",
+        "* **`WriteFile`**: This API call writes data to a file. The data being written appears to come from a string at address `0x403010`. If the created process is malicious, then this could indicate",
+        "**T1086 (Data Encoded)**, as the string at `0x403010` may contain an encoded payload which is then written to a file. This may then be decoded and executed. Additionally, depending on what is",
+        "being written, this could also be **T1547.001 (Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder)** if it is writing a payload that is intended to execute at boot, for",
+        "example. It could also fall under **T1005 (Data from Local System)** or **T1552.001 (Unsecured Credentials: Credentials In Files)** depending on the specifics.",
+        "* **`CloseHandle`**: This is standard practice after working with handles and doesn't directly map to a MITRE ATT&CK technique by itself. It's a good sign the code is attempting to clean up",
+        "after itself.",
+        "* **`WaitForSingleObject`**: This call suggests the code is waiting for something, likely the process it created. This could also fall under **T1542.003 (Hijack Execution Flow: DLL",
+        "Side-Loading)** or **T1574.010 (Hijack Execution Flow: DLL Search Order Hijacking)**.",
+        "* **`lstrlenA`**: This is simply getting the length of a string and doesn't map to a specific technique.",
+        "* **`call (null)`**: Calls to a null pointer are highly suspect and could indicate corrupted code, a crash attempt, or an anti-debugging trick. It makes static analysis difficult. This behavior",
+        "doesn't map directly to a MITRE technique, but the fact that we see several such null calls is suspicious in general.",
+        "* **Storing values in memory**: The code stores data at specific memory locations (`0x404000`, `0x404004`, etc.). While common in programs, it's worth noting because malware can also use this",
+        "technique to store configuration data, shellcode, or other malicious payloads, and some exploits rely on manipulating program memory.",
+        "**In Summary**",
+        "Without knowing the data at `0x403000` and `0x403010`, it's impossible to give precise MITRE ATT&CK techniques. However, the combination of `CreateProcessA`, `WriteFile`, and",
+        "`WaitForSingleObject` strongly suggests process execution and file manipulation, making the following techniques the most likely candidates:",
+        "* **T1059 (Command and Scripting Interpreter)** (Potentially, needs more context) * **T1543 (Create or Modify Process)** * **T1086 (Data Encoded)** (Potentially, needs more context)",
+        "Other techniques mentioned are less likely based on the code provided but are still possibilities depending on the missing context. You would need to dynamically analyze this code (run it in a",
+        "debugger) to definitively determine the exact functionality and therefore the exact MITRE ATT&CK mappings. Examining the memory and strings at the noted addresses would provide more information.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The x86 assembly code you provided appears to be performing several actions, including potentially malicious ones, based on the function calls and operations. Here's a breakdown of some MITRE",
+        "ATT&CK techniques that could be associated with this assembly code:",
+        "1. **T1059.003: Command and Scripting Interpreter: Windows Command Shell** The code includes steps to execute `cmd.exe`, which suggests the use of a Windows command shell interpreter.",
+        "2. **T1106: Execution through API** The code is executing functions via direct API calls, such as `CreateProcessA`, which aligns with this technique.",
+        "3. **T1027: Obfuscated Files or Information** There are calls to `null` which might indicate dynamically resolved or obfuscated function calls, which could be in place to hinder analysis.",
+        "4. **T1055: Process Injection** While not explicitly shown, the use of `CreateProcessA` and manipulation of handles might be indicative of process injection for further execution.",
+        "5. **T1036: Masquerading** The use of a fake executable name (`msadcs.exe`) and file paths might signal attempts to masquerade activity to appear benign or hide its true purpose.",
+        "6. **T1569.002: System Services: Service Execution** Since there",
+        "7. **T1203: Exploitation for Client Execution** The use of `WriteFile`, particularly with the strings provided, could be used to exploit or execute files on the client's machine.",
+        "8. **T1070.004: Indicator Removal on Host: File Deletion** While not explicitly shown, if `msadcs.exe` or related files interact with `WriteFile`, they may later be deleted to erase activity",
+        "traces.",
+        "9. **T1105: Ingress Tool Transfer** The code seems to interact with file writing, potentially using `WriteFile`, which can correspond to downloading/uploading files from/to a remote server.",
+        "Each tactic and technique listed here provides a potential area of analysis for an individual reviewing this assembly code in the context of MITRE ATT&CK. These calls and methods often suggest",
+        "malicious intent, particularly when used together or in the context of executing external processes or manipulating system resources.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code contains various operations, but without specific information about the functions being called (e.g., `sub_0x000005010`, `sub_0x00000500C`, etc.), we can only make",
+        "assumptions based on typical behaviors observed in similar code constructs. However, we can infer some potential MITRE ATT&CK techniques based on common patterns.",
+        "1. **Stack Pivoting and Control Flow**: The use of the stack pointers, calls, and conditional branches might be indicative of techniques that relate to malware control flow manipulation or",
+        "stack-based exploits. This could correspond to: - **T1055 - Process Injection**: If any of these calls relate to code injection techniques using the stack. - **T1553 - Sub-technique ID**: If",
+        "these functions are performing signature manipulation or control flow manipulation, particularly in defensive evasions.",
+        "2. **Registry or Configuration Settings**: If the memory addresses pertain to the registry or key configuration settings, this could involve: - **T1112 - Modify Registry**: If the operations at",
+        "specific addresses are associated with modifying values for persistence.",
+        "3. **Use of APIs**: If the functions named `sub_0x000005000` through `sub_0x000005008` correspond to Windows API calls, such as network communication, process management, or system information",
+        "discovery, you may have: - **T1016 - System Network Configuration Discovery**: If API calls are for inspecting or modifying network settings. - **T1083 - File and Directory Discovery**: If API",
+        "calls are for exploring the filesystem. - **T1057 - Process Discovery**: If calling functions are inspecting running processes. - **T1105 - Ingress Tool Transfer**: If there's a connection to",
+        "downloading or uploading data.",
+        "To more accurately identify MITRE ATT&CK techniques, one would require knowledge of the specific high-level operations or APIs these calls resolve to. These identifications and their associated",
+        "sub-techniques are placeholders based on the sort of activity the assembly indicates in common cases. If you can determine what each `sub_0x00000xxxx` function actually does, that would lead to",
+        "more precise classification.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code carries out several functions that correspond to specific MITRE ATT&CK techniques. Based on the identified patterns, the following are the associated MITRE",
+        "techniques:",
+        "1. **Process Injection (T1055):** The use of `CreateProcessA` suggests the creation of a new process. If this involves injecting, manipulating, or otherwise affecting the execution flow of the",
+        "process in a malicious manner, it relates to process injection. Specifically, creating processes in a way that might not be immediately obvious or intended. No specific sub-technique is provided",
+        "here, because more context is needed to determine the exact method of injection if any took place.",
+        "2. **System Information Discovery (T1082):** Writing or reading particular information to or from specified memory locations often links with gaining system metadata.",
+        "3. **File and Directory Permissions Modification (T1222):** This assembly includes file access and manipulation (via `WriteFile`) which can include attempting to write data or change",
+        "permissions.",
+        "4. **Process Termination (T1489):** The calls to `CloseHandle` can indicate the termination of a process handle, which can be a form of resource cleanup or system termination tasks.",
+        "5. **Execution via API (T1106):** The frequent API calls indicate execution through Application Program Interfaces, which is commonplace in many adversarial techniques.",
+        "Each of these techniques might require further context for precise classification into sub-techniques or to confirm whether these actions are performed with malicious intent. Note that these",
+        "mappings might not be precise without further functional context of the provided assembly code.",
+        "Close"
+    ]
+}

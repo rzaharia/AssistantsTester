@@ -1,0 +1,140 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003",
+                "T1003.002",
+                "T1059.001"
+            ],
+            "valid": [
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.003",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1203",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1027",
+                "T1055",
+                "T1071",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.003",
+                "T1203",
+                "T1106",
+                "T1059.003",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code suggests the following MITRE ATT&CK techniques:",
+        "* **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**",
+        "The code calls `ShellExecuteA` with `cmd.exe` as the file to execute. The `lpParameters` argument is a string located at address `0x403000` which appears to contain the command `\"msadcs.exe",
+        "\"USER.dit\" -s \"SYSTEM\" -p a.txt --users-csv a.csv\"`. This indicates the use of `cmd.exe` to run `msadcs.exe`, a tool often associated with Active Directory database extraction. The arguments",
+        "further suggest dumping user and system credentials.",
+        "* **T1003.002 - OS Credentials Dumping: LSASS Memory**",
+        "While the code doesn't directly interact with LSASS, the usage of `msadcs.exe` with the provided parameters strongly suggests the attacker's intent is to dump credentials, likely from the Active",
+        "Directory database. However, without further context or analysis of `msadcs.exe` itself, it's impossible to definitively say whether LSASS is being targeted specifically. The code could",
+        "potentially be dumping credentials stored in other locations (e.g., the Active Directory database files themselves).",
+        "* **T1059.001 - Command and Scripting Interpreter: PowerShell** is less likely. While not directly shown in this snippet, the fact that `cmd.exe` is being used leaves open the *possibility* that",
+        "PowerShell could be invoked subsequently through the command shell. However, with the current evidence, it's speculative.",
+        "It's important to note that this analysis is based on a small snapshot of assembly code. A broader view of the program's execution would provide more context and potentially reveal additional",
+        "techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, though definitive identification requires more context. Here's a breakdown and the most likely associated",
+        "techniques:",
+        "* **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` (prologue) and `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`,",
+        "`pop ebp`, `ret` (epilogue) are standard function setup and teardown. These don't directly map to a MITRE ATT&CK technique. They're just how functions manage stack frames.",
+        "* **Call to `sub_0x00000040A`:** `mov ecx, 0x40609f`, `call sub_0x00000040A` This is a call to a subroutine. Without knowing what `sub_0x00000040A` does, we can't associate a technique. It could",
+        "be anything.",
+        "* **Potential API Call Setup (Speculative):** `push 0`, `push 0`, `push 0x403000`, `push 0x40304c`, `push 0x403058`, `push 0` This looks like it's setting up arguments for a subsequent function",
+        "call. The addresses being pushed (0x403000, 0x40304c, 0x403058) might be pointers to strings or data structures.",
+        "* **Call to `sub_0x000005030`:** `call sub_0x000005030` Again, this is a call to a subroutine. The crucial point is that *if* `sub_0x000005030` is a Windows API call (or a wrapper around one),",
+        "and based on the preceding pushes seeming to set up arguments, we *might* be able to infer the API call and then associate a MITRE technique.",
+        "**Possible Scenarios and Associated Techniques (Highly Speculative):**",
+        "1. **Process Injection (If `sub_0x000005030` is related to process creation/manipulation):** If the API call being set up is something like `CreateRemoteThread`, `WriteProcessMemory`, or other",
+        "functions used for process injection, then we might have:",
+        "* **T1055.003: Process Injection:** Specifically, if `sub_0x000005030` wraps functionality related to injecting code into another process. This is highly dependent on what `sub_0x000005030`",
+        "actually does. The pushed addresses could be a function pointer, shellcode, or data to be written.",
+        "2. **Dynamic-Link Library Injection (Similar to Process Injection but more specific):** If the calls involve loading a DLL into another process:",
+        "* **T1055.001: Dynamic-link Library Injection:** Similar to the above, but specifically if the mechanism is DLL injection.",
+        "3. **Native API Calls (Very broad):** Without more context, this is the most general case. It's possible that `sub_0x000005030` is making a call to some other Windows API function for file",
+        "system access, registry modification, network communication, etc. In those cases, you'd need to know *which* API function to map to a specific technique.",
+        "**Key Takeaway:** We need more information to confidently associate MITRE ATT&CK techniques. Specifically, we need to know what `sub_0x00000040A` and `sub_0x000005030` do. Disassembling or",
+        "debugging those subroutines would be the next step in analysis. Static analysis tools might be able to help resolve these calls if they have symbol information or if they can infer the API calls",
+        "based on argument patterns.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows the use of `ShellExecuteA`. This maps to **T1059.003**. This technique is \"Command and Scripting Interpreter: Windows Command Shell\". The sub-technique 003 specifically",
+        "calls out `ShellExecute`.",
+        "Therefore, the MITRE ATT&CK technique is **T1059.003**.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided assembly code demonstrates the use of the `ShellExecuteA` function, which is typically used to execute another program. Since this is indicative of executing a command or process,",
+        "we can associate this code snippet with certain MITRE ATT&CK techniques related to execution.",
+        "The relevant MITRE ATT&CK technique for this activity is:",
+        "- **T1203**: Exploitation for Client Execution - **T1059.003**: Command and Scripting Interpreter: Windows Command Shell",
+        "The use of `ShellExecuteA` to run a command like this is viewed as a common way to execute commands or launch applications in a Windows environment.",
+        "As of the latest MITRE ATT&CK framework updates, techniques and sub-techniques continue to evolve. If additional context implies different behavior (e.g., specifics about privilege escalation,",
+        "persistence, or other phases), there may be more applicable techniques to consider.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code snippet is a general function prologue and epilogue with calls to two subroutines. Without specific context, it is challenging to definitively assign it to a",
+        "particular MITRE ATT&CK technique or sub-technique. However, we can discuss its potential use in certain techniques:",
+        "1. **Subroutine Calls**: The `call` instructions invoke subroutines at `sub_0x00000040A` and `sub_0x000005030`. Depending on the implementation of these subroutines, they might be associated",
+        "with various techniques. For example, if the subroutines are responsible for loading additional code or modules, they could be related to: - **T1059**: Command and Scripting Interpreter -",
+        "**T1027**: Obfuscated Files or Information (if the subroutine involves any form of obfuscation or packing).",
+        "2. **Stack Manipulation**: The use of stack operations (`push`, `pop`, etc.) is common in calling conventions but in a broader context might relate to: - **T1055**: Process Injection, if this",
+        "code were part of a broader process injection technique using stack manipulation.",
+        "3. **Zeroing a Register**: The operation `xor eax, eax` is often used to zero the `eax` register, which in some contexts might be used to hide or clear traces.",
+        "4. **General Function Prologue/Epilogue**: This sequence of instructions might align with a standard technique if placed within remediation or modification of a program",
+        "**T1071**: Application Layer Protocol, if these calls were sending or receiving network communications in a controlled or modified form. - **T1106**: Native API, because it might involve direct",
+        "system calls based on what the subroutine does.",
+        "Without more specific functionality derived from the subroutine or the context in which this assembly is used, it is difficult to assign it an exact MITRE technique ID. For a more precise",
+        "mapping, the specific actions of the subroutines and the overall purpose of the code within the program or malware would need to be analyzed.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code makes a call to the `ShellExecuteA` function, which indicates execution of a program or command. This technique is commonly associated with process injection or",
+        "execution techniques in adversary tactics. The specific MITRE ATT&CK technique relevant to this behavior is:",
+        "- **Technique**: T1059.003 - Command and Scripting Interpreter: Windows Command Shell",
+        "Additionally, since `ShellExecuteA` can be used to execute operating system commands or launch other executables, it might relate to the more general:",
+        "- **Technique**: T1203 - Exploitation for Client Execution",
+        "If this was used to run a specific intended program or script using the Windows API, it could also be associated with:",
+        "- **Technique**: T1106 - Native API",
+        "For completeness, if the purpose of this code were more specifically known, such as downloading or running specific utilities for further actions, other techniques might be considered, but based",
+        "on the code and context provided, T1059.003 and T1106 are the most relevant.",
+        "Close"
+    ]
+}

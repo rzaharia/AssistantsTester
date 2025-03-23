@@ -77,6 +77,7 @@ def process_thread(thread_id, tasks):
         output = run_gview(program_location, file_location)
         with open(output_location, 'w') as f:
             f.write(output)
+        time.sleep(2)
 
 
 def obtain_executable(source_name, just_name):
@@ -185,6 +186,18 @@ def collect_assistants_output(assistant_name, suffix=''):
         gview_out_file = os.path.join(problem_folder, out_file_name)
         if os.path.exists(gview_out_file):
             print('Already exists: ' + file)
+            # output = run_gview(gview_location, file_location)
+            # prompt_file = os.path.join(problem_folder, 'prompt.json')
+            # prompt = {}
+            # with open(r'D:\todo\my_examples\s3\prompt.data', 'r') as f:
+            #     prompt_cmd = f.read()
+            # prompt['cmd'] = prompt_cmd
+            # if file.startswith('Clean'):
+            #     prompt['expected_output'] = 'Nothing'
+            # else:
+            #     prompt['expected_output'] = '.'.join(file.split('.')[:2])
+            # with open(prompt_file, 'w') as f:
+            #     json.dump(prompt, f, indent=4)
             continue
         tasks.append([file_location, gview_out_file])
         # output = run_gview(gview_location, file_location)
@@ -358,8 +371,8 @@ def delete_assistant_results(assistant_name, suffix=''):
 
 def main():
     print('Starting RUN ' + str(CURRENT_RUN))
-    # suffix = ''
-    suffix = '_no_imports_no_strings'
+    suffix = ''
+    # suffix = '_no_imports_no_strings'
     # suffix = '_yes_imports_no_strings'
     print('Suffix: ' + suffix)
     # collect_binaries()

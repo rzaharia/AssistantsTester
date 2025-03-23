@@ -1,0 +1,211 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.006",
+                "T1547.001",
+                "T1053.005",
+                "T1562.001",
+                "T1055",
+                "T1105",
+                "T1070.004"
+            ],
+            "valid": [
+                "T1562.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1001.002",
+                "T1105.001",
+                "T1056.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1005.003",
+                "T1005.004",
+                "T1055.002",
+                "T1107.001",
+                "T1547.001",
+                "T1047.001",
+                "T1005.001",
+                "T1005.003",
+                "T1005.004",
+                "T1055.002",
+                "T1107.001",
+                "T1547.001",
+                "T1047.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1021.004",
+                "T1562.004",
+                "T1204.002",
+                "T1105",
+                "T1055",
+                "T1106"
+            ],
+            "valid": [
+                "T1562.004"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055",
+                "T1055",
+                "T1055.001",
+                "T1059",
+                "T1106",
+                "T1553",
+                "T1480",
+                "T1480",
+                "T1480.001",
+                "T1059",
+                "T1106",
+                "T1557",
+                "T1558",
+                "T1055.011"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1027.005",
+                "T1105",
+                "T1070.004",
+                "T1059.001",
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows several MITRE ATT&CK techniques:",
+        "* **T1059.006 - Command and Scripting Interpreter: Batch Script:** The code creates and writes commands to an \"example.bat\" file, indicating the use of batch scripting.",
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** While not directly evident in the assembly code itself, the presence of a batch script suggests the",
+        "possibility of it being used for persistence via startup execution. This could be achieved by placing the batch file in the startup folder or adding a registry key for execution upon logon.",
+        "Further analysis would be needed to confirm this, as the provided code only creates the batch file.",
+        "* **T1053.005 - Scheduled Task/Job: Scheduled Task:** Similarly, while the code doesn't explicitly create a scheduled task, the batch script could be executed by a pre-existing or subsequently",
+        "created scheduled task. Again, this is an inference based on common usage patterns and would require further investigation.",
+        "* **T1562.001 - Impair Defenses: Disable or Modify Tools:** The batch script includes the command `netsh advfirewall firewall badd rule...`. This specifically adds a firewall rule. While adding",
+        "a rule itself doesn't *disable* the firewall, it modifies its behavior and weakens the system's defenses by explicitly allowing traffic. Thus, this maps to Impair Defenses. It aims to modify the",
+        "firewall's configuration to permit communication related to the malware's activities.",
+        "* **T1055 - Process Injection:** The code uses `CreateProcessA` and then waits for the process to complete. The presence of shellcode in memory, suggested by the `mov dword ptr [0x404000], 0x44`",
+        "(likely writing the \"MZ\" magic number to a memory location), strongly indicates process injection or hollowing might be occurring. The code transfers various data chunks into a memory region",
+        "(`0x404000` onwards) before using this in the call to `CreateProcessA`. This indicates the possibility of loading a PE file or shellcode directly into memory and then creating a new process",
+        "using it.",
+        "* **T1105 - Remote File Copy:** While there's no explicit network activity shown in this assembly snippet, creating and writing to a batch file that then executes a command that may involve",
+        "external resources (like downloading an executable) suggests the *potential* for later-stage remote file copy actions. More context would be required to definitively classify this.",
+        "* **T1070.004 - Indicator Removal on Host: File Deletion:** The final `DeleteFileA` call removes the \"example.bat\" file after its execution. This constitutes clear indicator removal. The malware",
+        "cleans up after itself by deleting the batch script it created, making forensic analysis more difficult.",
+        "It's important to note that statically analyzing assembly code provides limited insight. Dynamic analysis and a broader context of the malware's behavior would strengthen the mapping to these",
+        "techniques and potentially uncover others.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several MITRE ATT&CK techniques. It's important to note that static analysis alone can be insufficient to definitively categorize behaviors. Dynamic analysis",
+        "and a broader context are usually necessary for accurate classification. However, based on the given code, here's a potential breakdown:",
+        "* **T1005.001 (Process Injection - Thread Execution Hijacking):** The code shows evidence of potential thread execution hijacking. The sequence of pushing arguments onto the stack followed by",
+        "calling `sub_0x000005008` with what appears to be a thread handle (`dword ptr [ebp - 4]`) and a memory address (`eax` after the calls to `sub_0x000005018`) suggests that code is being written to",
+        "a specific memory location and potentially executed within the context of another thread. This is reinforced by the use of `0x403010`, `0x403020`, `0x403058`, which look like hardcoded memory",
+        "addresses likely containing the injected code.",
+        "* **T1001.002 (Data Obfuscation - Encoding):** The call to `sub_0x00000040A` with a hardcoded value `0x4060a2` *might* involve some form of encoding or decoding. This is speculative, without",
+        "knowing what `sub_0x00000040A` does. It's possible this function retrieves or decodes data used later in the injection process.",
+        "* **T1105.001 (Remote File Copy - Ingress Tool Transfer):** While not definitively present, the various calls to `sub_0x0000050XX` and the use of hardcoded memory addresses could indicate parts",
+        "of a staged payload. The code might be preparing memory regions to receive and execute code retrieved from elsewhere. The final call to `sub_0x000005004` with `0x403000` reinforces this",
+        "possibility, hinting at the cleanup or release of resources potentially related to the transfer.",
+        "* **T1056.001 (Input Capture - Keylogging):** This is highly speculative. Without more context, it's impossible to be sure. However, the reading of memory locations (`0x40310c`, `0x403110`,",
+        "etc.) and storing them in local variables on the stack could be related to capturing user input. The use of `word ptr` and `byte ptr` suggests reading individual keystrokes. However, this could",
+        "be related to any kind of data capture, and more information is needed.",
+        "**Important Considerations:**",
+        "* **Unknown Functions:** The analysis is limited by the unknown functionality of the `sub_0x000005XXX` and `sub_0x00000040A` functions. Their true purpose would need to be determined to confirm",
+        "these suspicions. * **Hardcoded Addresses:** The use of hardcoded addresses suggests a potential dependency on specific system configurations. * **Speculation:** Several of these mappings are",
+        "speculative. Further investigation, including dynamic analysis, is crucial to draw definite conclusions.",
+        "This analysis provides potential MITRE ATT&CK mappings based on the given assembly code. However, it's strongly recommended to conduct a more in-depth analysis with dynamic tools and broader",
+        "context for accurate identification of malicious behavior.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code demonstrates several MITRE ATT&CK techniques:",
+        "* **T1005.001.CreateFile:** The `CreateFileA` function is used to create a new file. The access mode `0x40000000` (GENERIC_WRITE) indicates the file is opened for writing.",
+        "* **T1005.003.WriteFile:** The `WriteFile` function is used multiple times to write data to the newly created file. This suggests potential data staging or dropping a payload to disk.",
+        "* **T1005.004.CloseHandle:** The `CloseHandle` function is used to close handles to both the file and later the process objects. While a standard part of file and process handling, it's part of",
+        "the overall process of interacting with these objects.",
+        "* **T1055.002.Process Injection (CreateProcess):** The `CreateProcessA` function is called to create a new process. The arguments suggest this new process may execute a program specified by the",
+        "data written to the file earlier, potentially indicating process injection or execution of a dropped payload. `lpApplicationName` being null and `lpCommandLine` being populated strengthens this",
+        "suspicion.",
+        "* **T1107.001.File Deletion:** The `DeleteFileA` function is used to delete the file after it has been used to create the new process. This indicates an attempt to clean up and remove the",
+        "dropped file, likely to evade detection.",
+        "* **T1547.001.Boot or Logon Autostart Execution:** While not definitively shown in this snippet, the actions of dropping a file and immediately executing it suggest a possible setup for",
+        "persistence. Further analysis beyond this code snippet would be needed to confirm if settings are modified to make the created process run at boot or logon. This is just a *possible*",
+        "implication, not a certainty from this code alone.",
+        "* **T1047.001.System Information Discovery:** The code snippet calls `lstrlenA` which is usually a benign function. However, it uses it to get the length of strings at addresses `0x403010`,",
+        "`0x403020`, and `0x403058`. The repeated use with a dynamically acquired size, followed by writing that size, along with the data itself to a file suggests those might contain information being",
+        "exfiltrated. This is a *possible* indicator of Discovery, not conclusive without further context about what is at those addresses.",
+        "Therefore, based on the provided assembly code, the MITRE ATT&CK techniques observed are **T1005.001, T1005.003, T1005.004, T1055.002, T1107.001.** T1547.001 and T1047.001 are *potential*",
+        "techniques that could be related, but require more context to definitively confirm. It's crucial to remember that this analysis is based on a limited code snippet. Broader context of the",
+        "surrounding code and the overall program behavior is essential for a definitive classification.",
+        "Close"
+    ],
+    "gpt4o": [
+        "This assembly code performs several notable actions related to file and process manipulation. Here is a breakdown of the MITRE ATT&CK techniques that are represented by various parts of this",
+        "code:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell** - The code writes a batch file `example.bat` which contains commands executed by the Windows Command Shell. These",
+        "commands include echo statements and a command to add a firewall rule.",
+        "2. **T1021.004 - Remote Services: SSH** - Not directly, but related actions such as modifying firewall rules and allowing programs (potentially for remote connections) can be indicative of",
+        "attempts to allow remote connections or services, albeit this is speculative based on just the script.",
+        "3. **T1562.004 - Impair Defenses: Modify System Firewall** - The batch file includes a command to modify firewall rules (`netsh advfirewall firewall add rule`). This is directly linked to",
+        "modifying system defenses.",
+        "4. **T1204.002 - User Execution: Malicious File** - The code constructs and executes a batch file, which can contribute to this technique if this file is malicious.",
+        "5. **T1105 - Ingress Tool Transfer** - The creation of executable files or scripts for transferring tools to a victim machine might loosely apply here when considering the batch file initiates",
+        "actions that could be part of a tool transfer strategy.",
+        "6. **T1055 - Process Injection** - Not directly shown here, but such actions leading to creating processes in a new context might sometimes be leveraged in process injection techniques.",
+        "7. **T1106 - Native API** - The use of Windows API functions like `CreateFileA`, `WriteFile`, and `CreateProcessA` is observed within this script, aligning with the use of native API calls.",
+        "By examining the assembly code, these techniques directly apply based on its content and intended functionality. Remember, matching assembly code to MITRE techniques requires consideration of",
+        "context and intent, which may not be fully deduced from the code alone.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code involves several operations that could be associated with different MITRE ATT&CK techniques depending on their context. Here are some potential techniques that may",
+        "be associated with the code:",
+        "1. **API Call Injection (T1055) or Process Injection (T1055) T1055/ T1055.001-007**: The assembly code contains several CALL instructions to functions labeled `sub_0x...`. Depending on the",
+        "context and implementation details of these functions, they could be involved in process injection techniques.",
+        "2. **File and Directory Permissions Modification or New Process (T1059 or T1106):** The use of permissions, creating new files, or directory modification within the callable functions may",
+        "indicate such techniques based on the parameters pushed to the stack.",
+        "3. **Code Signing (T1553) or Execution Guardrails (T1480) T1480/ T1480.001:** `mov` operations like `mov dword ptr [0x404000], 0x44` that write specific values to memory locations, might be",
+        "preparing or guarding, depending on what these addresses/values mean in the context.",
+        "4. **Command and Scripting Interpreter (T1059) or Native API (T1106) or Software Packing (T1557 or T1558):** Usage of `lea`, `nop`, `test`, and `jmp` may indicate manipulating execution flow or",
+        "obfuscating operational intent, often seen in scripting interpreter abuse/new process/code obfuscation techniques.",
+        "5. **Conditional Program Execution and Control (T1055.011):** The `cmp`, `jne`, `jmp` operations potentially suggest control flow redirection or checks which could be part of concurrency abuse",
+        "or code branching.",
+        "Overall, determining the exact MITRE techniques requires understanding the context and purpose of called functions (`sub_0x",
+        "broader goals of the code. Without additional information about the surrounding software or environment, this analysis is based on interpretation.",
+        "For accurate mapping, more details or reverse-engineering of those calls is necessary.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code primarily performs file operations, such as creating, writing to, and deleting a file, as well as creating and managing a process. Based on the MITRE ATT&CK framework,",
+        "the techniques involved can be associated with the following IDs:",
+        "1. **Create File:** - Technique: T1027.005 - Indicator Removal on Host: Clear Data on Host - Sub-technique: This part involves the manipulation and writing to files on disk, which can be",
+        "associated with efforts to modify data indicators in a system.",
+        "2. **Write to File:** - Technique: T1105 - Ingress Tool Transfer - This technique can be associated with transferring files to a location on a system that an adversary can access later or",
+        "leverage for further activity.",
+        "3. **Delete File:** - Technique: T1070.004 - Indicator Removal on Host: File Deletion - Deleting files is directly associated with the removal of indicators from a system to cover tracks or to",
+        "clean up after an action.",
+        "4. **Create Process:** - Technique: T1059.001 - Command and Scripting Interpreter: PowerShell - Sub-technique: While the code doesn",
+        "is fundamental to running commands or payloads, which can relate to using an interpreter interface or a script tool for execution.",
+        "5. **Process Manipulation (CloseHandle, WaitForSingleObject):** - Technique: T1055 - Process Injection - This includes managing processes and threads, which can be related to process injection",
+        "or similar process handling activities.",
+        "To map the given assembly code to MITRE ATT&CK techniques effectively, it would fall under File System Manipulation, Process Creation, and possibly Process Injection for managing process",
+        "handles.",
+        "Close"
+    ]
+}

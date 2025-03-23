@@ -1,0 +1,168 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1112.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.003",
+                "T1218.011",
+                "T1005",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055",
+                "T1112"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1621",
+                "T1106",
+                "T1218"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1203",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1112.001 - Modify Registry: Modify Existing Registry Key Value**",
+        "**Rationale:**",
+        "1. **`push 0x403000 ; \"reg sav HKLM\\system system\"`**: This pushes a string onto the stack that appears to reference a registry key path within `HKLM\\system\\system`. The string suggests an",
+        "intention to save or modify registry settings. 2. **`push 5`**: This pushes a value (5) onto the stack, likely representing data to be written to the registry. Though the type isn't clear from",
+        "the assembly alone (could be DWORD, etc.), it strengthens the registry modification hypothesis. 3. **`call (null)`**: This is a very suspicious instruction. Calling `null` would typically result",
+        "in a crash. This *could* indicate: * **Indirect Call:** The actual address to be called was resolved earlier and placed at address `0x0`. This obfuscates the call's target, hindering static",
+        "analysis. This is consistent with malware behavior. * **Error in Disassembly:** There might be a problem with the disassembly itself, and the `null` might not be accurate. More context/dynamic",
+        "analysis would be needed. 4. The rest of the code represents standard function prologue and epilogue (setting up the stack frame, saving registers, restoring registers, and returning).",
+        "**Additional Considerations:**",
+        "* **`call sub_0x00000040A`**: Without more context on `sub_0x00000040A`, it's difficult to say its role. It could be involved in resolving the address for the registry manipulation function, or",
+        "it could be entirely unrelated. * **`nop` instructions**: These are often used for padding or to slightly modify timing, which could be relevant in anti-debugging or other evasion techniques.",
+        "However, they don't directly point to a specific MITRE technique.",
+        "**It's crucial to remember that static analysis of assembly has limitations.** We can infer likely intent but cannot definitively determine the code's purpose without dynamic analysis or more",
+        "context about the surrounding code and the overall program's behavior. The call to `null` especially raises a red flag about possible obfuscation or errors in the provided disassembly. If",
+        "possible, running the code in a sandboxed environment and observing its registry activity would provide much stronger confirmation.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests a couple of potential MITRE ATT&CK techniques, although without more context it's difficult to be definitive. Here's a breakdown and the most likely",
+        "techniques:",
+        "* **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` (prologue) and `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`,",
+        "`pop ebp`, `ret` (epilogue) are standard function setup and teardown. This doesn't directly map to a MITRE ATT&CK technique.",
+        "* **Call to `sub_0x00000040A`:** `mov ecx, 0x40609f`, `call sub_0x00000040A` suggests calling a subroutine at address `0x00000040A` with the value `0x40609f` as an argument (likely in the `ecx`",
+        "register). This could be many things.",
+        "* **Call to `sub_0x000005004`:** `push 5`, `push 0x403000`, `call sub_0x000005004` suggests calling a subroutine at address `0x000005004` with arguments `5` and `0x403000`. The value `0x403000`",
+        "looks like a memory address. This call is the most suspicious.",
+        "**Potential MITRE ATT&CK Techniques**",
+        "Based on the second call (`sub_0x000005004`), here are some possibilities:",
+        "* **T1055.001 - Process Injection:** If `0x403000` points to shellcode or a DLL to be loaded into another process, and `5` represents a process identifier or some other parameter related to",
+        "process injection, this call could indicate process injection. This is the most likely scenario given the provided code.",
+        "* **T1055.003 - Thread Execution Hijacking:** If `0x403000` points to code to be executed and `5` is a thread identifier, this could be thread execution hijacking.",
+        "* **T1218.011 - Signed Binary Proxy Execution:** Less likely with this snippet alone, but if `sub_0x000005004` is a legitimate signed binary being misused to load or execute malicious code, this",
+        "technique might be relevant. We'd need more context to confirm.",
+        "* **T1005 - Data from Local System:** It's *possible* that `0x403000` points to data being read from the local system. This is less likely given the other argument (`5`) and the context of a",
+        "function call.",
+        "**Why it's Difficult to be Certain**",
+        "Without knowing:",
+        "* What `sub_0x00000040A` and `sub_0x000005004` actually do. * The context of this code within a larger program. * The operating system and architecture being targeted.",
+        "It's very difficult to definitively say which MITRE ATT&CK technique is being used. Reverse engineering tools or a debugger would be needed to analyze the referenced subroutines and determine",
+        "their functionality.",
+        "Therefore, the *most likely* technique based on limited information is **T1055.001 - Process Injection**, but further analysis is crucial.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.002 - Process Injection: Dynamic-link Library Injection**",
+        "**Rationale:**",
+        "1. **`push 0x403000`**: This pushes a value onto the stack, which likely represents the address of a string or a data structure. This address (0x403000) falls within a typical range for a loaded",
+        "DLL. This could be the path to the DLL to be injected, or the name of a function within that DLL.",
+        "2. **`push 5`**: This pushes the value 5 onto the stack. 5 is the numeric value associated with the `CREATE_REMOTE_THREAD` flag, a core component of DLL injection. This flag is used when calling",
+        "`CreateRemoteThread` to inject code into another process.",
+        "3. **`call (null)`**: This calls the address pointed to by the register holding the null value. This is highly suspicious. The `call (null)` is likely an unresolved call; the actual address of",
+        "the target function (likely `CreateRemoteThread` in kernel32.dll) would get resolved at runtime. Debuggers or disassemblers might not display the proper address immediately. Malware often",
+        "dynamically resolves API calls like this to make static analysis more difficult.",
+        "4. **Prologue and Epilogue:** The instructions `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, and the corresponding `pop` instructions form a standard function prologue and epilogue. They set up",
+        "and clean up the stack frame for the function. This is typical but doesn't by itself reveal the technique. However, it reinforces the likelihood of a larger injection process occurring within",
+        "this function's scope.",
+        "5. **Saving Registers:** Pushing `ebx`, `esi`, and `edi` onto the stack preserves their values. This is considered good practice before calling other functions, but it's also relevant for code",
+        "injection. If this code is injecting into another process, it needs to preserve the register state of the target process.",
+        "**Additional Considerations:**",
+        "* **`mov ecx, 0x40609f` and `call sub_0x00000040A`:** This part could relate to preparing the injection, perhaps resolving the address of `LoadLibrary` or another necessary function. Without",
+        "further context (the `sub_0x00000040A` function's body), its precise role can't be determined.",
+        "* **`xor eax, eax`:** Setting `eax` to zero is common for clearing a register or returning a zero value. It's not directly indicative of injection on its own.",
+        "* **Missing Context:** Without analyzing the full code and potentially debugging its execution, this assessment is based on indicative patterns. Further information could refine or change this",
+        "interpretation. For example, the value at `0x403000` would need to be inspected to see if it is a valid DLL path.",
+        "**In summary,** the combination of pushing what looks like a DLL address and the `CREATE_REMOTE_THREAD` flag strongly suggests DLL injection, leading to the classification of T1055.002. However,",
+        "further investigation would be needed to confirm definitively.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you've provided appears to be related to process injection or registry modification, which are common in malicious behavior. In this specific case, the use of register",
+        "manipulation, stack operations, and calls to functions suggests potential process injection or registry manipulation. Here are a couple of MITRE ATT&CK techniques that might be relevant:",
+        "1. **T1055**: Process Injection - Process Injection involves malicious code injection into a legitimate process, potentially indicated by stack operations and calls that manipulate execution",
+        "flow.",
+        "2. **T1112**: Modify Registry - If the string \"reg sav HKLM\\system system\" is a command or a key, it suggests registry modification activity.",
+        "The assembly also makes a call to a function after setting up specific values, which might indicate executing some payload or modifying execution:",
+        "- Sub-techniques could be associated with specific methods of injection or registry key manipulation, but that would require further context from the full functionality of `sub_0x00000040A` or",
+        "the purpose of the \"reg sav\" string.",
+        "Since the subroutine `sub_0x00000040A` and the operations involving specific registry paths are not fully detailed here, I provided general techniques based on observed operations. More details",
+        "on the complete code or context would be necessary to accurately determine sub-techniques or provide a more precise mapping to specific MITRE techniques.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code snippet you've provided includes several techniques that may be associated with tactics used in various MITRE ATT&CK techniques. I'll analyze the snippet to identify possible",
+        "associated techniques:",
+        "1. **Stack Pivoting**: The instructions `push ebp`, `mov ebp, esp`, and `mov esp, ebp` are commonly associated with stack frame creation and teardown, typically used in function prologues and",
+        "epilogues. This code does not directly point to a specific malicious technique but is used during function calls.",
+        "2. **Function Calls to Specific Addresses**: - The `call sub_0x00000040A` and `call sub_0x000005004` instructions, where the call is made to a specific address, could be a sign of dynamic or",
+        "indirect code execution. It might suggest: - **T1055 - Process Injection** if these calls are used to inject code into another process. - **T1621 - Multi-hop Proxy** or other techniques if this",
+        "represents calling into libraries or modules loaded in memory by an adversary to evade detection or maintain persistence.",
+        "3. **Nop Instructions**: The `nop` instruction is typically used for alignment or as a simple timing delay. Excessive use might indicate an attempt to hinder disassembly or delay analysis, but",
+        "this usually needs context beyond simple use.",
+        "4. **Pushing Constants Onto the Stack**: The assembly uses `push 5` and `push 0x403000`. Depending on the context, this might be indicative of setting up parameters for a function, potentially",
+        "for: - **T1106 - Native API** if those addresses reference system API calls. - **T1218 - Signed Binary Proxy Execution** if they are proxies for executing another signed or trusted binary",
+        "through control parameters.",
+        "Without more context or understanding what specific subroutines (`sub_0x00000040A` and `sub_0x000005004`) do, it's challenging to assign a precise MITRE technique ID. It's important to remember",
+        "that assembly code itself is not inherently malicious, and this snippet could represent a legitimate function call structure in x86 assembly.",
+        "For a more accurate determination, understanding the memory addresses, data being manipulated, or following up with proper disassembly of these instructions in their full binary context would",
+        "help pinpoint a more likely technique.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code involves standard function prologue and epilogue, manipulation of the stack (e.g., `push`, `pop`), and function calls. One notable aspect of this code is the use",
+        "of indirect function calls, such as the `call (null)`. This characteristic is often associated with techniques for hiding function calls or indirect command invocation.",
+        "In the context of MITRE ATT&CK and based on the unique characteristics of your assembly sample, the most suitable technique that relates to indirect execution or invocation would be:",
+        "- **T1055**: Process Injection - this represents the use of various methods to inject code into the address space of another process to aid in concealment or increase permissions. The indirect",
+        "call may be part of a technique trying to achieve this.",
+        "Note that without additional context (such as the actual function being called indirectly, or the nature or context of `sub_0x00000040A`), it's difficult to ascribe a more specific",
+        "sub-technique. More context would allow a more precise mapping, but generally, indirect calls can also be associated with:",
+        "- **T1203**: Exploitation for Client Execution, since indirect calls and manipulation of the stack can be a part of exploitation techniques to redirect execution flow.",
+        "- **T1106**: Native API, when malware or legitimate software uses low-level native Windows API functions that might not be directly visible at a higher level.",
+        "Given the provided code, \"indirect function call\" aligns with techniques that involve some form of execution redirection or function call obfuscation. If more specific behavior, like process",
+        "injection, privilege escalation, or API fuzzing, is identified in a broader code context, the mapping can be adjusted accordingly.",
+        "Close"
+    ]
+}

@@ -1,0 +1,164 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1053.005",
+                "T1136.001",
+                "T1053.005",
+                "T1136.001",
+                "T1055",
+                "T1106"
+            ],
+            "valid": [
+                "T1136.001",
+                "T1136.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1001.002",
+                "T1001",
+                "T1027",
+                "T1055.001",
+                "T1055",
+                "T1083"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.004",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1053.005",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1123",
+                "T1134",
+                "T1027"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1037",
+                "T1055",
+                "T1027",
+                "T1620",
+                "T1622",
+                "T1055.001"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **Scheduled Task/Job Creation (T1053.005)**.",
+        "Explanation:",
+        "* **`schtasks /create ...`**: The code clearly uses the `schtasks` command with the `/create` option. This is the primary indicator of scheduled task creation. The command creates a scheduled",
+        "task named \"MyTask\". * **`cmd.exe /c ...`**: This indicates that the scheduled task will execute a command. * **`net user /added abc`**: This is the command being executed, and it adds a new",
+        "user named \"abc\" to the system. This itself signifies **Account Manipulation: Create Account (T1136.001)**. * **`/sc once /st 00:00`**: This sets the scheduled task to run only once at midnight.",
+        "Therefore, the MITRE ATT&CK techniques observed are:",
+        "* **T1053.005:** Scheduled Task/Job: Scheduled Task * **T1136.001:** Account Manipulation: Create Account",
+        "It's important to note that the use of `call (null)` is highly suspicious. This likely means the code is dynamically resolving the address of a function, possibly `WinExec` or a similar API, to",
+        "execute the constructed command. This technique can be used for **Process Injection (T1055)** or **Native API (T1106)** to avoid detection, although this specific snippet doesn't provide enough",
+        "context to definitively categorize it as such. It warrants further investigation.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests a couple of potential MITRE ATT&CK techniques, but without more context, it's difficult to be definitive. The code shows function calls and memory allocation,",
+        "which are common and not inherently malicious. However, certain aspects raise suspicion.",
+        "Here's a breakdown and the *possible* MITRE techniques:",
+        "* **`sub esp, 0x40`**: This allocates 64 bytes of stack space. While common, this could be used for **T1001.002 - Data Obfuscation: XOR** if the allocated space is used for a",
+        "decryption/obfuscation routine. However, this is a weak indicator on its own.",
+        "* **`push ebx`, `push esi`, `push edi`**: Saving registers. Standard function prologue behavior, not indicative of a specific technique.",
+        "* **`mov ecx, 0x40609f`, `call sub_0x00000040A`**: This is a function call. The address in `ecx` *could* be data, or it might be a parameter. Without knowing what `sub_0x00000040A` does, we",
+        "can't map this to a technique. If `sub_0x00000040A` performs decryption or decoding, it *might* relate to obfuscation (**T1001**) or defense evasion (**T1027**).",
+        "* **`push 5`, `push 0x403000`, `call sub_0x000005004`**: Another function call. The value `5` might be a function code or parameter. The address `0x403000` suggests a memory location. Again,",
+        "without knowing the purpose of `sub_0x000005004`, we can't assign a technique. If `0x403000` points to shellcode, this might be **T1055.001 - Process Injection: Dynamic-link Library Injection**.",
+        "If it's a Windows API call, it might be related to process manipulation (**T1055**), file system access (**T1083**), or other activities.",
+        "* **`xor eax, eax`**: Sets `eax` to 0. Commonly used for clearing registers or setting a return value. Not indicative of a specific technique on its own but could be part of a larger process",
+        "injection flow to set error codes.",
+        "* **`pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret`**: Standard function epilogue, restoring registers and returning.",
+        "**Conclusion:**",
+        "The code snippet provides insufficient information to confidently map to specific MITRE ATT&CK techniques. We need to understand the functionality of the called subroutines (`sub_0x00000040A`",
+        "and `sub_0x000005004`) and the data being passed to them. Static analysis alone has limitations. Dynamic analysis or debugging would provide more insight into the code's behavior and allow for",
+        "more accurate technique mapping.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.002 - Process Injection: Thread Execution Hijacking**",
+        "**Rationale:**",
+        "1. **Saving the current stack frame:** `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi` This sequence sets up a standard stack frame prologue, preserving registers",
+        "commonly used by functions. This is common practice, but also necessary for later restoring the original thread's state after the injection.",
+        "2. **Suspicious Call:** `mov ecx, 0x40609f`, `call sub_0x00000040A`. This is a call to a subroutine. While we don't know the contents of `sub_0x00000040A`, it's possible this function retrieves",
+        "a handle to a thread or prepares for the injection in some way (e.g., obtaining necessary privileges or resolving API addresses). The address in `ecx` is likely an argument to the subroutine.",
+        "3. **Setting up for remote thread creation/hijacking:** `push 5`, `push 0x403000`, `call (null)`. This is the strongest indicator. Pushing values onto the stack followed by a `call (null)` (or",
+        "`call eax` where `eax` is 0) is indicative of building up the stack to look like the arguments to `CreateRemoteThread` or a similar API that can be used to execute code in the address space of",
+        "another process or hijack an existing thread. `0x403000` is very likely the address of the code to be injected. The value `5` could be a thread creation flag or a thread identifier.",
+        "4. **Restoring the original thread state and returning:** `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret`. This sequence restores the registers saved at the",
+        "beginning and returns control to the original thread. Clearing `eax` (setting it to zero) before returning is common practice and often indicates a successful operation.",
+        "**Why not other injection techniques",
+        "* **Process Hollowing (T1055.004):** This technique typically involves unmapping a legitimate process's image and replacing it with malicious code. The provided assembly doesn't show any",
+        "evidence of process manipulation or image unmapping.",
+        "* **Asynchronous Procedure Call (APC) Injection (T1055.001):** APC injection generally involves queuing an APC to a thread. While not definitive, the assembly code doesn't show typical API calls",
+        "associated with APC injection (e.g., `QueueUserAPC`).",
+        "* **Other techniques:** Techniques like DLL injection typically involve manipulating import address tables or creating new sections in a target process's memory, which are not apparent in this",
+        "snippet.",
+        "**Caveats:**",
+        "Without the context of `sub_0x00000040A` and a deeper analysis of the surrounding code, this assessment is based on common code patterns associated with thread execution hijacking. It's possible",
+        "that the code performs a different function altogether, or uses a less common injection technique. Dynamic analysis would be needed to definitively confirm the technique used.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The given x86 assembly code snippet appears to involve creating a scheduled task using `schtasks` to run a command that adds a user. This activity can be associated with specific MITRE ATT&CK",
+        "techniques related to scheduled task creation, command and scripting interpreter usage, and potentially privilege escalation or persistence.",
+        "The relevant MITRE techniques for this assembly code are:",
+        "1. **Scheduled Task/Job**: - **T1053.005**: Scheduled Task - This represents the creation of a scheduled task via the `schtasks` command.",
+        "2. **Command and Scripting Interpreter**: - **T1059.003**: Command and Scripting Interpreter: Windows Command Shell - The `cmd.exe /c \"net user /added abc\"` part indicates the use of the Windows",
+        "Command Shell to execute a command.",
+        "These techniques highlight the use of a scheduled task to achieve persistence and the execution of commands through the Windows Command Shell, potentially leading to privilege escalation if the",
+        "added user has elevated permissions.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code you've provided appears to establish a stack frame, preserve some registers, and then calls two subroutines (presumably functions). While the specific MITRE ATT&CK Techniques",
+        "cannot be definitively mapped from such a snippet of code without additional context, I can suggest some possible techniques related to it based on common characteristics:",
+        "1. **Process Injection (T1055)**: If the subroutines (`sub_0x00000040A` and `sub_0x000005004`) are performing any form of process injection (e.g., creating or modifying a process space), you",
+        "might be looking at this technique ID.",
+        "2. **Function and Library Discovery (T1123)**: If these calls are resolving or calling functions dynamically to discover and use system capabilities, this technique might be applicable.",
+        "3. **Access Token Manipulation (T1134)**: If the subroutines involve manipulating security tokens as part of privilege escalation or impersonation, this could be relevant.",
+        "4. **Obfuscated Files or Information (T1027)**: If these operations contribute to obfuscating the program's functionality, for example, by making it harder to analyze by moving control flow to",
+        "dynamic locations, this technique could apply.",
+        "To use a specific MITRE ID, we would need more context about the intent and the behavior of `sub_0x00000040A` and `sub_0x000005004`. The provided assembly alone suggests basic procedure prologue",
+        "and epilogue but doesn't map directly to specific MITRE techniques without knowing what actions take place in the called subroutines.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code you've provided appears to show some common behaviors found in malicious activities often associated with the MITRE ATT&CK techniques. Here is a breakdown of the code and the",
+        "corresponding MITRE techniques that could be relevant:",
+        "1. **Stack Frame Manipulation:** - `push ebp`, `mov ebp, esp`, `sub esp, 0x40`, and related operations are often used to create stack frames for function calls. While this is typical in",
+        "legitimate applications, in a malicious context, complex stack manipulation can relate to [Defense Evasion or Execution techniques](https://attack.mitre.org/techniques/T1037/).",
+        "2. **Function Calls to Addresses:** - `call sub_0x00000040A` and `call (null)` resemble making calls to specific subroutines or dynamically resolved API functions, which could relate to: -",
+        "**T1055**. Process Injection: Intruders might execute code in the context of another process through manipulated `call` instructions. - **T1027**. Obfuscated Files or Information: Functions can",
+        "be called indirectly, making static analysis difficult.",
+        "3. **Execution with `NOP`:** - `nop` is a no-operation command, sometimes used in shellcode or to pad code for alignment. This can be associated with: - **T1620** or `T1622`. Execution",
+        "Guardrails or Debugger Evasion: Using `nop` strategically for evasion or redirection.",
+        "4. **Dynamic API Resolution or Calls to Arbitrary Code:** - The use of `call (null)` suggests potential usage of shellcode techniques (often used in malware): - **T1055.001**: Process Injection:",
+        "Pointer Injection.",
+        "The precise interpretation of these lines can depend on more context about how the overall binary is structured and its intent. This can involve aspects of both execution and evasion techniques",
+        "used in malware to defeat dynamic analysis or to perform unintended operations without revealing intentions in static form.",
+        "If you have more context, particularly what functions like `sub_0x00000040A` do, or how parameters are set up for these calls, the mapping could be more precise.",
+        "Close"
+    ]
+}

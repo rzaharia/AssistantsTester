@@ -1,0 +1,158 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1053.005",
+                "T1053.005"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1027.004",
+                "T1562.001",
+                "T1005"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.012",
+                "T1218.011"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1547.001",
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1564.004",
+                "T1059.006",
+                "T1055",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1622",
+                "T1027.002",
+                "T1036",
+                "T1569"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **Scheduled Task/Job Creation (T1053.005)**.",
+        "Here's why:",
+        "* **`schtasks /create ...`**: The code clearly pushes a string onto the stack that contains the `schtasks /create` command. This is the primary utility in Windows for creating scheduled tasks. *",
+        "**Task specifics**: The arguments passed to `schtasks` define the task name (`/tn MyTask`), the command to run (`/tr \"cmd.exe /c \"reg save HKLH\\sam sam\"`), the schedule (`/sc once /st 00:00`). *",
+        "**`reg save HKLH\\sam sam`**: This part of the command is highly suspicious. It attempts to save the Security Account Manager (SAM) hive. The SAM database contains sensitive information like user",
+        "passwords hashes. This, combined with the scheduled task, indicates malicious intent likely related to credential theft or privilege escalation. * **Indirect call through `null`**: The `call",
+        "(null)` instruction after pushing the command string and the `5` likely indicates a resolved API call (probably something like `system()` or `WinExec()`) used to execute the command string. The",
+        "address would've been resolved dynamically beforehand and stored in a register, but since it is `null` in static disassembly view we can't know the actual resolved call. Resolving API calls",
+        "dynamically can be an obfuscation technique.",
+        "Therefore, the most relevant MITRE ATT&CK technique is **T1053.005**. There might be other techniques associated with later stages (like exfiltrating the saved SAM file) but they are not evident",
+        "from this code snippet alone.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, but without more context (like what `sub_0x00000040A` and `sub_0x000005004` do), it's difficult to be definitive.",
+        "Here are some educated guesses based on common patterns:",
+        "* **T1055.001 - Process Injection:** The code allocates stack space (`sub esp, 0x40`), preserves registers (`push ebx`, `push esi`, `push edi`), and calls external functions. This is consistent",
+        "with the setup often seen before process injection, particularly if `sub_0x00000040A` or `sub_0x000005004` perform the actual injection. However, this is just a possibility. Other stack usage",
+        "patterns could explain these instructions.",
+        "* **T1027.004 - DLL Search Order Hijacking:** The call to `sub_0x000005004` with the argument `0x403000` *might* indicate loading a DLL from a specific memory address or potentially a known DLL.",
+        "If this address is writable and controlled by the attacker, it *could* indicate DLL hijacking. However, this is highly speculative without understanding the purpose of `sub_0x000005004`.",
+        "* **T1562.001 - Impair Defenses: Disable or Modify Tools:** It's *possible* (though less likely based on just this snippet) that `sub_0x00000040A` or `sub_0x000005004` could be disabling",
+        "security tools. The provided code doesn't give enough information to determine this.",
+        "* **T1005 - Data from Local System:** The value `0x40609f` passed to `sub_0x00000040A` could represent a pointer to some data structure or a specific memory location. This could be used to",
+        "retrieve data from the local system, but it's not definitive.",
+        "**Important Caveats:**",
+        "* **Lack of Context:** Without knowing the purpose of the called subroutines, it's very hard to map this assembly to MITRE ATT&CK with certainty. * **Generic Code Structure:** The assembly",
+        "demonstrates standard function prologue and epilogue code, which is used in a vast majority of programs and isn't inherently malicious. * **Speculation:** The suggestions above are based on",
+        "educated guesses and common malware patterns. More information is needed for accurate classification.",
+        "To summarize, this assembly snippet is too generic to confidently assign specific MITRE ATT&CK techniques. While process injection and DLL search order hijacking are possibilities, these are",
+        "highly speculative without analyzing the complete code and understanding the behavior of the called subroutines. A dynamic analysis of the code would likely yield more definitive results.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.002 - Process Injection: Thread Execution Hijacking**",
+        "**Rationale:**",
+        "1. **Saving the state of registers (push ebp, ebx, esi, edi):** Preserving the original state of the registers is common before manipulating thread context or executing injected code, as it",
+        "ensures the program can resume its normal operation afterward.",
+        "2. **Allocating stack space (sub esp, 0x40):** This instruction creates space on the stack, potentially for local variables or parameters used by the injected code.",
+        "3. **Calling a function (call sub_0x00000040A):** This might be a function that retrieves a handle to a thread or sets up the environment for injection. The specific address doesn't tell us much",
+        "without further context.",
+        "4. **Pushing arguments and calling null (push 5, push 0x403000, call (null)):** The `call (null)` combined with pushing arguments strongly suggests a change in the thread's execution flow.",
+        "`0x403000` looks like a potential code address to be injected and executed, and `5` might represent a thread creation flag or a similar parameter. A null pointer dereference as a function call",
+        "is a way to cause an exception and potentially hijack the exception handler mechanism to redirect execution. While the code doesn't explicitly demonstrate setting up an exception handler, this",
+        "pattern is suspicious.",
+        "5. **Restoring the state of registers and returning (xor eax, eax, pop edi, pop esi, pop ebx, mov esp, ebp, pop ebp, ret):** Cleaning up and restoring the original register values (especially",
+        "`esp` and `ebp`) is critical after manipulating the stack and thread execution. This allows the original thread to continue as if nothing happened (at least initially).",
+        "**Other Possibilities (Less Likely but worth considering with more context):**",
+        "* **T1055.012 - Process Hollowing:** If the code at `0x403000` corresponds to the entry point of a malicious executable image loaded into memory, this could be a part of a process hollowing",
+        "implementation. However, we lack the typical unmapping/writing of sections that would characterize process hollowing. * **T1218.011 - Signed Binary Proxy Execution: Rundll32:** If the called",
+        "address related to `rundll32.exe`, it would fit this technique. But again, we need more information.",
+        "**Key Takeaway:** Without knowing the functionality of `sub_0x00000040A` and more analysis of the context surrounding the `call (null)`, it's hard to be definitive. However, thread execution",
+        "hijacking is the most probable explanation based on the code provided.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The x86 assembly code you provided includes behavior that can be associated with specific MITRE ATT&CK techniques:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The code pushes a command string (\"schtasks /create ...\") onto the stack and then attempts to call it. This indicates",
+        "an intent to execute a Windows command through the command shell.",
+        "2. **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**: The use of `schtasks` to create a scheduled task is a form of persistence on a Windows system. While it",
+        "doesn't directly modify a registry run key or startup folder, it achieves a similar goal of establishing persistence.",
+        "3. **T1003.001 - OS Credential Dumping: LSASS Memory**: The command includes `\"reg save HKLH\\sam sam\"`, which is attempting to save the SAM (Security Account Manager) hive. This action can be",
+        "part of credential dumping to retrieve password hashes.",
+        "These are the MITRE ATT&CK techniques associated with the observed behaviors in the code snippet. Note that the specific TIDs and sub-techniques provided above are based on the actions and",
+        "intents inferred from the assembly instructions.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code provided seems to be related to stack-based operations often associated with function prologues, epilogues, and calling conventions. Some of the operations also suggest stack",
+        "manipulation and possibly shellcode execution routines. Based on the assembly code snippet, we can connect certain operations to MITRE ATT&CK techniques:",
+        "1. **Stack-based operations and function calling**: - The use of `push`, `mov`, `sub` operations at the start and paired `pop` operations in the end are typical for setting up and tearing down",
+        "stack frames in functions. - Calls to subroutines, such as `call sub_0x00000040A` and `call sub_0x000005004`, use direct function-calling methods but could relate to how adversaries execute",
+        "malicious functions.",
+        "2. **Specific MITRE Techniques**: - **Function Prologue/Epilogue Manipulation**: - Using `push`, `mov`, and `sub` to manipulate the stack can be related to attackers tampering with the stack for",
+        "`Defense Evasion`. - **T1564.004**: `Hide Artifacts: Modify Registry` is most closely related when using prologues and epilogues without explicit additional contexts or evasive actions.",
+        "- **Indirect Method Invocations (or stacking function parameters)**: - Pushing arguments onto the stack (e.g., `push 5`, `push 0x403000`) before a `call` could relate to `T1059.006` (Command and",
+        "Scripting Interpreter: PowerShell) if these corresponded to known scripting method calls.",
+        "- **Shellcode Insertion**: - Non-conditional `call sub_*` and stack operations might be part of shellcode routines related to `T1055` (Process Injection).",
+        "- **Code Injection or Execution in Context of Execution**: - If the `call` operations correspond to execution redirection or loading code from non-typical locations (or directly from",
+        "shellcode-like operations), it would relate to: - **T1055**: `Process Injection`, matching stack parameterization and code executing on redirected flows.",
+        "However, without explicit context on what the functions named `sub_*` are doing, associating this assembly code directly to a precise MITRE technique is not definite without more context or",
+        "further knowledge of the binary functionality these calls correspond to.",
+        "Please let me know if you can provide additional context or what these subroutines do for a more precise alignment with MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code appears to contain several elements indicative of common techniques used in malicious software. Below are some potential MITRE ATT&CK techniques that could be",
+        "associated with the observed assembly patterns:",
+        "1. **Function Call Obfuscation or Indirect Call**: The line `call (null)` suggests an indirect or potentially obfuscated function call. This can be related to: - **T1622 - Debugger Evasion**:",
+        "Indirect calls or breakpoints might be part of anti-analysis techniques. - **T1027.002 - Obfuscated Files or Information: Software Packing**",
+        "2. **Stack Adjustment and Calling Conventions**: - The use of `mov ebp, esp` and manipulation of `esp` often set up a stack frame, common in many functions, but certain manipulations can suggest",
+        "attempts to hide code behavior or evade analysis. - **T1036 - Masquerading**: Although not a direct match, some manipulation can sometimes relate to hiding execution.",
+        "3. **Using System Resources or Acquiring Handles**: - The `push 5` and `push 0x403000` before `call` could be setting up for a function call that accesses system resources or sensitive data. -",
+        "**T1569 - System Services**: If these pushes are setting up for service manipulation or interaction.",
+        "Without further context on what the calls are doing, it is mostly speculative to definitively connect these patterns to specific ATT&CK techniques. Additionally, the lack of context for the",
+        "function `sub_0x00000040A` and `(null)` call limits precise matching.",
+        "In practice, an in-depth analysis involving what each called function does, especially interactions with the operating system or network resources, would yield more specific MITRE techniques",
+        "applicable to this assembly.",
+        "Close"
+    ]
+}
