@@ -1,0 +1,169 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1547.001",
+                "T1547"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.001",
+                "T1547",
+                "T1547"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1043",
+                "T1056",
+                "T1036",
+                "T1106",
+                "T1106",
+                "T1055",
+                "T1043"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1547.002",
+                "T1547.003",
+                "T1547",
+                "T1547.001",
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.002",
+                "T1547.003",
+                "T1547",
+                "T1547.001",
+                "T1547.001",
+                "T1547"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1547",
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547",
+                "T1547.001",
+                "T1547"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1106",
+                "T1027",
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1112",
+                "T1012",
+                "T1112"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **Boot or Logon Autostart Execution**, specifically through registry modification. The relevant MITRE ATT&CK technique is **T1547.001 - Boot or Logon Autostart",
+        "Execution: Registry Run Keys / Startup Folder**.",
+        "Here's why:",
+        "* **`RegOpenKeyExA` with `\"Software\\Microsoft\\Windows NT\\CurrentVersion\\Binlogon\"`**: This function attempts to open the `Binlogon` registry key. The `Binlogon` key is used to execute programs",
+        "when a user logs on. * **`RegSetValueExA` with `\"Notify\"` and `\"c:\\data\\my_runner.exe\"`**: If the `Binlogon` key exists (or is successfully created), this function sets the `Notify` value to",
+        "`\"c:\\data\\my_runner.exe\"`. The `Notify` value under `Binlogon` can be used for autostart execution. * **`RegCloseKey`**: This closes the registry key handle.",
+        "Therefore, the MITRE technique is **T1547.001**. While the code uses the `Binlogon` key specifically, it falls under the broader technique T1547 (Boot or Logon Autostart Execution) and the",
+        "sub-technique 001 which covers registry run keys (which functionally includes `Binlogon` for this purpose).",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, but without more context (like what `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` do), it's difficult",
+        "to be precise. Here's a breakdown of suspicious elements and the *potential* techniques they *might* indicate:",
+        "* **Process Injection (T1055):** The sequence of calls involving memory allocation (`sub_0x000005000` with arguments suggesting memory protection flags), writing to memory, and potentially",
+        "executing code from that memory region (`sub_0x000005004`, `sub_0x000005008`) strongly suggests process injection. However, without knowing the precise functionality of the subroutines, this",
+        "remains speculative. If `sub_0x000005000` is allocating memory and changing its protection attributes (e.g., to executable), and `sub_0x000005004` and `sub_0x000005008` are writing to and then",
+        "executing code from that memory region, it could be a form of process injection. More specific sub-techniques would depend on the *method* of injection, which we can't determine from this code",
+        "alone.",
+        "* **Memory Allocation (T1043):** The call to `sub_0x000005000` with arguments `0x403000` and `0x80000001` appears to be related to memory allocation. The `0x80000001` value potentially",
+        "represents memory protection flags (e.g., read, write, execute). This could be used for various purposes including staging malicious code, storing data, or as part of process injection.",
+        "* **API Hooking or Inline Hooking (T1056):** The calls to `sub_0x000005004` and `sub_0x000005008`, especially after manipulating memory regions, could indicate API hooking or inline hooking.",
+        "This is where the normal flow of execution is redirected to malicious code. However, we lack the information to confirm this hypothesis.",
+        "* **Defensive Evasion: Masquerading (T1036):** The call to `sub_0x00000040A` with the constant `0x40609f` might be an attempt to resolve an API call dynamically to avoid static analysis",
+        "detection. This is pure conjecture without seeing what `sub_0x00000040A` actually does.",
+        "* **Execution through API (T1106):** The overall structure of the code, with its calls to various subroutines, definitely falls under this broad category. However, T1106 is very general. More",
+        "specific sub-techniques would depend on the actual APIs being used, which we can't determine from this assembly snippet.",
+        "**In summary:** The most likely techniques are **T1055** (Process Injection) and **T1043** (Memory Allocation). The others are possibilities but require more information. We'd need to analyze",
+        "the functions being called to be certain. Without that, it's like having pieces of a puzzle but not the whole picture.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of **Registry Modification** for **Persistence**. Specifically, it attempts to open a registry key and, if it fails, creates/modifies a registry value. This aligns",
+        "with the following MITRE ATT&CK technique:",
+        "* **T1547.001 - Registry Run Keys / Startup Folder:** While the code doesn't explicitly mention `Run` keys or the startup folder, the pattern of opening a key and setting a value within it is",
+        "consistent with how malware achieves persistence via registry modifications. The specific key used (`0x403000`) would need to be further analyzed to determine the exact registry location, which",
+        "would confirm whether it's a Run key, startup folder related, or some other form of registry persistence.",
+        "It's important to note that without the context of the strings at addresses `0x403000`, `0x403040`, and `0x40305c`, a more precise sub-technique might be identifiable. For example, if `0x403000`",
+        "resolves to a Run key path, the classification would be more definitive. Additionally, the call to `sub_0x00000040A` could be relevant, but without more information about that function, its",
+        "purpose is unknown. It might be performing additional registry-related actions or setting up the data used later in the code.",
+        "**Explanation of why other techniques are *less* likely:**",
+        "* **Other Registry Persistence Techniques (e.g., T1547.002, T1547.003, etc.):** We can't definitively categorize into more specific registry persistence techniques without knowing the target",
+        "key. * **Boot or Logon Autostart Execution (T1547):** This is the parent technique, and T1547.001 is more specific based on observed behavior. Further analysis could reveal if other",
+        "sub-techniques are relevant. * **Other Persistence techniques:** While other persistence methods exist, the provided code focuses solely on registry interaction. Techniques like creating",
+        "services or scheduled tasks would involve different API calls (e.g., `CreateService`, `SetTimer`).",
+        "**In summary:** T1547.001 is the most likely candidate given the provided assembly code, but further analysis (particularly of the string data and the `sub_0x00000040A` call) is needed for a",
+        "more conclusive determination.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code provided involves registry manipulation with functions like `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`. The operations specifically include opening a registry key,",
+        "setting a value, and closing the key. This is indicative of modifying the system's registry, which can have various purposes such as persistence or configuration changes.",
+        "In terms of the MITRE ATT&CK framework, this behavior is best associated with:",
+        "- **T1547 - Boot or Logon Autostart Execution**: Specifically, the sub-technique `T1547.001 - Registry Run Keys / Startup Folder` could apply here if the intent is to configure a program to run",
+        "at startup via the registry.",
+        "In this example, setting a registry value in the path `Software\\Microsoft\\Windows NT\\CurrentVersion\\Binlogon` under HKEY_USERS or related hives (like `HKEY_CURRENT_USER` assuming `0x80000001` is",
+        "a placeholder for such a constant) potentially indicates an attempt to add persistence via registry entries, commonly observed with autostart execution configurations.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code appears to perform a series of operations, including function calls, stack manipulation, and conditional branching. Based on the structure, it is possible that",
+        "this code could be related to various MITRE ATT&CK techniques, depending on the context and purpose of the subroutine calls and memory manipulations. Here are some potential MITRE ATT&CK",
+        "techniques associated with the patterns observed in the assembly code:",
+        "1. **Sub-technique: Function Prolog/Epilog and Stack Frame Manipulation** - The generic manipulation of stack frames using `push`, `mov`, `sub`, and `pop` instructions aligns with general",
+        "subroutine management and stack frame setup in x86 assembly. This itself isn't directly a specific MITRE technique but is relevant to execution flow management. - **Technique ID: T1106**",
+        "(Execution through API): The functions `sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` are examples where functions are called. While the actual functions",
+        "themselves aren't specified, calls to functions can align with this technique depending on the nature of these functions.",
+        "2. **Conditional Execution or Control Flow Manipulation** - The presence of `test`, `je`, and `jmp` instructions suggests conditional execution, which is common in maintaining control flow: -",
+        "**Technique ID: T1027** (Obfuscated Files or Information): If the calls or conditional logic are used to obfuscate what the program is doing, this could indicate an attempt to obscure",
+        "operations.",
+        "3. **Potential Process Injection** - The sequence of pushes and calls to specific subroutines with various parameters (including what could be addresses or handles, such as `0x403000`) might",
+        "potentially relate to process injection or manipulation if those addresses are used to manipulate other processes or memory spaces, depending on the implementation of these subroutines. -",
+        "**Technique ID: T1055** (Process Injection): If any of these subroutines are used to inject code into another process's address space.",
+        "Each of these possibilities depends highly on the implementation details of the subroutines being called (`sub_0x00000040A`, `sub_0x000005000`, etc.). Without more specific information on those,",
+        "a precise technique mapping to MITRE ATT&CK is speculative beyond the patterns observed.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code interacts with the Windows Registry through several API functions: `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`. This behavior is indicative of techniques",
+        "associated with manipulating the Registry, which is a common activity for both legitimate applications and malware. According to the MITRE ATT&CK framework, these activities are associated with",
+        "the following techniques:",
+        "1. **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder** - This technique involves the abuse of registry keys to automatically execute programs on startup or",
+        "logon. Modifying the registry to maintain persistence or alter system configurations typically falls under this category.",
+        "2. **T1112 - Modify Registry** - The code makes a call to `RegSetValueExA` which is used to modify values within the Windows Registry. This activity is directly associated with modifying",
+        "registry keys or values.",
+        "3. **T1012 - Query Registry** - Although not explicitly visible in your snippet, querying or checking the registry status can be inferred by accessing it (e.g., using `RegOpenKeyExA`) and",
+        "potentially reading existing configurations or keys.",
+        "In this context, the most relevant and observable action performed is the modification of a registry key, so T1112 would be the direct correlation to this particular code snippet.",
+        "Close"
+    ]
+}

@@ -1,0 +1,152 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.001",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.012",
+                "T1055.003",
+                "T1049",
+                "T1055.003"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1564.001",
+                "T1059.005",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055",
+                "T1059.003",
+                "T1059.003",
+                "T1543"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1059",
+                "T1106",
+                "T1055.012",
+                "T1027.001",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1106",
+                "T1106",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of process injection and command execution, pointing to the following MITRE ATT&CK techniques:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe:** The code clearly uses `CreateProcessA` to execute `\"/c net user /ad test\"` which leverages `cmd.exe` to create a new user named",
+        "\"test\". The \"/c\" flag tells cmd.exe to execute the command and then terminate. This is a very strong indicator of this technique.",
+        "* **T1055.002 - Process Injection: CreateProcess:** The code utilizes `CreateProcessA` for process creation. While `CreateProcessA` is legitimate, the arguments being passed suggest potentially",
+        "malicious intent. The combination with the `cmd.exe` execution, and especially the somewhat unusual sequence of zeroed-out parameters, makes this suspect. If the intent was simply to create a",
+        "new user, more standard API calls might be used. The context suggests potential process injection or process hollowing, although without full context it's difficult to be certain. We'd need more",
+        "surrounding code to conclusively identify the specific injection technique used, but the use of CreateProcessA in this context raises a red flag.",
+        "It is important to note that the presence of these API calls does not *definitively* confirm malicious activity. `CreateProcessA` is a standard Windows API function. However, the *combination*",
+        "of the calls, the specific command being executed, and the arguments used strongly suggest malicious intent consistent with the identified MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code shows signs of process injection (creating a new section) and likely memory allocation, but with some caveats. We cannot definitively tie it to specific MITRE ATT&CK",
+        "techniques without more context. However, based on the observed behavior, here's a breakdown and the *most likely* associated techniques:",
+        "* **Process Injection (Likely, but not conclusive):** * `push 0x403000` This pushes what looks like a memory address onto the stack. This *could* be the base address of a section to inject into",
+        "or some other buffer allocated using VirtualAlloc. * `push 0x8000000` This pushes a flag which may correspond to memory protection like PAGE_EXECUTE_READWRITE (this is very suggestive of process",
+        "injection if the 0x403000 is in a target process). * `push 0x404000`, `push 0x404044` these addresses are pushed, likely representing the source and potentially destination memory addresses for",
+        "operations related to the injection. * `call sub_0x000005004` This call is highly suspicious. Given the preceding pushes, this likely refers to a Windows API function related to memory",
+        "allocation, potentially `VirtualAllocEx`, `WriteProcessMemory`, or similar functions, if we're dealing with process injection. * The subsequent calls to `sub_0x000005000` and `sub_0x00000500C`",
+        "after checking the return value of `sub_0x000005004` further suggest this process. These could be `CreateRemoteThread` or related functions for process injection. * If this code snippet",
+        "represents process injection, the *most likely* MITRE ATT&CK techniques are: * **T1055.001 - Process Injection: Dynamic-link Library Injection:** If `sub_0x000005000` is `LoadLibrary`, or",
+        "similarly if a DLL is being forced into another process. This is just speculation based on common injection techniques. * **T1055.012 - Process Injection: Thread Execution Hijacking:** If",
+        "`sub_0x000005000` is `SetThreadContext` (or equivalent) used to redirect execution flow in another process. Less likely given we see `CreateRemoteThread` usage below. * **T1055.003 - Process",
+        "Injection: CreateRemoteThread:** If `sub_0x000005000` is indeed `CreateRemoteThread` (or equivalent) to start a new thread in the target process. Likely given multiple calls `05000` and `0500C`.",
+        "This involves creating a new thread within the target process. The parameters pushed on the stack before calling this function likely indicate the target process handle, the starting address of",
+        "the thread, and other arguments.",
+        "* **Memory Allocation:** The use of `sub_0x000005004` with addresses and flags strongly suggests memory allocation. This could be part of process injection, or a separate action. If used solely",
+        "for memory allocation (unlikely given other context): * **T1049 - System Services:** (Less specific, but covers the general manipulation of system services which memory allocation falls under).",
+        "Not the best match if injection is the goal, but included for completeness.",
+        "**Key Considerations:**",
+        "* **Unknown Functions:** Without knowing what `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` are, we can't be 100% certain. These are almost certainly Windows API calls. A debugger",
+        "or disassembler could reveal their true identities. * **Missing Context:** Is this code running in a legitimate process, or is it already part of a malicious payload",
+        "attack narrative. * **Assumptions:** We're assuming a Windows environment based on the apparent use of standard function prologues/epilogues and the `0x8000000` flag, which looks like a standard",
+        "memory protection constant.",
+        "In summary, the most likely MITRE ATT&CK technique is **T1055.003 - Process Injection: CreateRemoteThread** due to the strong indicators. However, you *must* analyze the unknown functions to",
+        "confirm this. Without that information, this remains an educated guess.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows evidence of process creation and execution, suggesting the following MITRE ATT&CK technique:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe** While `cmd.exe` isn't explicitly called, `CreateProcessA` is used without specifying the application, making it likely that the",
+        "command line string at address `0x403000` is being passed directly to the default shell (`cmd.exe` on Windows). This assumes the command line string contains the command to execute.",
+        "It's important to note:",
+        "* **Indirect execution:** We don't know the content of the command line string at `0x403000`. This determines the ultimate action. It could be launching a legitimate program, but it's also a",
+        "common way to obfuscate malicious commands. Therefore, additional techniques *might* be applicable depending on what is being executed. * **Creation Flags:** The `dwCreationFlags` value of",
+        "`0x8000000` corresponds to `CREATE_NO_WINDOW`. This suggests the created process might be intended to run hidden, a common tactic for malicious activity. This could point towards techniques like",
+        "**T1564.001 - Hide Artifacts: Hidden Files and Directories** or **T1059.005 - Command and Scripting Interpreter: Visual Basic**. However, by itself, it's not enough to definitively assign these",
+        "techniques. * **Function at `sub_0x00000040A`:** The code calls a subroutine at this address before creating the process. Without knowing what this subroutine does, we can't fully assess its",
+        "impact. It could be preparing the command line string, performing other setup operations, or even be unrelated to the process creation.",
+        "In summary, **T1059.001** is the most likely primary technique based on the code provided. However, a complete analysis requires examining the command line string and the `sub_0x00000040A`",
+        "function to identify any further applicable techniques.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The given x86 assembly code includes several key operations that align with specific MITRE ATT&CK techniques. Here are the relevant MITRE techniques based on the operations observed:",
+        "1. **Process Injection (T1055)** - The use of `CreateProcessA` with command-line arguments, particularly one involving `net user`, suggests an attempt to execute a command in a new process. This",
+        "action is indicative of creating or injecting processes with potentially malicious intentions, although the specific method in this context leans towards creating a process rather than",
+        "traditional \"injection.\"",
+        "2. **Command and Scripting Interpreter: Windows Command Shell (T1059.003)** - By pushing a command (`/c net user /ad test`) onto the stack and passing it to `CreateProcessA`, the code is",
+        "executing a command via the Windows command shell. This is a common method for executing system commands programmatically.",
+        "3. **Process Creation (T1059.003)** - The assembly involves creating a new process using `CreateProcessA`, which is used to execute the specified command.",
+        "4. **Execution: Create or Modify System Process (T1543)** - The `CreateProcessA` function call and the specific command being executed reflect an action of creating a system process, especially",
+        "if it leads to administrative modifications like adding a user.",
+        "Each one of these techniques corresponds to the actions performed by the sample code. Specifically, usage of Windows API functions like `CreateProcessA`, and handling process handles with",
+        "`WaitForSingleObject` and `CloseHandle`, directly relate to these identified behaviors in the context of the MITRE ATT&CK framework.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code contains several operations that may correspond to certain MITRE ATT&CK techniques, depending on the context in which the code is used. Below are some possible MITRE",
+        "techniques associated with such actions:",
+        "1. **Stack Pivoting**: The instructions `push ebp` and `mov ebp, esp` are typically used when setting up a new stack frame. This could be related to stack pivoting, which is sometimes used in",
+        "exploitation. - **MITRE Technique**: T1055 (Process Injection)",
+        "2. **API Calls/Import Resolution**: Operations involving `push` instructions followed by `call` instructions, such as API calls, might suggest API hooking, execution through APIs, or import",
+        "resolution. - **MITRE Technique**: T1059 (Command and Scripting Interpreter) or T1106 (Execution through API)",
+        "3. **Writing to Arbitrary Memory Locations**: The instruction `mov dword ptr [0x404000], 0x44` could represent an attempt to write to an arbitrary memory address, potentially indicative of",
+        "modifying memory within a process space. - **MITRE Technique**: T1055.012 (Process Hollowing) if it's part of a larger process injection mechanism",
+        "4. **Conditional Execution**: The use of `test` and `je` suggests conditional branching, which can be a part of logic that determines the control flow of execution. - **MITRE Technique**:",
+        "T1027.001 (Obfuscated Files or Information: Binary Padding) if obfuscation or packing is involved in the branching",
+        "5. **DLL Injection**: The presence of multiple `push` operations followed by `call` might correspond with actions related to DLL injection or execution through API calls. - **MITRE Technique**:",
+        "T1055.001 (Dynamic-link Library Injection)",
+        "These associations depend heavily on the broader context and analysis of the entire binary and the behavior exhibited during execution. The sub-techniques mentioned are speculative and",
+        "context-dependent. Real analysis should consider the actual binary, its behavior, and other attributes to determine the most appropriate MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given x86 assembly code is indicative of process creation and management, which aligns with a specific MITRE ATT&CK technique. The code involves the use of the `CreateProcessA` function,",
+        "followed by handle management with `WaitForSingleObject` and `CloseHandle`. Based on these operations, the relevant MITRE ATT&CK technique can be identified as follows:",
+        "- **Technique**: Process Creation - **MITRE ATT&CK ID**: T1106 (Create or Modify System Process)",
+        "Since this technique doesn't have sub-techniques listed in the specific version of the MITRE ATT&CK framework, the format remains as T1106.",
+        "If there are updates to the MITRE framework or if more context is provided, such as specifics about how the process is used for further tactics, additional details could align this with other",
+        "techniques. However, based on the code provided, T1106 is the appropriate identification.",
+        "Close"
+    ]
+}

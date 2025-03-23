@@ -1,0 +1,186 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1003.001",
+                "T1003",
+                "T1003.001",
+                "T1562.001",
+                "T1003.001",
+                "T1074.002",
+                "T1218.011",
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001",
+                "T1003",
+                "T1003.001",
+                "T1003.001",
+                "T1003.001",
+                "T1003"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055",
+                "T1107",
+                "T1107",
+                "T1043.002",
+                "T1027",
+                "T1027",
+                "T1055.001",
+                "T1107"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1563.001",
+                "T1563.001",
+                "T1055.002",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055.001",
+                "T1047",
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1055",
+                "T1106",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of process injection and data dumping, potentially for credential theft. Here's a breakdown and the associated MITRE ATT&CK techniques:",
+        "* **`CreateProcessA` with `rundll32.exe ... comsvcs.dll Mini_Dump PID lsass.dmp full`**: This line is the core of the malicious activity. It uses `rundll32.exe` to execute the `MiniDump`",
+        "function exported by `comsvcs.dll`. This function is being used to create a memory dump of the `lsass.dmp` process. `lsass.exe` is responsible for storing sensitive information, including hashed",
+        "passwords. Dumping its memory allows attackers to extract these credentials offline. This maps to: * **T1003.001 (OS Credential Dumping: LSASS Memory)**: This is the most specific and relevant",
+        "technique. * **T1003 (Credential Dumping)**: This is the broader category. Since we know specifically that LSASS is targeted, T1003.001 is preferred. * **T1562.001 (Impair Defenses: Disable or",
+        "Modify Tools):** While not directly disabling security tools, dumping LSASS could be seen as a way to bypass security logging and detection that relies on a functioning LSASS process. This is a",
+        "less direct mapping but worth considering depending on the overall context.",
+        "* **`WaitForSingleObject` and `CloseHandle`**: These functions are used to wait for the `rundll32.exe` process to finish creating the dump and then close the process and thread handles. This is",
+        "standard process management but in this context, it ensures the dump is completed before the malicious code exits. This doesn't directly map to a specific MITRE ATT&CK technique, but it's",
+        "supporting behavior for T1003.001.",
+        "* **`sub esp, 0x40`, `push ...`, `pop ...`**: These instructions manage the stack frame and save registers. They are standard function prologue and epilogue code and are not directly related to",
+        "an ATT&CK technique.",
+        "* **`mov dword ptr [0x404000], 0x44`**: This stores the value 0x44 (ASCII 'D') in memory. Given the later usage in `CreateProcessA`, this is likely part of setting up the STARTUPINFO structure,",
+        "specifically setting the `cb` member to indicate the size of the structure. This is not directly related to a specific ATT&CK technique.",
+        "* **`call sub_0x00000040A`**: Without knowing what this subroutine does, it's difficult to assign a MITRE ATT&CK technique. It's possible this function handles additional malicious activity,",
+        "such as preparing the command line string or setting up other parameters for `CreateProcessA`. Further analysis of this subroutine is needed. It *could* be involved in techniques like: *",
+        "**T1074.002 (Hijack Execution Flow: DLL Side-Loading):** If `sub_0x00000040A` manipulates DLL search paths, this could be a possibility. * **T1218.011 (Signed Binary Proxy Execution:",
+        "Rundll32):** This is already somewhat covered by the `rundll32` usage, but if the subroutine does further manipulation, it reinforces this technique.",
+        "In summary, the primary MITRE ATT&CK technique is **T1003.001 (OS Credential Dumping: LSASS Memory)**. Further analysis of `sub_0x00000040A` might reveal additional techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates several behaviors that can be mapped to MITRE ATT&CK techniques. It's important to note that static analysis alone can sometimes lead to",
+        "misinterpretations. Dynamic analysis or further context (like imported DLLs) would strengthen these assessments. However, based on the given code, here's a breakdown and likely MITRE mappings:",
+        "* **Process Injection (T1055):** The sequence of pushing several arguments onto the stack followed by a call to `sub_0x000005004` strongly suggests a process injection attempt. The arguments",
+        "resemble those used by the `CreateProcess` Windows API call, commonly used for process creation and potential injection:",
+        "* `0x403000` likely points to a command line or application name. * `0x8000000` suggests specific creation flags (in this case, `CREATE_NO_WINDOW` which hides the injected process's window). *",
+        "`0x404000` and `0x404044` might represent memory addresses for process information.",
+        "If `sub_0x000005004` is confirmed to be a wrapper or direct call to `CreateProcess`, this solidifies the T1055 classification. If it's a custom implementation or a call to a different API",
+        "function, the technique might be a variation or a different technique entirely.",
+        "* **File Deletion (T1107) (Possible, but less certain):** The calls to `sub_0x000005000` and `sub_0x00000500C` after the potential process injection *might* relate to file deletion. This is very",
+        "speculative without knowing what these subroutines do. They're being passed the value at `0x404044` and then `0x404048`, which could potentially be file paths. If these functions interact with",
+        "file system APIs for deletion, then T1107 is possible.",
+        "* **Memory Allocation (T1043.002 - Windows API):** The instructions `sub esp, 0x40` allocate 64 bytes of stack space. While memory allocation is a normal part of program execution, in the",
+        "context of potential injection, this could be used to prepare space for shellcode or other data needed for the injection process. Because standard Windows API calls aren't directly invoked, this",
+        "is less strong evidence.",
+        "* **Obfuscated Files or Information (T1027) (Possible, but unlikely with just this code):** The call to `sub_0x00000040A` with the argument `0x40609f` might indicate the use of obfuscated code",
+        "or data. However, without further context on what `sub_0x00000040A` does, this is highly speculative. It could be a decryption function, a simple data loader, or something else entirely. The",
+        "provided code snippet doesn't give sufficient evidence for T1027.",
+        "**Key Takeaways:**",
+        "* **Strongest Indicator:** T1055.001 - Process Injection: `CreateProcess` (If `sub_0x000005004` is confirmed as related to process creation) * **Possible, but Needs More Context:** T1107 - File",
+        "Deletion (Depending on `sub_0x000005000` and `sub_0x00000500C`)",
+        "To provide more precise MITRE mappings, further analysis (dynamic analysis or examination of the referenced subroutines) is required. This assessment is based solely on the limited assembly code",
+        "provided.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of process execution, specifically using the `CreateProcessA` Windows API call. This maps to the following MITRE ATT&CK technique:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe** While not explicitly using `cmd.exe`, `CreateProcessA` can be used to execute arbitrary executables, including `cmd.exe` (and is",
+        "frequently a method to do so indirectly). The lack of command line arguments being pushed suggests possible execution of a separate file rather than a direct command. This is not definitive",
+        "proof, but it raises suspicion.",
+        "* **T1563.001 - Create or Modify System Process: Windows Service** This technique describes creating or modifying system processes. Because we don't see any service-related API calls (like",
+        "`CreateService`, `OpenService`, or `StartService`), this technique is not directly applicable. It's possible the created process *could* later interact with services, but this code snippet",
+        "doesn't provide enough information. Therefore, T1563.001 is unlikely.",
+        "* **T1055.002 - Process Injection: CreateRemoteThread** Although `CreateProcessA` is present, there's no evidence of `CreateRemoteThread`, `VirtualAllocEx`, or `WriteProcessMemory`, which are",
+        "typically used for process injection. So, this technique isn't observed in the provided code.",
+        "Therefore, the most likely MITRE ATT&CK technique based on the provided assembly code is **T1059.001**. It's crucial to note that without additional context (like the contents of the memory at",
+        "0x403000, which holds the command line), it's difficult to determine the *exact* intent or subsequent behavior. If the command line arguments included commands to be executed via `cmd.exe`, it",
+        "would solidify this classification.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The x86 assembly code provided appears to perform the following actions:",
+        "1. Sets up the stack frame. 2. Prepares a sequence that ultimately calls `CreateProcessA` with the command line to run `rundll32.exe` to create a minidump of the `lsass.exe` process. 3. Waits",
+        "for the created process to complete using `WaitForSingleObject`. 4. Cleans up handles with `CloseHandle`.",
+        "These activities are associated with the following MITRE ATT&CK techniques:",
+        "1. **T1055.001 - Process Injection: Dynamic-link Library Injection**: This relates to using `rundll32.exe` to execute a DLL. 2. **T1047 - Windows Management Instrumentation**: Although not",
+        "directly shown in the code snippet, using tools like `rundll32.exe` to dump LSASS could relate to this in broader persistence or management approaches. 3. **T1003.001 - OS Credential Dumping:",
+        "LSASS Memory**: The command `rundll32.exe C:\\Windows\\System32\\comsvcs.dll, MiniDump PID lsass.dmp full` suggests dumping LSASS memory, which is a common technique to extract credentials from the",
+        "memory of a Windows system.",
+        "These techniques indicate malicious behavior frequently associated with post-exploitation activities aimed at extracting sensitive information from a compromised system, particularly",
+        "credentials, by targeting LSASS (Local Security Authority Subsystem Service) on a Windows machine.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing this x86 assembly code can provide insights into potential techniques related to MITRE ATT&CK framework. Although assembly by itself doesn't explicitly show high-level intentions,",
+        "certain patterns can suggest specific behaviors. Here are some observations:",
+        "1. **Stack Operations**: The code uses stack operations extensively (`push`, `pop`), which are common in many functions and subroutine call sequences.",
+        "2. **Function Calls**: It contains various calls to subroutines (e.g., `sub_0x00000040A`, `sub_0x000005004`), suggesting typical function invocation patterns. These could imply a software",
+        "exploit or manipulation of execution flow.",
+        "3. **Operation with Memory**: The code manipulates specific memory addresses (e.g., writing to `dword ptr [0x404000]`). This can be a sign of memory modification or potentially direct operation",
+        "with specific buffers.",
+        "4. **Push Constants and Memory Addresses**: Constants and specific memory addresses are pushed onto the stack before calls. This is often part of parameter setup for API calls or system",
+        "functions.",
+        "5. **Conditional Branching**: The `test` followed by the `je` instruction indicates conditional execution which impacts control flow based on a condition (e.g., execution branching based on the",
+        "result of the `test`).",
+        "6. **Pushing -1**: This specific pattern may be indicative of some known exploit techniques, where `-1` represents some special flag or condition in API/system calls.",
+        "While the exact technique can sometimes be hard to pin down without further context, such as what each specific subroutine (`sub_0x00000040A`, `sub_0x000005004`, etc.) implements, there's a",
+        "possibility that these are involved in:",
+        "* **T1055: Process Injection** - If any of these subroutines relate to injecting code into another process",
+        "low-level operations such as what",
+        "specific memory areas is being used to elevate privileges. * **T1106: Native API** - Since the calls include manipulation and direct use of specific system calls, it",
+        "being used for direct Windows API calls or similar.",
+        "Determining the exact technique would often require cross-referencing with higher-level code behavior or accompanying context such as known bad calls within these subroutine definitions.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code seems to be performing process creation and management in a Windows environment using the `CreateProcessA`, `WaitForSingleObject`, and `CloseHandle` functions.",
+        "This behavior corresponds to the MITRE ATT&CK technique for Process Injection or Process Creation. Without a specific sub-technique mentioned for additional context, here is the relevant",
+        "technique for process creation:",
+        "- **T1059.001** - Command and Scripting Interpreter: PowerShell (for the command line being used directly) - **T1106** - Execution: Native API (for using API functions such as `CreateProcessA`)",
+        "- **T1055** - Process Injection (if this assembly is used to inject a process into another process",
+        "For strictly process creation and execution via API calls like `CreateProcessA`:",
+        "- **T1106** - Execution: Native API (if we're using the API directly for process creation without injection or other sophisticated techniques)",
+        "Since a `CreateProcessA` function is directly referenced, this assembly code can be most precisely linked to:",
+        "- **T1106** - Execution: Native API",
+        "If additional context is provided, such as if the new process is started to evade detection or bypass certain security controls, other sub-techniques might apply, but those are the closest based",
+        "on the described code.",
+        "Close"
+    ]
+}

@@ -1,0 +1,150 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.012",
+                "T1055.003",
+                "T1047",
+                "T1140",
+                "T1055",
+                "T1047",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1112.001",
+                "T1112.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1547.001",
+                "T1112"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1055",
+                "T1622",
+                "T1070",
+                "T1179"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1112",
+                "T1552.002",
+                "T1112"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **Registry Key Manipulation** for **Persistence**. Specifically, it attempts to open a registry key and, if unsuccessful, sets a value for a known persistence",
+        "location.",
+        "Therefore, the MITRE ATT&CK technique most closely associated with this code is **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**.",
+        "Let's break down why:",
+        "* **RegOpenKeyExA:** This function attempts to open the registry key `Software\\Microsoft\\Windows NT\\CurrentVersion\\Tool`. This is not a standard Run Key location, but the subsequent code",
+        "suggests an attempt to establish persistence.",
+        "* **RegSetValueExA:** If the key doesn't exist (or opening fails), the code sets the value \"userinit\" within that Tool key to \"c:\\data\\my_runner.exe\". Although not a typical Run Key, `userinit`",
+        "is a legitimate mechanism that can be abused for persistence. Malware modifying Userinit to point to malicious executables is a well-known persistence trick and sometimes involves creating and",
+        "injecting into keys under HKCU/Software rather than using normal Run Key mechanisms.",
+        "* **RegCloseKey:** Properly closes the registry key handle, which is typical but doesn't directly relate to the attack technique itself.",
+        "While `Software\\Microsoft\\Windows NT\\CurrentVersion\\Tool` isn't one of the *standard* `Run` keys or startup folders, the code's overall logic strongly suggests the intent to establish",
+        "persistence by adding a new value in an existing or user-created key. The use of the `userinit` value name (even in a non-standard location) reinforces the likelihood of a persistence mechanism.",
+        "Because of the use of a non-standard approach to persistence, it's reasonable to categorize this under T1547.001, acknowledging that the key is not specifically listed as a common \"Run Key\".",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, primarily focused around process injection and potentially defense evasion. It's impossible to definitively",
+        "categorize without more context (like what `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` do), but here's a breakdown and the most likely mappings:",
+        "* **Process Injection:** The sequence of calls to `sub_0x000005000`, `sub_0x000005004`, and `sub_0x000005008` along with arguments that look like addresses (e.g., `0x403000`, `0x40303c`,",
+        "`0x403058`) and handles (`0x80000001`) strongly indicate some form of process injection. Specifically, the parameters passed to `sub_0x000005000` resemble those used in a `CreateProcess` or",
+        "similar API call: * `0x80000001`: Could be a process creation flag (e.g., `CREATE_SUSPENDED`). * `0x403000`: Likely an address within the current process's memory space. * `0`, `0`, `2`: Other",
+        "process creation parameters.",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** If `sub_0x000005000` creates a remote process (or attaches to an existing one), and `sub_0x000005004` and/or",
+        "`sub_0x000005008` write to and execute code in that process's address space, it would be a strong indicator of DLL injection or a similar technique. * **T1055.012 - Process Injection: Thread",
+        "Execution Hijacking:** If `sub_0x000005004` or `sub_0x000005008` manipulates threads in a target process (indicated by the use of `dword ptr [ebp - 4]`, which likely holds a handle), it might",
+        "represent thread hijacking. * **T1055.003 - Process Injection: Portable Executable Injection:** The use of memory addresses could also point to PE injection, where a PE file's contents are",
+        "written directly into the target process's memory.",
+        "* **Defense Evasion:** While not definitively shown, the `test eax, eax` and `je offset_0x000000477` suggest error checking and conditional execution. This *could* be related to defense evasion:",
+        "* **T1047 - Process Discovery:** It's possible that `sub_0x000005000` attempts to identify a specific process, and the branching logic handles the case where the process is not found, executing",
+        "alternative code. However, this is speculation. * **T1140 - Deobfuscate/Decode Files or Information:** While less likely with this snippet alone, the conditional execution could be related to",
+        "decoding or decrypting the injected payload only if certain conditions are met.",
+        "* **Code Obfuscation:** There's no direct evidence of obfuscation *within this specific code snippet*. However, the use of indirect calls (`call sub_...`) instead of directly calling API",
+        "functions makes static analysis more difficult and could be part of a broader obfuscation strategy. (Though indirect calls are also common in legitimate code.)",
+        "**In summary, the strongest candidate is likely T1055 (Process Injection) with a sub-technique depending on the specific behavior of the un-shown `sub_...` functions. More context is needed to",
+        "be certain.** The possibility of T1047 or T1140 should also be considered, albeit with lower confidence based on the limited code.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows interaction with the Windows Registry using `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`. This maps to the MITRE ATT&CK technique **T1112.001 - Modify Registry**.",
+        "Specifically:",
+        "* **RegOpenKeyExA:** Attempts to open a registry key (`0x403000` - likely a string representing the key path). This is part of the \"read\" aspect that's a prerequisite to modification for this",
+        "sub-technique. * **RegSetValueExA:** Sets a registry value (`0x403058` - likely the value name) within the opened key. This is the core \"modify\" action. * **RegCloseKey:** Closes the registry",
+        "key handle. While not strictly part of the modification itself, it's standard practice after interacting with the registry.",
+        "Therefore, the most appropriate MITRE ATT&CK technique is **T1112.001 - Modify Registry**.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code demonstrates the manipulation of the Windows registry, specifically, it opens a registry key and sets a value. This type of activity can be associated with",
+        "techniques used for persistence or configuration of malicious software.",
+        "In MITRE ATT&CK terms, this can be mapped to the following techniques:",
+        "1. **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**: - The code modifies the registry to potentially execute a file (`c:\\data\\my_runner.exe`) upon user login",
+        "by writing to a registry location that could be associated with auto-starting applications.",
+        "2. **T1112 - Modify Registry**: - This is broader than the specific sub-technique above and encompasses any form of registry modification. The operations shown involve opening a registry key",
+        "(`RegOpenKeyExA`) and setting a registry value (`RegSetValueExA`), which align with general registry modification activities.",
+        "These actions suggest an intent to establish persistence by ensuring that a specific executable runs at boot or user logon, commonly used by malware for persistence.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code contains several operations that could be analyzed for MITRE techniques associated with them. Based on the context and operations, some potential MITRE ATT&CK",
+        "techniques include:",
+        "1. **API Manipulation**: - The `call` instructions to subroutines (`sub_0x00000040A`, `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`) are indicative of function calls, possibly to",
+        "Windows API functions. The manipulation of the stack and subsequent function calls can be related to loading libraries, loading and invoking functions, handling resources/files, or network",
+        "interactions. - Potential Technique: `T1059` - Command and Scripting Interpreter or more contextually specific sub-techniques depending on what these functions do.",
+        "2. **Process Injection**: - If any of the called subroutines are involved in process injection techniques, such as creating or modifying other processes' memory space. - Potential Technique:",
+        "`T1055` - Process Injection, with a relevant sub-technique if further analysis of the subroutine reveals specifics like remote thread creation or DLL injection.",
+        "3. **Defense Evasion**: - Manipulating the stack, calling subroutines, testing and jumping based on conditions might indicate anti-analysis or evasion techniques. - Potential Techniques: `T1622`",
+        "- Debugger Evasion or `T1070` - Indicator Removal on Host if it clears logs/artifacts.",
+        "4. **Function Hooking/Api Hijacking**: - If the assembly manipulates API calls or performs hooking to intercept and manipulate API calls. - Potential Technique: `T1179` - Hooking.",
+        "Without more detailed information about what each subroutine does, it is hard to accurately pinpoint exactly which technique's sub-technique could be associated with every specific operation.",
+        "Typically, analyzing the contents of the called subroutines and the context of their usage would provide better clarity.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code involves operations on the Windows Registry. In particular, it leverages the `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey` functions to open a registry key, set",
+        "a value, and close the key, respectively. Such operations can be associated with the following MITRE ATT&CK techniques and sub-techniques:",
+        "1. **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**: The use of the registry to manipulate startup settings through run keys. - The provided code could be",
+        "setting a value in the registry that affects the boot or logon process.",
+        "2. **T1112 - Modify Registry**: This technique involves making changes to the registry. The `RegSetValueExA` is a key registry manipulation function, indicating that an adversary may use it to",
+        "modify system settings or configurations to establish persistence or conceal activities.",
+        "3. **T1552.002 - Unsecured Credentials: Private Keys**: Although not directly evident, sometimes registry operations are part of stealing or tampering with credentials, particularly if sensitive",
+        "information or keys are stored there.",
+        "For precise mapping, the context in which this assembly code is running (e.g., part of a malware, a system administration task, etc.) would significantly influence which techniques are",
+        "applicable. However, given the registry operations, T1112 is the most directly relevant without further context.",
+        "Close"
+    ]
+}

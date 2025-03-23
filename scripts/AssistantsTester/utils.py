@@ -154,11 +154,19 @@ def do_statistics_run_0(assistants_out):
     print(assistants_data)
 
 
-def do_statistics_run_1(assistants_out):
+def do_statistics_run_1(assistants_out, is_clean=False):
+    if is_clean:
+        print("\n\n\n \tRUNNING CLEAN \n\n\n")
     problems_statistics = {}
     solves_by_assistant = {}
     unique_techniques = {}
     for problem in os.listdir(assistants_out):
+        if is_clean:
+            if problem.startswith('T'):
+                continue
+        else:
+            if not problem.startswith('T'):
+                continue
         techinque_name_problem = problem.split('.')[0]
         if techinque_name_problem not in unique_techniques:
             unique_techniques[techinque_name_problem] = set()

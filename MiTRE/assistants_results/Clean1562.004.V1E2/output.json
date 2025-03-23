@@ -1,0 +1,150 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1562.004",
+                "T1202",
+                "T1202",
+                "T1202.002",
+                "T1202",
+                "T1562.004",
+                "T1202"
+            ],
+            "valid": [
+                "T1562.004",
+                "T1562.004"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1086",
+                "T1204.001",
+                "T1005"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1059",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1562.004",
+                "T1106"
+            ],
+            "valid": [
+                "T1562.004"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1027.002",
+                "T1055",
+                "T1106",
+                "T1055",
+                "T1105",
+                "T1134",
+                "T1027.001",
+                "T1059",
+                "T1055",
+                "T1027.001",
+                "T1027.002"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1106",
+                "T1055",
+                "T1055.002",
+                "T1106"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows the execution of `cmd.exe` with the argument to delete a firewall rule. This maps to **T1562.004 - Impair Defenses: Disable or Modify System Firewall**.",
+        "Additionally, the use of `CreateProcessA` to execute the command indirectly could be considered **T1202 - Indirect Command Execution**. There is no obfuscation or other clear indication of an",
+        "attempt to evade defenses, so sub-techniques of T1202 like `T1202.002 - Indirect Command Execution: Windows Command Interpreter` might be too specific, but `T1202` itself is generally",
+        "applicable.",
+        "Therefore, the MITRE ATT&CK techniques present are:",
+        "* **T1562.004** * **T1202**",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several MITRE ATT&CK techniques, primarily related to process injection and memory allocation:",
+        "* **T1055.001 - Process Injection: Dynamic-link Library Injection:** The code calls `sub_0x000005004` with a series of arguments that resemble parameters for `CreateRemoteThread`. Specifically:",
+        "* `0x403000`: Likely a pointer to shellcode or a remotely injected DLL. * `0x8000000`: This could be a flag like `THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER`. Though not definitive proof, it's",
+        "suspicious. * The other zeroed arguments likely correspond to unused or default parameters of `CreateRemoteThread`.",
+        "* **T1086 - PowerShell:** While not directly evident in assembly, the call to `sub_0x00000040A` with the argument `0x40609f` *could* be resolving or loading a PowerShell-related function or",
+        "library. This is highly speculative without further context on what that subroutine does. More analysis would be needed to confirm this.",
+        "* **T1204.001 - User Execution: Malicious Link:** Again, this is highly speculative. If `sub_0x00000040A` is related to handling command-line arguments or processing user input, and `0x40609f`",
+        "points to a user-supplied string, *it's possible* this string represents a malicious link. This requires a significant leap and depends heavily on what happens in the called subroutine. Without",
+        "more information, we can't confidently assert this technique.",
+        "* **T1005 - Data from Local System:** The access to `dword ptr [0x404044]` and `dword ptr [0x404048]` suggests the malware is reading data from its own memory space, possibly data previously",
+        "collected from the local system. This isn't as strong an indicator as the others, as many programs read their own data. It's worth noting in case it contributes to a larger picture.",
+        "**Important Considerations:**",
+        "* **Context is Key:** This analysis is based on limited assembly code. The true intent can only be confirmed by analyzing the entire binary or having more information about the called",
+        "subroutines. * **Indirect Calls:** The use of `call` instructions to subroutines makes definitive technique mapping difficult. The behavior of those subroutines needs to be analyzed to confirm",
+        "these suspicions. * **Speculation:** Some of the techniques mentioned above (PowerShell, Malicious Link) are highly speculative and shouldn't be considered confirmed without more evidence.",
+        "This analysis provides a starting point for investigation. Dynamic analysis or reverse engineering of the related subroutines would provide a more complete understanding of the malware's",
+        "behavior and confirm the MITRE ATT&CK techniques involved.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of process execution, specifically using the `CreateProcessA` Windows API call. This maps to the following MITRE ATT&CK technique:",
+        "* **T1059.001. CreateProcess:** This technique specifically refers to using the `CreateProcessA` API call to create a new process, which is exactly what the code snippet is doing.",
+        "The code also demonstrates waiting on the newly created process using `WaitForSingleObject` and then closing handles with `CloseHandle`. While these actions often accompany process creation,",
+        "they don't have specific sub-techniques under T1059. They contribute to the overall process execution and cleanup but are considered part of the broader T1059.001 technique.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code includes several MITRE ATT&CK techniques due to its behavior, specifically around process creation and possibly disabling or modifying firewall rules. Here are",
+        "some associated MITRE techniques:",
+        "1. **T1059.003: Command and Scripting Interpreter: Windows Command Shell** - The code pushes a command line string to the stack, specifically `\"cmd /c netsh advfirewall firewall delete rule",
+        "name=\"My Rule\"\"` and uses it to create a process. The `cmd` execution indicates the use of the Windows command shell.",
+        "2. **T1562.004: Impair Defenses: Disable or Modify System Firewall** - The command executed via `cmd` is attempting to delete a firewall rule using `netsh advfirewall firewall delete rule",
+        "name=\"My Rule\"`. This indicates an attempt to modify or disable firewall rules, impairing system defenses.",
+        "3. **T1106: Native API** - The usage of native Windows API calls like `CreateProcessA`, `WaitForSingleObject`, and `CloseHandle` to perform actions like process creation and handle management",
+        "without higher-level abstractions.",
+        "Each of these techniques represents different aspects of the assembly code's behavior according to the MITRE ATT&CK framework.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code you've provided includes several operations that can be associated with specific MITRE ATT&CK techniques. Here are some potential mappings:",
+        "1. **Dynamic Resolution of Function Addresses and Execution**: The code demonstrates dynamic resolution and execution of function addresses via `call` instructions to subroutines (e.g., `call",
+        "sub_0x00000040A` and `call sub_0x000005004`). This can be associated with:",
+        "- **T1027.002 - Obfuscated Files or Information: Software Packing**: The use of indirect function calls may indicate some level of obfuscation or redirection. - **T1055 - Process Injection or",
+        "T1106: Native API** if the functions resolved and called are related to process injection techniques.",
+        "2. **Memory Manipulation and Direct Memory Writing**: Operations such as `mov dword ptr [0x404000], 0x44` and other memory writes could indicate:",
+        "- **T1055 - Process Injection** or **T1105 - Ingress Tool Transfer** if writing to memory is used for injecting code or transferring tools within the process memory space.",
+        "3. **Use of Specific Memory Ranges or Page Permissions**: The presence of specific memory address manipulations and potential setup like `push 0x8000000`, which might relate to permissions or",
+        "reserved space, can be linked to:",
+        "- **T1134 - Access Token Manipulation** or another technique if any tokens or privilege escalation mechanisms are involved.",
+        "4. **Loop Structures and Conditional Checks**: The use of conditional branches like `je offset_0x0000004B1` is quite generic but can be associated with program flow control typically seen in",
+        "sophisticated techniques:",
+        "- **T1027.001 - Obfuscated Files or Information: Binary Padding** if the `nop` instructions are used for evading analysis or detection.",
+        "In summary, while specific techniques can depend on the broader context of what each subroutine is performing, common associations for such code patterns are related to execution (T1059),",
+        "process injection (T1055), or even defense evasion through binary padding or obfuscation (T1027.001 or T1027.002). Without further context, precise mappings can be speculative but generally",
+        "align with these tactics.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The assembly code snippet you provided appears to involve process creation and potentially process injection depending on the context. The specific MITRE ATT&CK techniques that could be",
+        "associated with this code are as follows:",
+        "1. **Process Creation**: The `CreateProcessA` function is used to create a new process. This maps to: - **T1059**: Command and Scripting Interpreter - **T1106**: Native API",
+        "2. **Process Injection**: If the code is used in the context of injecting a payload or manipulating the created process, it could relate to: - **T1055**: Process Injection - **T1055.002**:",
+        "Process Injection: Portable Executable Injection",
+        "3. **Standard Application Programming Interface**: The calls to Windows API functions such as `CreateProcessA`, `WaitForSingleObject`, and `CloseHandle` suggest: - **T1106**: Native API",
+        "The specific sub-technique could vary depending on the exact usage of the created process and any subsequent actions, such as code injection or execution. However, based on the provided code",
+        "snippet, these are the possible techniques without further context.",
+        "Close"
+    ]
+}

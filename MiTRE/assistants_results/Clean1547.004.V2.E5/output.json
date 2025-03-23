@@ -1,0 +1,179 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1036.005"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.001",
+                "T1055.001",
+                "T1055.004",
+                "T1055.001",
+                "T1055.004",
+                "T1055.001",
+                "T1055.002",
+                "T1055.003",
+                "T1055.001",
+                "T1055.002",
+                "T1055.003",
+                "T1055.001",
+                "T1055.002",
+                "T1055.004"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1112",
+                "T1112",
+                "T1547.001",
+                "T1098",
+                "T1140",
+                "T1140",
+                "T1112",
+                "T1547.001",
+                "T1140"
+            ],
+            "valid": [
+                "T1547.001",
+                "T1547.001",
+                "T1547.001"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1140",
+                "T1070",
+                "T1059.006"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1547.001"
+            ],
+            "valid": [
+                "T1547.001"
+            ]
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **Boot or Logon Autostart Execution:**",
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** The code interacts with the `Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon` registry key,",
+        "specifically setting a value named \"Notify\". Malware commonly uses this registry key for persistence, ensuring the malicious code executes when a user logs on.",
+        "Additionally, there is potential evidence of **Masquerading**:",
+        "* **T1036.005 - Masquerading: Match Legitimate Name or Location:** The value `\"c:\\data\\my_runner.exe\"` could be an attempt to masquerade a malicious executable by placing it in a seemingly",
+        "innocuous location (\"c:\\data\") and giving it a generic-sounding name (\"my_runner.exe\"). Without more context about the overall program's purpose, it's difficult to definitively say this is",
+        "masquerading, but it raises a red flag.",
+        "It's important to note that this analysis is based on a small snippet of code. Further context (like the purpose of `sub_0x00000040A` and what `0x40609f` represents) could reveal additional",
+        "techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The assembly code shows signs of process injection (specifically, DLL injection) and API hooking. Here's a breakdown and the associated MITRE ATT&CK techniques:",
+        "* **Function Prologue/Epilogue:** `push ebp`, `mov ebp, esp`, `sub esp, 0x44`, `push ebx`, `push esi`, `push edi` (prologue) and `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret`",
+        "(epilogue) are standard function setup and cleanup. This doesn't directly map to a MITRE technique.",
+        "* **Calling `sub_0x00000040A`:** `mov ecx, 0x40609f`, `call sub_0x00000040A`. This likely resolves or retrieves some necessary data or function pointer, possibly the address of `LoadLibrary` or",
+        "other API functions necessary for injection. While this doesn't have a direct mapping, it's preparatory work for injection.",
+        "* **VirtualAllocEx/NtAllocateVirtualMemory (T1055.001):** The sequence `lea eax, [ebp - 4]`, `push eax`, `push 2`, `push 0`, `push 0x403000`, `push 0x80000001`, `call sub_0x000005000` strongly",
+        "suggests a call to `VirtualAllocEx` or a similar function (e.g., `NtAllocateVirtualMemory`) to allocate memory within another process. The parameters hint at allocation type (commit=0x80000001),",
+        "protection flags (possibly PAGE_EXECUTE_READWRITE=0x40), and a size (0x403000, which is suspiciously large - perhaps a typo and meant to be 0x4000 or similar). `[ebp - 4]` likely holds the",
+        "handle to the target process. Therefore, **T1055.001 (Process Injection: Thread Execution Hijacking)** is indicated, although other injection techniques are possible based on subsequent code.",
+        "* **WriteProcessMemory (T1055.001, T1055.004):** The sequence around `call sub_0x000005004` suggests a call to `WriteProcessMemory`. The arguments being pushed seem to involve a destination",
+        "address within the target process (`dword ptr [ebp - 4]` which we presume to be updated with allocated memory), source address (0x403040), and a length (1). This would copy data to the allocated",
+        "memory in the target process. This supports **T1055.001 (Process Injection: Thread Execution Hijacking)** or possibly **T1055.004 (Process Injection: Asynchronous Procedure Call)** if the",
+        "written data is meant to set up an APC.",
+        "* **CreateRemoteThread/RtlCreateUserThread (T1055.001, T1055.002, T1055.003):** `call sub_0x000005008` after retrieving `dword ptr [ebp - 4]` (the allocated memory address in the target) likely",
+        "represents a call to `CreateRemoteThread` or `RtlCreateUserThread`. This starts a thread in the target process, likely at the beginning of the injected code, solidifying the process injection.",
+        "This further strengthens **T1055.001**, or could also be **T1055.002 (Process Injection: CreateRemoteThread)** or **T1055.003 (Process Injection: QueueUserAPC)** depending on the exact",
+        "functionality of `sub_0x000005008`.",
+        "* **Code Injection:** Collectively, the calls to memory allocation, writing to the remote process's memory, and starting a remote thread point to code injection.",
+        "* **Potential API Hooking:** The conditional jump (`test eax, eax`, `je offset_0x000000477`) suggests a check for success or failure of the initial injection attempt. The code at",
+        "`offset_0x000000477` might represent a fallback mechanism or a different injection method if the first one failed. The pushing of 0x17 before a call suggests potentially setting up a different",
+        "function call, maybe related to API hooking to intercept and redirect calls to specific functions. However, without further information, attributing a specific hooking technique is difficult.",
+        "In summary, the most prominent MITRE ATT&CK technique here is **T1055.001 (Process Injection: Thread Execution Hijacking)**. There's a strong possibility of **T1055.002 (Process Injection:",
+        "CreateRemoteThread)** or **T1055.004 (Process Injection: Asynchronous Procedure Call)**. API hooking might be present, but more analysis is required to confirm and classify the specific hooking",
+        "method if any.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows evidence of **Registry Modification** for persistence and possibly **Data Encoding/Decoding**. It's hard to say for certain without more context on the purpose of",
+        "`sub_0x00000040A`.",
+        "Here's the breakdown and MITRE ATT&CK mappings:",
+        "* **`RegOpenKeyExA`**: This function attempts to open a registry key. The arguments suggest it's trying to open `HKCU\\Software\\...\\...\\...` (assuming `0x80000001` represents",
+        "`HKEY_CURRENT_USER`). Failure to open the key (checked with `test eax, eax` and `je`) leads to the creation/modification path. This maps to **T1547.001 - Registry Run Keys / Startup Folder**.",
+        "It's also possible this is **T1112 - Modify Registry** depending on the specific key being opened and if the intent is not persistence.",
+        "* **`RegSetValueExA`**: This function sets a registry value. It writes data from `0x403040` to a value named by the string at `0x40305c` under the previously opened/created key. This strengthens",
+        "the assessment of **T1112 - Modify Registry** and possibly **T1547.001** if this modification creates persistence. It could also be **T1098 - Account Manipulation** if the registry modification",
+        "affects user accounts.",
+        "* **`RegCloseKey`**: This function closes the registry key handle, standard practice after working with the registry. Doesn't directly map to a MITRE technique.",
+        "* **`sub_0x00000040A`**: This is an unknown subroutine. Without analyzing its code, we can't definitively map it to a MITRE technique. However, its presence *before* the registry operations",
+        "suggests it might be involved in preparing data for the registry (e.g., decoding or decrypting the data that will be written by `RegSetValueExA`). This *could* indicate **T1140 -",
+        "Deobfuscate/Decode Files or Information** if the subroutine performs a decoding operation.",
+        "* **Data Encoding/Decoding (Potential):** The use of a subroutine before registry modification raises suspicion. It's plausible the subroutine decodes data to be written to the registry or",
+        "constructs the registry path/value name. This is not definitive without analyzing the subroutine's code, but warrants consideration. This aligns with **T1140**.",
+        "**In summary, the most likely MITRE ATT&CK techniques are:**",
+        "* **T1112 - Modify Registry:** This is a strong candidate given the use of `RegSetValueExA`. * **T1547.001 - Registry Run Keys / Startup Folder:** Likely if the registry key relates to startup",
+        "applications. * **T1140 - Deobfuscate/Decode Files or Information:** Possible but not definitive without understanding `sub_0x00000040A`.",
+        "It is crucial to analyze `sub_0x00000040A` and inspect the data at addresses `0x403000`, `0x403040`, and `0x40305c` to obtain a more precise mapping to MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you provided performs operations involving the Windows Registry, specifically under the \"Winlogon\" key, which can be indicative of persistence mechanisms in Windows",
+        "environments. The operations with `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey` suggest modifying registry keys to potentially insert persistence hooks or notifications.",
+        "Based on the behavior demonstrated by the code, the relevant MITRE ATT&CK technique is:",
+        "- **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**",
+        "This technique includes sub-techniques that involve the use of the Windows Registry to execute code automatically during system boot or user logon, a common method for establishing persistence",
+        "on a Windows system. In this specific example, the modification of the \"Winlogon\" key is characteristic of this technique.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code includes patterns indicative of malicious or suspicious activities commonly seen in certain attack techniques as cataloged by MITRE ATT&CK.",
+        "Analyzing the code snippet:",
+        "- **Stack manipulation**: Instructions like `push`, `pop`, `sub esp, 0x44` are consistent with stack frame setup and teardown which is a normal procedure in functions, but can be utilized in",
+        "techniques like obfuscation or anti-analysis (e.g., hiding the actual purpose of the code).",
+        "- **Function calls and API usage**: The presence of multiple `call` instructions with likely obfuscated or dynamically calculated addresses suggests potential code obfuscation or control flow",
+        "manipulation, common in attempts to evade static analysis.",
+        "- **Conditional execution / Error checking**: Instructions like `test eax, eax` followed by `je` (jump on equal/zero) introduce control flow based on the outcome of previous operations, a",
+        "typical pattern for checking the result of an API call. This behavior could align with various techniques depending on the context of these API calls.",
+        "- **Use of nonsystematic outputs and the stack**: Techniques like pushing values onto the stack and indirect calls can relate to process injection or reflective loading.",
+        "Based on these observations, here are relevant MITRE ATT&CK techniques that might be associated with this code, contingent upon the broader context of how these code blocks fit into the",
+        "malware's operations:",
+        "1. **T1055 - Process Injection**: If the subroutine calls involve injecting code into another process, which seems plausible given the API call structure and parameters being pushed.",
+        "2. **T1027 - Obfuscated Files or Information**: The structure of the code and its use of potentially computed addresses could relate to code obfuscation efforts.",
+        "3. **T1140 - Deobfuscate/Decode Files or Information**: If any of the functions are used for unpacking or decoding information.",
+        "4. **T1070 - Indicator Removal on Host**: If any of these calls are to API functions or custom code erasing logs or other data.",
+        "5. **T1059.006 - Command and Scripting Interpreter: PowerShell**: If the payload results in execution of scripts or these function calls are translated into script interpretation.",
+        "To further refine this, one would need additional context, such as what functions `sub_0x00000040A`, `sub_0x000005000`, etc., are doing, or what dynamic libraries (e.g., DLLs) are being",
+        "interfaced with.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given x86 assembly code appears to involve manipulation of the Windows Registry via API calls. Specifically, it uses functions like `RegOpenKeyExA`, `RegSetValueExA`, and `RegCloseKey`,",
+        "suggesting that it is altering or creating registry keys and values.",
+        "In the context of the MITRE ATT&CK framework, the technique associated with modifying the Windows Registry is commonly referenced as follows:",
+        "- **T1547.001**: Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder",
+        "The context of your code makes use of registry functions which fit into this technique, focusing on potentially ensuring persistence or configuring system settings by modifying autostart",
+        "execution locations in the Windows Registry.",
+        "Note that this interpretation is contextual and assumes the intent based on API usage. The actual impact could vary based on what specific keys and values are being accessed or modified.",
+        "Close"
+    ]
+}

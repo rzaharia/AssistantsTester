@@ -1,0 +1,174 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1543.003",
+                "T1562.001",
+                "T1543.003",
+                "T1562.001"
+            ],
+            "valid": [
+                "T1562.001",
+                "T1562.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.012",
+                "T1055.004",
+                "T1574.002",
+                "T1047",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1562.004",
+                "T1021.002",
+                "T1059.003"
+            ],
+            "valid": [
+                "T1562.004"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1055",
+                "T1082",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.006",
+                "T1055",
+                "T1203",
+                "T1203",
+                "T1134",
+                "T1055",
+                "T1203",
+                "T1055",
+                "T1203"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of **Process Injection** and **Defense Evasion** via service creation. Specifically, the code appears to be creating a Windows service to execute a command that",
+        "deletes a firewall rule. Let's break down the relevant parts:",
+        "* **`push 0x403000 ; \"sc create MyService binPath= cmd.exe /c netsh advfirewall firewell delete rule name=\"My Rule\"\"`**: This pushes the address of a string onto the stack. This string is a",
+        "command to create a Windows service named \"MyService.\" The service executes `cmd.exe` with a command to delete a firewall rule named \"My Rule.\" * **`push 5`**: This likely pushes the",
+        "`SERVICE_WIN32_OWN_PROCESS` flag (which has a value of 0x10, or 16 in decimal) onto the stack as a service type. This flag specifies that the service runs in its own process. I am unsure why 5",
+        "was used here. * **`call (null)`**: This is a direct call to address 0, which will almost certainly crash the program. However, based on the preceding instructions, the intended function being",
+        "called is likely `CreateServiceA` or a similar service creation API. The parameters pushed onto the stack (service name, binary path, service type) are typical arguments for this function. The",
+        "`(null)` is probably a placeholder in disassembled code representing the dynamically resolved address of the API call, which might fail or be corrupted. * **`netsh advfirewall firewall delete",
+        "rule name=\"My Rule\"`**: This command deletes a specific firewall rule, likely to disable a security control and allow further malicious activity. This is a clear attempt at defense evasion.",
+        "Based on these observations, the relevant MITRE ATT&CK techniques are:",
+        "* **T1543.003 (Create or Modify System Process: Windows Service):** The code attempts to create a new Windows service. This is a common technique for persistence and executing malicious code in",
+        "the background. * **T1562.001 (Impair Defenses: Disable or Modify System Firewall):** The command executed by the created service specifically deletes a firewall rule. This directly impairs",
+        "system defenses.",
+        "Therefore, the MITRE ATT&CK techniques are: **T1543.003** and **T1562.001**.",
+        "It's important to note that since the `call` instruction's target is `null`, this code, as presented, will not function correctly. This might be due to an error in the disassembly process or an",
+        "intentional obfuscation technique. However, the intent of the code is clear based on the parameters being pushed onto the stack before the call.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code snippet suggests a couple of potential MITRE ATT&CK techniques, but without more context, it's difficult to be definitive. The code shows function calls and stack",
+        "manipulation, but doesn't reveal the *purpose* of those calls.",
+        "Here's a breakdown and the *possible* MITRE techniques:",
+        "* **`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, `push ebx`, `push esi`, `push edi`**: This is standard function prologue code. It sets up the stack frame for local variables and saves the state",
+        "of registers that the function will use. This itself isn't malicious.",
+        "* **`mov ecx, 0x40609f`, `call sub_0x00000040A`**: This loads a value (possibly a pointer to data or a function pointer) into `ecx` and then calls a subroutine. This *could* be related to",
+        "several techniques depending on what `sub_0x00000040A` does. Without knowing that, it's hard to say. If `sub_0x00000040A` performs process injection, API hooking, or shellcode execution, then we",
+        "might consider techniques like: * **T1055.001 (Process Injection: Dynamic-link Library Injection):** If the address in `ecx` points to a DLL and `sub_0x00000040A` is a DLL loading function. *",
+        "**T1055.012 (Process Injection: Thread Execution Hijacking):** If `sub_0x00000040A` manipulates threads in another process. * **T1055.004 (Process Injection: Asynchronous Procedure Call):**",
+        "Possible, though less likely without seeing more context. * **T1574.002 (Hijack Execution Flow: DLL Side-Loading)** If the address passed resolved to a malicious DLL intended to side-load",
+        "* **`push 5`, `push 0x403000`, `call sub_0x000005004`**: Similar to the previous call, this pushes two values onto the stack (5 and what looks like another potential pointer) before calling a",
+        "different subroutine. Again, the nature of `sub_0x000005004` is critical. The value 5 might represent a parameter such as a flag or an index. Speculatively: * **T1047 (Windows Management",
+        "Instrumentation):** If `sub_0x000005004` interacts with WMI. The \"5\" and the other address could be parameters for a WMI query or method execution. This is purely speculative, though. *",
+        "**T1059.001 (Command and Scripting Interpreter: PowerShell):** If this call ultimately executes PowerShell, the pushed values might relate to PowerShell commands or parameters. Again, highly",
+        "speculative.",
+        "* **`xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret`**: Standard function epilogue. Clears `eax` (often used for return values), restores the saved registers,",
+        "and returns control to the caller.",
+        "**Key Takeaway:** Without understanding the functionality of `sub_0x00000040A` and `sub_0x000005004`, attributing specific MITRE ATT&CK techniques is guesswork. Dynamic analysis or more code",
+        "context is crucial for a more accurate assessment. If you can provide details about what these subroutines do, a much more precise mapping to MITRE ATT&CK is possible.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.002 - Process Injection: Dynamic-link Library Injection**",
+        "**Rationale:**",
+        "1. **`push 5` and `push 0x403000` followed by `call (null)`:** This sequence is highly indicative of DLL injection. `0x403000` likely represents the address of the `LoadLibraryA` function within",
+        "`kernel32.dll`. The value `5` likely represents the string \"user32.dll\" encoded or an address to such a string. The `call (null)` would then cause program execution to jump into the",
+        "`LoadLibraryA` API, loading `user32.dll` or a different specified library. This setup isn't using a direct call but likely relies on a register holding the resolved address of `LoadLibraryA`",
+        "before the `call (null)` instruction. The `sub_0x00000040A` is likely involved in resolving this address dynamically, possibly to evade static analysis.",
+        "2. **Standard Prologue and Epilogue:** The `push ebp`, `mov ebp, esp`, etc. instructions form a standard function prologue, and the `mov esp, ebp`, `pop ebp`, `ret` instructions form the",
+        "standard epilogue. This is common but doesn't directly point to DLL injection specifically.",
+        "3. **Memory Allocation:** The `sub esp, 0x40` allocates 64 bytes of stack space, which could be used for preparing arguments for the `LoadLibraryA` function or other related injection",
+        "activities.",
+        "**Why not other techniques",
+        "While there could be other interpretations depending on the wider context of the disassembly, the combination of pushing a memory address and a potential module name/ID immediately before a call",
+        "to `null` points strongly to DLL injection. We lack complete information (e.g., what `sub_0x00000040A` does), but based on what's presented, T1055.002 is the most probable technique being",
+        "employed.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code suggests actions associated with subverting or interacting with a system's firewall service and potentially manipulating system services, which are common",
+        "techniques observed in various MITRE ATT&CK tactics. Specifically, the code appears to be creating a service with `sc create` that uses `cmd.exe` to execute a `netsh` command, which interacts",
+        "with the firewall rules. Here are the relevant MITRE ATT&CK techniques:",
+        "1. **T1562.004 - Impair Defenses: Disable or Modify System Firewall**: - This technique involves modifying or disabling the system firewall. The code snippet shows an attempt to delete a",
+        "firewall rule named \"My Rule\" using the `netsh advfirewall firewall delete rule` command.",
+        "2. **T1021.002 - Scheduled Task/Job: Service Execution**: - The use of `sc create` to create a new service indicates this technique. It involves using system services to execute commands or",
+        "scripts.",
+        "3. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: - The use of `cmd.exe` to run the `netsh` command within the assembly code aligns with this technique, which is about",
+        "using the Windows command shell for execution.",
+        "These MITRE techniques demonstrate common tactics adversaries might employ to manipulate system configurations or evade detection by impairing defenses.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code depicts a typical function prologue and epilogue, which involves setting up a stack frame, saving registers, calling other functions, and cleaning up the stack",
+        "before returning. While this is a common pattern in assembly, it doesn't directly map to a specific MITRE ATT&CK technique without additional context.",
+        "However, if this code is part of a malicious activity, we could consider potential techniques based on the actions observed:",
+        "1. **Function Calls**: The use of `call` instructions indicates function calls, which could be used for any number of purposes, such as executing API functions or external binaries. - **T1059 -",
+        "Command and Scripting Interpreter**: If these function calls result in the execution of command interpreters or scripts, this technique may apply.",
+        "2. **Stack Frame Manipulation**: The setup and teardown of stack frames (`push ebp`, `mov ebp, esp`, `sub esp, 0x40`, etc.) is standard practice, but if used to exploit vulnerabilities, you",
+        "might look at: - **T1055 - Process Injection**: Techniques involving manipulations of the stack or register state to inject code into another process.",
+        "3. **Software Discovery or Execution**: If the functions being called in this code are for discovering software or executing additional payloads, consider: - **T1082 - System Information",
+        "Discovery** - **T1106 - Native API**: If the `call` instructions are invoking Windows API calls for reconnaissance or execution purposes.",
+        "Without additional context on what the function calls or surrounding instructions aim to achieve, it is challenging to assign a specific MITRE technique. You would need to analyze the targets of",
+        "`call sub_0x00000040A` and `call sub_0x000005004` to determine their purpose in a broader attack chain. If these functions resolve to known malicious or suspicious actions, that would illuminate",
+        "the relevant MITRE technique(s).",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code includes several operations that are often associated with specific MITRE ATT&CK techniques. Here's an analysis of the code and potential techniques:",
+        "1. **Stack Frame Setup and Clean-up:** - The prologue (`push ebp; mov ebp, esp; sub esp, 0x40;`) and epilogue (`mov esp, ebp; pop ebp; ret`) are standard stack frame setup and teardown",
+        "operations in functions, not directly tied to any specific MITRE technique.",
+        "2. **Function Calls:** - The commands `call sub_0x00000040A` and `call (null)` imply function calling. If these functions are used for malicious purposes, such as executing shellcode or",
+        "payloads, they could be related to: - **T1059.006 (Command and Scripting Interpreter: PowerShell/Command Line Interface for Script Execution)**: If the called functions are executing scripts or",
+        "code. - **T1055 (Process Injection)**: If the calls are being used to inject into another process. - **T1203 (Exploitation for Client Execution)**: If the call is to execute in the context of",
+        "another application or process for exploitation purposes.",
+        "3. **Pushing and Popping Registers:** - Instructions like `push` and `pop` for registers (e.g., `push ebx`) are typical for preserving register states across function calls and are not directly",
+        "tied to a specific MITRE technique. However, they can be part of many techniques, such as process injection or buffer overflow.",
+        "4. **NOP Sled:** - The use of `nop` (No Operation) could be indicative of padding or aligning code execution, potentially seen in exploits or shellcode injection. This can be related to: -",
+        "**T1203 (Exploitation for Client Execution)**: If the NOPs are part of exploit shellcode. - **T1134 (Access Token Manipulation)**: Often padding for code caves in more sophisticated attacks",
+        "involving memory manipulation.",
+        "5. **Indirect Code Execution:** - The `call (null)` doesn't directly map to a valid instruction but can imply redirection or jumping. This behavior might be related to: - **T1055 (Process",
+        "Injection)**: Again, if it relates to code injection. - **T1203 (Exploitation for Client Execution)**: If creating controlled crashes or exploits.",
+        "Without knowing the specific intent or the content of `sub_0x00000040A` and the purpose of calling a null address, the closest techniques would likely involve some form of code injection or",
+        "exploitation, potentially T1055 or T1203.",
+        "For precise mapping, more context on what `sub_0x00000040A` does or how this code interacts with other systems is necessary.",
+        "Close"
+    ]
+}

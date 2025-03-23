@@ -1,0 +1,157 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1003.002",
+                "T1003.002"
+            ],
+            "valid": [
+                "T1003.002",
+                "T1003.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1218.011",
+                "T1055.003",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1056",
+                "T1071",
+                "T1082",
+                "T1106",
+                "T1140"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027",
+                "T1203",
+                "T1105",
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code suggests the following MITRE ATT&CK technique:",
+        "* **T1003.002: OS Credential Dumping: LSASS Memory**",
+        "**Rationale:**",
+        "The code pushes arguments onto the stack that include \"rundll32.exe\", \"comsvcs.dll\", \"MiniDump\", \"PID\", \"lsass.dmp\", and \"full\". This sequence strongly indicates an attempt to create a memory",
+        "dump of the LSASS process using the `MiniDump` function exported by `comsvcs.dll`. LSASS stores sensitive information, including credentials, and dumping its memory is a common technique for",
+        "credential theft. The use of `rundll32.exe` is a well-known method for executing functions within DLLs.",
+        "The `call (null)` instruction with those arguments pushed onto the stack is highly suspicious and indicative of a shellcode-like execution pattern, frequently employed in exploits.",
+        "It's important to note that while the code clearly points towards LSASS dumping, the precise sub-technique might depend on the specific context or the exact nature of the `sub_0x00000040A`",
+        "function (which is not provided in the snippet). If `sub_0x00000040A` is responsible for resolving `rundll32.exe`, it could indicate a more advanced technique involving dynamic API resolving (to",
+        "evade detection). However, based on the given code, T1003.002 is the most appropriate mapping.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code demonstrates several behaviors that could be associated with different MITRE ATT&CK techniques. However, without more context, it's impossible to definitively say",
+        "*which* technique is being employed. The code snippet shows function prologue/epilogue, memory allocation, a couple of calls to other functions, and use of constants. These could be benign or",
+        "malicious.",
+        "Here's a breakdown and *possible* MITRE ATT&CK associations, stressing that these are just possibilities based on limited information:",
+        "* **Function Prologue/Epilogue (push ebp, mov ebp, esp ... mov esp, ebp, pop ebp, ret):** This is standard function setup and teardown. It doesn't directly map to a MITRE ATT&CK technique.",
+        "* **Memory Allocation (sub esp, 0x40):** This allocates 64 bytes of stack space. While often used legitimately, this *could* be used as part of techniques like: * **T1005.001.Process",
+        "Hollowing:** If the allocated memory is later used to write and execute shellcode. However, we don't see evidence of that here. * **T1218.011.Rundll32:** If this memory is used to prepare data",
+        "for a `Rundll32` call (though again, not evident in the snippet).",
+        "* **Saving Registers (push ebx, push esi, push edi / pop edi, pop esi, pop ebx):** Preserving register values is standard practice and not inherently malicious.",
+        "* **Call to sub_0x00000040A (mov ecx, 0x40609f, call sub_0x00000040A):** Without knowing what `sub_0x00000040A` does, it's impossible to map this to a MITRE technique. It could be anything.",
+        "* **Call to sub_0x000005004 (push 5, push 0x403000, call sub_0x000005004):** Again, without context on `sub_0x000005004`, this could be related to numerous techniques or none at all. The",
+        "arguments suggest passing an integer (5) and a possible memory address (0x403000). This *might* be related to: * **T1055.003.Process Injection:** If 0x403000 points to injected code. Purely",
+        "speculative. * **T1059.001.PowerShell:** Less likely given the low-level assembly but conceivable if `sub_0x000005004` interacts with PowerShell in some way.",
+        "* **xor eax, eax:** Setting `eax` to zero is a common way to clear a register or prepare a return value. Not indicative of any specific attack technique.",
+        "* **Constants (0x40609f, 5, 0x403000):** The meaning of these constants depends entirely on how the called functions use them. They are not directly mappable to MITRE ATT&CK.",
+        "**In summary**: The code snippet provides insufficient information for definitive MITRE ATT&CK mapping. The actions performed *could* be part of various techniques, but without analyzing the",
+        "called functions (`sub_0x00000040A` and `sub_0x000005004`), the memory locations accessed, and the overall program logic, any mapping would be highly speculative. More context is crucial.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The provided assembly code suggests the following MITRE ATT&CK technique:",
+        "**T1055.002 - Process Injection: Thread Execution Hijacking**",
+        "**Rationale:**",
+        "1. **Saving Registers:** `push ebp`, `push ebx`, `push esi`, `push edi` - This is common practice in function prologues, but it also preserves the original state of these registers, crucial if",
+        "you're intending to hijack a thread and later restore its execution flow.",
+        "2. **Allocating Stack Space:** `sub esp, 0x40` - This creates space on the stack. While standard in functions, it could also be used to prepare for writing shellcode or arguments for a new",
+        "thread.",
+        "3. **Suspicious Call (1):** `call sub_0x00000040A` - The address being called is not a standard Windows API function and suggests potentially custom code. This *could* be a function that",
+        "retrieves or prepares the address of a target thread or sets up the injection. We lack context to be certain.",
+        "4. **Pushing Arguments:** `push 5`, `push 0x403000` - These look like arguments being pushed onto the stack before another call. `5` might represent a flag or an index. `0x403000` looks like a",
+        "memory address, possibly where shellcode is located or a function pointer within the target process.",
+        "5. **Suspicious Call (2):** `call (null)` - This is highly suspect. Calling `null` (address 0) will likely cause a crash under normal circumstances. However, if the instruction pointer has been",
+        "modified just before this point (e.g., through thread hijacking, replacing existing code), this could indicate an attempt to execute code now located at address 0.",
+        "6. **Restoring Registers/Stack:** `xor eax, eax`, `pop edi`, `pop esi`, `pop ebx`, `mov esp, ebp`, `pop ebp`, `ret` - These instructions restore the original state of the registers and the stack",
+        "frame, a common practice after legitimate function calls but also essential after hijacking a thread to make it appear as if nothing unusual happened.",
+        "**Key Indicators for Thread Execution Hijacking:**",
+        "* **Manipulating registers commonly used for thread context.** * **Allocating stack space for shellcode or arguments.** * **Suspicious calls to unknown functions or addresses.** * **The `call",
+        "(null)` instruction, especially after potential code modification.** * **Careful restoration of the original register and stack state.**",
+        "**Important Note:** Without more context about `sub_0x00000040A` and what happens before and after this code snippet, it's difficult to be absolutely certain. However, the presented assembly",
+        "code strongly suggests thread execution hijacking as the most likely MITRE ATT&CK technique being employed. Analyzing a broader scope of the code or using a debugger would be necessary for a",
+        "definitive conclusion.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code provided suggests the execution of a command using the `rundll32.exe` utility, specifically aimed at dumping the memory of the LSASS process. This is indicative of the behavior",
+        "used to perform credential dumping. The relevant MITRE ATT&CK technique for credential dumping, specifically targeting LSASS memory on Windows, is:",
+        "- **T1003.001: OS Credential Dumping: LSASS Memory**",
+        "The use of a command like `rundll32.exe C:\\Windows\\System32\\comsvcs.dll Mini_Dump PID lsass.dmp full` is a known method to dump LSASS memory, which fits into this technique.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code performs several typical operations seen in various programming scenarios, but the presence of specific API calls and stack manipulation can imply techniques used",
+        "in malware or evasive code.",
+        "Here are some potential MITRE ATT&CK techniques that could be associated with aspects of this code:",
+        "1. **T1055 - Process Injection**: If the functions called (e.g., `sub_0x0000040A`, `sub_0x000005004`) include injecting code into another process's memory space.",
+        "2. **T1056 - Input Capture**: If the code relates to capturing inputs such as keystrokes when used in specific contexts.",
+        "3. **T1071 - Application Layer Protocol**: If network communication is involved with these calls, especially if they disguise communications or use uncommon network APIs.",
+        "4. **T1082 - System Information Discovery**: If `sub_0x0000040A` or `sub_0x000005004` involve gathering system information.",
+        "5. **T1106 - Native API**: Using direct system calls to execute functions.",
+        "6. **T1140 - Deobfuscate/Decode Files or Information**: If calls involve deobfuscating or decoding data.",
+        "To more precisely identify the associated technique, you would need to know what exactly `sub_0x0000040A` and `sub_0x000005004` do. Context about these functions or additional details about the",
+        "assembly's use case and objectives would also help narrow down the technique.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The given assembly code includes a couple of notable patterns:",
+        "1. **Stack Frame Setup**: The code begins with setting up the stack frame (`push ebp`, `mov ebp, esp`, and related instructions). However, this is quite standard for many functions and not",
+        "directly related to a specific MITRE technique.",
+        "2. **Call to a Function**: There is a `call sub_0x00000040A`, which is a straightforward function call. If the destination (sub_0x00000040A) is to injected or arbitrary code, that could be of",
+        "interest, but the call itself is standard.",
+        "3. **Call Instruction with a Null Target**: The line `call (null)` is significant as it suggests an indirect call, possibly an attempt to execute something loaded into memory dynamically.",
+        "4. **Use of NOP Instructions**: The presence of `nop` instructions could suggest padding or alignment, often seen in shellcode or as anti-debugging / anti-disassembly techniques.",
+        "The potentially suspicious and malicious aspect here is the indirect call after pushing onto the stack and the use of null call targets, which can be indicative of code injection or execution",
+        "via dynamic resolution. The relevant MITRE techniques depending on the full context might include:",
+        "- **T1055: Process Injection** - the technique involves injecting code into another process, often involving manipulating thread execution such as executing code in the context of a legitimate",
+        "process.",
+        "- **T1027: Obfuscated Files or Information** - though not purely an obfuscation technique, some aspects like a NOP sled might be used for obfuscation purposes.",
+        "- **T1203: Exploitation for Client Execution** - if the call is exploiting a vulnerability and redirects to shellcode or similarly malicious operations.",
+        "- **T1105: Ingress Tool Transfer** - While the assembly pattern isn",
+        "transferred tools.",
+        "The exact technique ID in this context would hinge on the surrounding context of what this assembly is part of. If the calls and the use of a null call target are indeed part of shellcode or",
+        "remote execution, a closer look at `T1055.x` sub-techniques relating to process injection and other indirect execution techniques might be appropriate. Without more context, it",
+        "assign a specific MITRE ID harping on call destinations, but these are possible areas based on the observable pattern.",
+        "Close"
+    ]
+}

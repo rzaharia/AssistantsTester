@@ -224,10 +224,12 @@ def process_assistants_output():
         problem_folder = os.path.join(assistants_out, problem)
         if not os.path.isdir(problem_folder):
             continue
-        problem_input = search_in_list(problem)
-        if problem_input is None and CURRENT_RUN == 0:
-            print('Failed to find problem: {}'.format(problem))
-            continue
+        problem_input = None
+        if CURRENT_RUN == 0:
+            problem_input = search_in_list(problem)
+            if problem_input is None:
+                print('Failed to find problem: {}'.format(problem))
+                continue
         json_output = os.path.join(problem_folder, 'output.json')
         # if os.path.exists(json_output):
         #     print('Already exists: ' + json_output)
@@ -269,6 +271,8 @@ def process_assistants_output():
                 file_split = file.split('.')
                 if len(file_split) > 3 and file_split[-1] == 'gview':
                     technique_name = file_split[0]
+                    if technique_name.startswith('Clean'):
+                        technique_name = technique_name.replace('Clean', 'T')
                     sub_technique_name = file_split[1]
                     mitre_ids = utils.find_mitre_ids(combined_text)
                     valid_mitre_ids = utils.filter_mitre_ids(mitre_ids, technique_name, sub_technique_name)
@@ -327,7 +331,8 @@ def do_statistics():
     if CURRENT_RUN == 0:
         utils.do_statistics_run_0(assistants_out)
     else:
-        utils.do_statistics_run_1(assistants_out)
+        utils.do_statistics_run_1(assistants_out, is_clean=False)
+        utils.do_statistics_run_1(assistants_out, is_clean=True)
 
 
 def delete_assistant_results(assistant_name, suffix=''):

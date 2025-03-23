@@ -1,0 +1,149 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.001",
+                "T1055.002",
+                "T1055.001",
+                "T1059.001",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.005",
+                "T1005.001",
+                "T1105.001",
+                "T1082",
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1059.001",
+                "T1204.002",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1203",
+                "T1106",
+                "T1543.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1599",
+                "T1203"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.003"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "The assembly code shows signs of process injection and command execution, aligning with these MITRE ATT&CK techniques:",
+        "* **T1059.001 (Command and Scripting Interpreter: cmd)**: The code clearly uses `cmd.exe` with the `/c` switch to execute the command `net user /ad test`. This command attempts to add a new user",
+        "named \"test\" to the system, which is a strong indicator of this technique.",
+        "* **T1055.002 (Process Injection: CreateProcess)**: The code directly calls the `CreateProcessA` Windows API function. The arguments passed to `CreateProcessA` construct a new process.",
+        "Specifically, the `lpCommandLine` argument is set to execute `cmd /c /c net user /ad test`. This indicates the creation of a new process to execute the malicious command.",
+        "* **T1055.001 (Process Injection: Dynamic-link Library Injection)** is *unlikely* despite seeing a call to `sub_0x00000040A`. While we *don't* have the code for that subroutine, and it *could*",
+        "be performing DLL injection, there's no direct evidence in the provided assembly to confirm this. The presence of `CreateProcessA` makes process creation a more likely scenario. It's possible",
+        "`sub_0x00000040A` performs some setup or obfuscation prior to creating the process.",
+        "Therefore, based on the visible code, the most relevant MITRE ATT&CK techniques are **T1059.001** and **T1055.002**.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "The provided assembly code suggests several potential MITRE ATT&CK techniques, primarily related to process injection and file system manipulation. It's impossible to be definitive without more",
+        "context (like what `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` do), but here's a breakdown and educated guesses:",
+        "* **T1055.005 - Process Injection: Thread Execution Hijacking:** The sequence of storing a value at `0x404000` and then using that address in subsequent calls, particularly with",
+        "`sub_0x000005004`, combined with the `test eax, eax` and conditional jump, strongly suggests potential thread execution hijacking or similar process injection. `sub_0x000005004` is likely some",
+        "form of API call to create or manipulate a remote thread. The arguments being pushed onto the stack prior to the call likely correspond to parameters such as thread start address, thread",
+        "creation flags, etc.",
+        "* **T1005.001 - Process Injection: Dynamic-link Library Injection:** While the code doesn't definitively show DLL injection, the presence of multiple calls to external subroutines (`sub_...`)",
+        "after setting up memory regions raises the possibility that a DLL is being loaded and its functions are being called. This is especially true if `0x404000` stores the address of allocated memory",
+        "or a loaded DLL.",
+        "* **T1105.001 - Ingress Tool Transfer:** The initial `call sub_0x00000040A` with the argument `0x40609f` might be related to downloading or accessing an external resource. It depends on what",
+        "`sub_0x00000040A` does. If this address points to a URL or other network resource, it could be an indicator of this technique.",
+        "* **T1082 - System Information Discovery:** If any of the subroutines being called retrieve system information (e.g., OS version, installed software), it would fall under this category. We can't",
+        "know this from the assembly alone.",
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** Although less likely with the code shown, the manipulation of memory addresses and potential function",
+        "calls could be part of a larger sequence that installs malware for persistence on reboot. More context is needed.",
+        "**Important Considerations:**",
+        "* **Lack of Function Names:** Without knowing the purpose of `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C`, it's difficult to be precise about the techniques. These could be",
+        "standard Windows API calls or custom functions. * **Memory Addresses:** The hardcoded memory addresses (`0x404000`, `0x404044`, etc.) suggest a specific environment or configuration. In",
+        "real-world malware, these would likely be determined dynamically. * **Context is Crucial:** Assembly code in isolation provides limited insight. The broader context, such as the file's behavior,",
+        "network communication, and other system interactions, are vital for accurate ATT&CK mapping.",
+        "To get a more precise MITRE ATT&CK mapping, you'd need to analyze the entire program, including the functions being called and any network or file system activity. Tools like debuggers and",
+        "disassemblers can provide this information.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code shows signs of process execution, specifically using the `CreateProcessA` Windows API call. This maps to the following MITRE ATT&CK technique:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe** While the code doesn't explicitly use `cmd.exe`, `CreateProcessA` can be used to execute arbitrary executables, including `cmd.exe`",
+        "and other command interpreters. It's a common way to execute commands and scripts, and without further context, it's the closest general technique. If analysis revealed the command line argument",
+        "(at address `0x403000`) pointed to `cmd.exe` specifically, then this would be a strong match.",
+        "It's **important** to note that `CreateProcessA` is a legitimate API call used by many programs. **Simply using `CreateProcessA` does *not* automatically mean malicious activity.** Further",
+        "context is needed:",
+        "* **What is being executed",
+        "connections, file modifications), then this strengthens the case for malicious intent. * **`dwCreationFlags = 0x8000000`**: This flag (`CREATE_NO_WINDOW`) indicates that the new process will be",
+        "created without a visible window. This could be used to hide the execution from the user, which is often a sign of malicious behavior but not always. * **Overall program behavior:** What does",
+        "the rest of the program do",
+        "use of `CreateProcessA` becomes more suspicious.",
+        "Without this additional information, it's impossible to definitively say whether this code is malicious and map it to a more specific MITRE ATT&CK technique. However, **T1059.001** is a good",
+        "starting point given the use of `CreateProcessA`, with the strong caveat that further investigation is required. If the command line were known, it might map to a different technique like",
+        "**T1204.002** (for a PowerShell script) or **T1059.003** (for `cscript.exe`).",
+        "Close"
+    ],
+    "gpt4o": [
+        "The provided x86 assembly code is indicative of a sequence of actions related to process creation and management. Specifically, it involves the use of the `CreateProcessA` function to execute a",
+        "command, and then it makes use of `WaitForSingleObject` and `CloseHandle` to manage the process. Additionally, the code snippet appears to attempt to execute a command that manipulates user",
+        "accounts. Here's the breakdown of relevant MITRE ATT&CK techniques based on the code's behavior:",
+        "1. **T1059.003: Command and Scripting Interpreter: Windows Command Shell** - The command `cmd /c /c net user /ad test` suggests the execution of a command via the Windows command shell, which is",
+        "a form of a command-line interface.",
+        "2. **T1203: Exploitation for Client Execution** - While this is a more general technique, using `CreateProcessA` to execute a command such as one that adds a user (`net user /ad test`) could",
+        "potentially fall under actions that exploit execution through provided input.",
+        "3. **T1106: Execution through API** - The use of `CreateProcessA` directly for execution is a common method of executing commands or starting new processes through the Windows API, fitting well",
+        "into this technique.",
+        "4. **T1543.003: Create or Modify System Process: Windows Service** - While this is not directly shown in the code, `net user /ad test` suggests the potential for user or service manipulation,",
+        "which could be relevant if the broader context is known.",
+        "These techniques highlight potential avenues for defense evasion and privilege escalation through Windows process and command management.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code snippet you've provided includes several operations that could be associated with specific MITRE ATT&CK techniques. Below are some potential technique IDs that might apply to",
+        "the actions being performed, based on a common understanding of tactics like process injection, API function calls, or manipulation of memory regions. However, the alignment of assembly code to",
+        "specific MITRE techniques can be somewhat interpretive without additional context indicating the intent or whether this code is part of a malicious implant. Here's an interpretation:",
+        "1. **T1055 - Process Injection**: The code includes calls to subroutines and operations that may be indicative of a process injection technique. This includes possibly using APIs for injecting",
+        "code into another process.",
+        "2. **T1106 - Native API**: The use of assembly to perform function calls (`call sub_0x000005004`, `call sub_0x00000500C`) can relate to the use of Native API for various purposes.",
+        "3. **T1599 - Network Configuration Discovery**: If the subroutine calls are involved in querying or manipulating network-related settings.",
+        "4. **T1203 - Exploitation for Client Execution**: Depending on the subroutines, if there's exploitation of vulnerabilities via assembly code.",
+        "Without specific knowledge of what the subroutine calls are executing, it's challenging to pin down the exact ATT&CK tactic and technique. This code could represent a larger programming approach",
+        "depending on the targeted environment.",
+        "If you have additional context or look deeper into the subroutine calls, that will provide more clarity on what specific MITRE ATT&CK techniques are applicable.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet involves creating a new process using the `CreateProcessA` function. This is a well-known technique for executing a new process in the context of a potentially",
+        "malicious operation. The MITRE ATT&CK framework captures such techniques. Specifically, this assembly code aligns with the following MITRE ATT&CK techniques:",
+        "- **T1059.003**: This sub-technique covers the creation and execution of processes through native APIs. Specifically, using `CreateProcess` fits under the larger umbrella of Execution which",
+        "includes abuse of the Windows API to start processes.",
+        "Based on other operations in the code, if accompanied by malicious intent, it could also relate to process injection or manipulation, but this specific snippet is more directly concerned with",
+        "process creation via API. Always remember that the context and use of such techniques define their categorization in potential threat assessments.",
+        "Close"
+    ]
+}

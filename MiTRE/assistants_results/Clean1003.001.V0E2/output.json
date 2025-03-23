@@ -1,0 +1,134 @@
+{
+    "mitre_ids": {
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1055.001",
+                "T1055.012",
+                "T1107",
+                "T1140",
+                "T1055",
+                "T1055.001",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1059",
+                "T1059.001",
+                "T1059",
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1003.001",
+                "T1055"
+            ],
+            "valid": [
+                "T1003.001"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1578.007",
+                "T1002.001",
+                "T1055",
+                "T1059",
+                "T1578"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.005",
+                "T1059",
+                "T1106",
+                "T1055.002",
+                "T1569.002"
+            ],
+            "valid": []
+        }
+    },
+    "gemini_no_imports_no_strings": [
+        "The assembly code suggests several potential MITRE ATT&CK techniques, though definitive identification requires more context. Here's a breakdown and the most likely mappings:",
+        "* **Process Injection (T1055):** The sequence of pushing arguments onto the stack followed by a call to `sub_0x000005004` strongly suggests process injection or process hollowing. The arguments",
+        "pushed (memory addresses, handles, flags like `0x8000000`) look like parameters for functions like `CreateProcess`, `WriteProcessMemory`, and `ResumeThread` (or their equivalents if this is a",
+        "different OS).",
+        "* **T1055.001 (Process Hollowing):** The presence of `mov dword ptr [0x404000], 0x44` before the suspected process injection call *could* indicate setting up memory for a new process image,",
+        "which is a hallmark of process hollowing. This is speculative without knowing the contents at 0x404000.",
+        "* **T1055.012 (Process Injection via Thread Execution Hijacking):** The sequence of writing to memory, followed by calls to functions (possibly involving thread handles based on `0x404044` and",
+        "`0x404048`) after the `sub_0x000005004` call, raises suspicion of thread execution hijacking as the injection mechanism.",
+        "* **File Deletion (T1107) (Possible, but less certain):** The calls to `sub_0x000005000` and `sub_0x00000500C` after the suspected process injection, with addresses passed as arguments, might be",
+        "for cleanup. It's possible these functions delete files related to the injected process (e.g., the original executable used for hollowing). This is highly speculative without more information.",
+        "* **Deobfuscate/Decode Files or Information (T1140) (Possible, but unlikely with just this code):** The initial `call sub_0x00000040A` *might* involve some decryption or decoding operation",
+        "before the injection occurs. This is highly speculative. It's more likely a setup or initialization function.",
+        "**In summary:** The strongest indicator based on this assembly code is **T1055 (Process Injection), potentially either T1055.001 (Process Hollowing) or T1055.012 (Process Injection via Thread",
+        "Execution Hijacking), or even both**. The other techniques are less certain without additional context or analysis of the called subroutines. Analyzing the code at those subroutines' addresses",
+        "is crucial for a definitive classification.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "The assembly code demonstrates process creation and execution, which aligns with the following MITRE ATT&CK technique:",
+        "* **T1059.001 - Command and Scripting Interpreter: cmd.exe** - While the code directly uses the `CreateProcessA` API call and not `cmd.exe`, the technique is still relevant if the command line",
+        "argument (`lpCommandLine` pointing to `0x403000`) passed to `CreateProcessA` executes `cmd.exe` with further commands. We can't know that for certain from this snippet. If `lpCommandLine`",
+        "pointed directly to another executable, then it would likely be T1059 - Command and Scripting Interpreter, without a sub-technique specified, or potentially another technique entirely depending",
+        "on the actual command.",
+        "It's important to note:",
+        "* **Lack of Context:** Without knowing the contents at memory address `0x403000` (the command line argument), we can only infer the most likely MITRE technique. Different command line arguments",
+        "could lead to different techniques. For instance, if it were launching `powershell.exe`, it would be **T1059.001 - Command and Scripting Interpreter: PowerShell**. * **Direct System Calls:** The",
+        "use of `CreateProcessA` directly (as opposed to through a scripting language) makes the classification slightly less precise in terms of sub-techniques. Many sub-techniques specify the use of",
+        "particular scripting interpreters. However, the core action of process creation for potentially malicious purposes is still captured by T1059. * **Other Potential Techniques (Less Likely without",
+        "more context):** Depending on what the created process does, other techniques *could* be relevant. If the created process injects into other processes, then techniques related to process",
+        "injection might be applicable. If it creates persistence, persistence techniques become relevant. This code snippet just shows process creation, so those other techniques aren't directly",
+        "demonstrable here.",
+        "Therefore, based on the available information, **T1059.001** is the most likely, but further analysis of the command line argument being passed to `CreateProcessA` is crucial for a definitive",
+        "classification.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you've provided appears to be performing the following activities:",
+        "1. **Process Injection Creation**: The `CreateProcessA` function is being used to execute a command involving `procdump ma lsass.exe lsassdump`. This suggests that the code is creating a new",
+        "process to dump the memory of the `lsass.exe` process, which is a common technique used by attackers to extract credentials.",
+        "2. **Credential Dumping**: Specifically targeting `lsass.exe` for memory dump is indicative of credential dumping, as `lsass.exe` is a process that handles authentication and is known to store",
+        "sensitive credential information in memory.",
+        "Based on the MITRE ATT&CK framework, the techniques associated with the behavior demonstrated by this assembly code are:",
+        "- **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The use of `cmd /c` to execute a command line instruction like `procdump ma lsass.exe lsassdump`.",
+        "- **T1003.001 - OS Credential Dumping: LSASS Memory**: Dumping the LSASS process memory to extract credentials.",
+        "- **T1055 - Process Injection**: While not directly shown in the provided code, creating a new process to dump another's memory might fall under this broader category involving process",
+        "manipulation.",
+        "These techniques correlate with common methods used by attackers to evade defenses and access sensitive credential information.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code exhibits behavior commonly associated with certain MITRE ATT&CK techniques. While analyzing this code, a few patterns suggest specific techniques:",
+        "1. **Dynamic Linking/Loading Libraries:** The use of calls to functions (e.g., `call sub_0x000005004`, `call sub_0x000005000`, `call sub_0x00000500C`) with parameters pushed on the stack often",
+        "pertains to dynamically calling functions, possibly from loaded libraries (Dynamic Link Libraries - DLLs in Windows). This is related to dynamically resolving functions and could be identified",
+        "with: - **T1578.007: Dynamic Resolution, API LoadLibrary with specific calls.**",
+        "2. **Memory Manipulation:** The adjustment of stack pointers and direct manipulation of memory locations may also suggest: - **T1002.001: Data Manipulation, Stack-based buffer manipulation.**",
+        "3. **Process Injection/Execution:** If these calls relate to code injection or execution in a remote process, they could reflect: - **T1055: Process Injection (specifically via DLL injection)**",
+        "However, without knowing exactly what those subroutines (`sub_0x00000040A`, `sub_0x00000500C`, etc.) do, it is difficult to pinpoint the exact techniques being used.",
+        "From the observed pattern: - If the code is loading and executing code dynamically, it is reminiscent of **T1059: Command and Scripting Interpreter** behavior, if the subroutines are for",
+        "executing scripts or commands. - If it involves directly calling system functions dynamically resolved at runtime, it corresponds to **T1578: Dynamic Resolution.**",
+        "These interpretations highly depend on the context of what these subroutines (`sub_0x*`) perform and the overall intent of the program. As it stands, it hints at library or API call manipulation",
+        "and execution redirection, often seen in malware.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet primarily revolves around the creation of a new process using `CreateProcessA` and subsequently managing handles associated with the process. Based on the",
+        "MITRE ATT&CK framework, this activity is typically associated with:",
+        "- **T1059.005 - Command and Scripting Interpreter: Visual Basic** - Although this technique ID specifically mentions Visual Basic, the broader category T1059 (Command and Scripting Interpreter)",
+        "includes the execution of commands via scripts, shell, interpreters, and in some context, usage of specific API calls to execute commands.",
+        "- **T1106 - Native API** - This technique refers to the use of Native API calls, such as `CreateProcess`, `WaitForSingleObject`, and `CloseHandle`, to interact with the underlying operating",
+        "system directly.",
+        "- **T1055.002 - Process Injection: Portable Executable Injection** - While this specific code snippet does not directly indicate process injection methods like PE injection, the act of creating",
+        "a new process and managing it could potentially align with broader behaviors in this category when considering different contextual implementations.",
+        "- **T1569.002 - System Services: Service Execution** - This entry refers to executing commands or applications using system services or through Windows APIs, such as `CreateProcess`.",
+        "These techniques collectively give insight into behaviors related to process creation and management, leveraging system APIs directly.",
+        "Close"
+    ]
+}
