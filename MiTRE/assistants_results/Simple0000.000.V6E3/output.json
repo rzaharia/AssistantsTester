@@ -1,0 +1,126 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003",
+                "T1055.001",
+                "T1059"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1147.001",
+                "T1055.001"
+            ],
+            "valid": [
+                "T1005.001",
+                "T1147.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.003",
+                "T1562.001"
+            ],
+            "valid": [
+                "T1562.001"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1059.001",
+                "T1105",
+                "T1027",
+                "T1076"
+            ],
+            "valid": [
+                "T1027",
+                "T1076"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.003"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "* **T1059.003.001:** The code calls `CreateProcessA` with the command line \"cmd.exe\", indicating **Process Injection**: **Parent PID Spoofing**. While the code doesn't explicitly spoof the",
+        "parent PID, launching \"cmd.exe\" from another process is a common precursor to further process injection techniques that might involve PID spoofing. It's crucial to note that this is a weak",
+        "signal on its own, and more context is needed to definitively identify Parent PID Spoofing. This code snippet sets us up for that possibility, but doesn't implement it directly.",
+        "* **T1055.001:** The presence of `WriteFile` followed by a call to `lstrlenA` with the string \"powershell Get-TimeZone\" strongly suggests **Process Injection**: **Dynamic-link Library",
+        "Injection**. The assembly code likely writes this command to the newly created process (\"cmd.exe\"), which then executes the provided PowerShell command.",
+        "* **T1059:** The call to `CreateProcessA` indicates **Process Injection** in general. As noted above, more specific sub-techniques like Parent PID Spoofing or DLL Injection are possible",
+        "depending on what the unnamed calls do. However, even without that context, `CreateProcessA` being used in this manner is a red flag for process injection activity.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1005.001 - Process Injection:** The code makes multiple calls to `sub_0x00000500C`, `sub_0x000005018`, and `sub_0x000005004`. While we don't know what these subroutines do without more",
+        "context, the patterns of pushing memory addresses (`0x404000`, `0x403000`, `ebp - offsets`) along with sizes/counts (e.g., `1`, `0xfff`) before these calls are highly suggestive of process",
+        "injection or process hollowing. Specifically, it looks like data is being written to memory regions and then potentially executed.",
+        "* **T1147.001 - Hooking:** The sequence of storing values at specific memory locations (like `0x404020`, `0x404058`, `0x40405c`, `0x404060`) followed by manipulating a memory location with an OR",
+        "operation (`or eax, 0x100` at `0x40404c`) could indicate hooking. This modification might change control flow or alter existing functionality.",
+        "* **T1055.001 - Process Hollowing:** The code potentially writes to memory regions (`0x40300c`, `ebp - offsets`) before calling functions, which *could* indicate an attempt to unpack and run",
+        "code in a hollowed process. The presence of a loop (indicated by `offset_0x00000058A`) and reading from memory locations(`dword ptr [ebp - 4]`, `dword ptr [ebp - 0x10]`, etc.) lends further",
+        "weight to this possibility.",
+        "It's important to note that these are just inferences based on common patterns in malware assembly. Without knowing the functionality of the subroutines or having a broader context, these are",
+        "not definitive conclusions. Furthermore, other techniques could be involved, but the code snippet doesn't provide enough information to identify them.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1055.002 Process Injection:** The code calls `CreateProcessA` with arguments suggesting the creation of a new process. The subsequent calls to `WriteFile`, along with the use of `lstrlenA`",
+        "to determine the length of a string at `0x40300c`, and the presence of handles obtained (presumably) from the `CreateProcessA` call (stored in `ebp-8` and `ebp-0xc` and later passed to",
+        "`CloseHandle`), strongly indicates process injection. Specifically, the code likely writes data to the newly created process.",
+        "* **T1055.003 Process Hollowing:** While the code uses `CreateProcessA`, the multiple calls to `CloseHandle` after the `CreateProcessA` call and before the `WriteFile` operation suggests",
+        "potential process hollowing. In process hollowing, the legitimate content of a newly created process is unmapped before the attacker's code is written. While not definitive proof, this sequence",
+        "aligns with the process hollowing technique.",
+        "* **T1562.001 Command-Line Interface:** The code pushes `0x403000` as the `lpCommandLine` argument to `CreateProcessA`. This indicates the use of the command-line interface to execute a new",
+        "process, which is a common technique for various malicious activities.",
+        "It's crucial to remember that this analysis is based solely on the provided assembly code. A fuller understanding of the code's behavior would require additional context, such as analyzing the",
+        "data at the referenced memory locations (e.g., `0x403000` for the command line) and the behavior of the unresolved calls. This would allow for a more confident and detailed assessment,",
+        "potentially revealing additional techniques being used.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you provided includes several notable operations that correspond to specific MITRE ATT&CK techniques. Here are the inferred techniques based on the assembly code:",
+        "1. **Process Creation**: - The use of `CreateProcessA` to start a new process is associated with the technique **T1059.003 Process Injection**, assuming this is used to execute a command or",
+        "payload.",
+        "2. **Command-Line Interface**: - Pushing `\"cmd.exe\"` and `\"powershell Get-TimeZone\"` indicates execution of commands via command line, which relates to **T1059.001 Command and Scripting",
+        "Interpreter: PowerShell**.",
+        "3. **File System Manipulation**: - The code writes to a file using `WriteFile`, which can be linked to **T1105 Ingress Tool Transfer** if it's writing additional tools or scripts, or **T1027",
+        "Obfuscated Files or Information** if it",
+        "4. **Handles and Synchronization**: - The API calls like `CloseHandle`, `WaitForSingleObject`, and `CloseHandle` may relate to **T1076: System Process: Application Layer Protocol** to maintain",
+        "process execution across synchronization.",
+        "Without further context on the objectives of this assembly code, these techniques are speculative and represent common usages of such function calls in the context of adversarial techniques.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the given x86 assembly code, a specific MITRE ATT&CK technique can be inferred:",
+        "- **T1055: Process Injection** - The code snippet shows numerous calls to subroutines (denoted by `call sub_0x[hex]`) with various parameters, which could suggest an attempt to manipulate or",
+        "execute within another process's address space",
+        "The rest of the assembly code primarily involves data movement, conditional branching, and function calls that would require further context to definitively map to additional MITRE techniques.",
+        "Without more context, it's challenging to determine the exact use or behavior of the function calls and the data they manipulate.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the x86 assembly code provided, a specific MITRE ATT&CK technique can be inferred:",
+        "- **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The use of `CreateProcessA` with a command line argument (`lpCommandLine`) is indicative of executing a command or",
+        "script on a Windows system. This aligns with the utilization of the Windows command-line interpreter to execute commands.",
+        "This code does involve interactions with process creation and file operations, which suggest execution behavior, specifically leveraging the Windows API for process management. Without",
+        "additional context, this is the technique that can be directly deduced from the provided assembly code.",
+        "Close"
+    ]
+}

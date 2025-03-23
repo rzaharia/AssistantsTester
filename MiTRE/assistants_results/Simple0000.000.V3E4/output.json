@@ -1,0 +1,159 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1027.002",
+                "T1564.003",
+                "T1059.001",
+                "T1059.003",
+                "T1547.001",
+                "T1204.002",
+                "T1053.005"
+            ],
+            "valid": [
+                "T1027.002",
+                "T1564.003",
+                "T1204.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1105.001"
+            ],
+            "valid": [
+                "T1005.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1001.001",
+                "T1547.001",
+                "T1070.004"
+            ],
+            "valid": [
+                "T1005.001",
+                "T1001.001",
+                "T1070.004"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1027",
+                "T1560.001",
+                "T1106",
+                "T1105",
+                "T1070.004"
+            ],
+            "valid": [
+                "T1027",
+                "T1560.001",
+                "T1070.004"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1105",
+                "T1071"
+            ],
+            "valid": [
+                "T1071"
+            ]
+        }
+    },
+    "gemini": [
+        "* **T1027.002 - Obfuscated Files or Information: Binary Padding**: The `nop` instructions interspersed throughout the code could be interpreted as an attempt to obfuscate the code's flow,",
+        "although they are more likely simply artifacts of compilation or disassembly. However, it's worth noting that the presence of `nop` instructions by itself is not conclusive evidence of this",
+        "technique. This is a weak indicator, but present. * **T1564.003 - Hide Artifacts: File Deletion**: The code explicitly calls `DeleteFileA` with the filename \"example.bat\", clearly indicating an",
+        "attempt to delete the batch file after its execution. * **T1059.001 - Command and Scripting Interpreter: PowerShell**: The batch script contains the command \"powershell Get-Date\". This shows the",
+        "usage of PowerShell within a batch script, which could be used for malicious purposes, although `Get-Date` itself is benign. * **T1059.003 - Command and Scripting Interpreter: Windows Command",
+        "Shell**: The code creates and executes a batch file (\"example.bat\"). Batch files are interpreted by `cmd.exe`, making this a clear instance of using the Windows command shell. * **T1547.001 -",
+        "Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder**: While this code doesn't directly interact with registry run keys or the startup folder, the creation and execution of a",
+        "batch file could be part of a larger attack chain that places the batch file in a startup location for persistence. However, we only analyze the provided code, therefore, this technique is not",
+        "listed. * **T1204.002 - User Execution: Malicious File**: The assembly code creates \"example.bat\" and then executes it via `CreateProcessA`. This clearly indicates the creation and execution of",
+        "a file. While the batch file's contents in this example are benign, this same mechanism could be used to execute a malicious file. * **T1053.005 - Scheduled Task/Job: Task Scheduler**: Although",
+        "the code doesn't directly interact with the Task Scheduler, creating and executing a batch file can be part of an attack leveraging scheduled tasks. Since we are limited to the current context,",
+        "this technique is not included.",
+        "It is important to note that the provided code snippet demonstrates suspicious behavior. The combination of creating a batch file, executing it, and then deleting it is a common pattern in",
+        "malicious software. However, without further context, we cannot definitively conclude its malicious intent.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1005.001.Process Injection:** The code makes multiple calls to `sub_0x000005008` with arguments that suggest writing data to a memory location pointed to by `dword ptr [ebp - 4]`. Combined",
+        "with the subsequent calls to functions like `sub_0x000005014` (which takes a structure and potentially executes it), this strongly indicates process injection. Specifically, the pattern suggests",
+        "creating a new memory section (`sub_0x000005000`, potentially VirtualAlloc), writing to that section, and then potentially attempting to execute the code written there. The copying of data at",
+        "0x40306c and surrounding addresses to the stack and then into an allocated buffer further supports this, as this could be preparing shellcode or other malicious code for injection.",
+        "* **T1105.001.Web Shell:** The writing of the value 0x44 ('D') to the memory address 0x404000 followed by the seemingly deliberate use of a stack-based structure (ebp - 0x1c to ebp - 0xa) and",
+        "passing it to sub_0x000005014, after which a conditional jump is made based on the return value, suggests potential network interactions consistent with maintaining persistence via a webshell.",
+        "The value 'D' could be the beginning of a \"HTTP/1.1\" response or some other network protocol related magic number. This, in conjunction with process injection, could indicate a webshell being",
+        "used to inject code into a target process.",
+        "It's important to note that this analysis is based solely on the provided assembly code. Additional context, such as the functionality of the called subroutines, would be needed to definitively",
+        "confirm these techniques. Furthermore, the presence of certain API calls associated with these techniques (e.g., `VirtualAlloc`, `CreateRemoteThread`, etc.) within the called subroutines would",
+        "further strengthen this assessment.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1005.001.Create:** The assembly code clearly shows calls to `CreateFileA` which is used to create a new file. The parameters passed suggest it's creating a file for writing. *",
+        "**T1001.001.Data Obfuscation:** While not definitive, the code reads data from memory addresses (`0x403010`, `0x403020`, `0x403054`, etc.) and writes it to the newly created file. It's possible",
+        "that this data is encoded or encrypted. Without more context, this can't be confirmed, but the pattern suggests it's a possibility. * **T1547.001.Boot or Logon Autostart Execution:** The code",
+        "calls `CreateProcessA`. Although parameters are loaded from memory locations, the code *does* create a new process. This indicates potential execution of a new program, which could be used for",
+        "persistence mechanisms. * **T1070.004.File Deletion:** The code explicitly calls `DeleteFileA` with `0x403000` as the argument, clearly indicating file deletion activity after the new process",
+        "execution. This is frequently used to clean up after an attack.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: The code constructs a batch file (`example.bat`) and writes commands into it, including `@echo off`, `echo This",
+        "command is inside a batch file!`, and `powershell Get-Date`. This reflects usage of the Windows Command Shell to execute commands.",
+        "2. **T1027 - Obfuscated Files or Information**: The assembly code itself doesn't directly show obfuscation, but the pattern of writing commands to a batch file that are later executed may",
+        "represent a form of obfuscation, particularly if the batch file is used to hide the true purpose of the embedded commands.",
+        "3. **T1560.001 - Archive Collected Data: Archive via Utility**: Not directly inferred from this specific piece of assembly code, as it doesn't display the use of an archive utility directly",
+        "within the code. However, creating scripts or batch files could be a precursor step in a data manipulation or archiving attack chain where further context is required.",
+        "4. **T1106 - Native API**: The usage of native Windows API calls such as `CreateFileA`, `WriteFile`, `CloseHandle`, `CreateProcessA`, and `DeleteFileA` suggests the use of native APIs directly",
+        "to perform operations.",
+        "5. **T1105 - Ingress Tool Transfer**: Not directly applicable here, as the code doesn't show transferring data from an external system. It shows writing to a batch file but does not involve",
+        "networks or remote systems in this segment.",
+        "6. **T1070.004 - Indicator Removal on Host: File Deletion**: The use of the `DeleteFileA` API call to delete `example.bat` indicates an attempt at cleanup or evidence destruction on the host",
+        "system.",
+        "These techniques are inferred from the assembly code segment you provided without additional context around the broader implications of the full program's actions.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code provided seems to be related to file and possibly data manipulation operations. However, without more specific context on what each subroutine (e.g., `sub_0x000005000`,",
+        "`sub_0x000005018`) is doing, it's challenging to accurately assign particular MITRE ATT&CK techniques. Nevertheless, the code does exhibit characteristics that may suggest certain techniques.",
+        "Here are some inferred associations:",
+        "1. **Windows API Calls for File Operations**: - The pattern of `push` arguments followed by a `call` could indicate the use of Windows API functions for file handling. - Technique: **T1106 -",
+        "Native API**. This technique involves utilizing Windows APIs for various tasks, including file operations.",
+        "2. **Process Injection or Code Injection**: - The assembly involves manipulation of memory and working with function pointers, which sometimes are indicative of process injection or code",
+        "injection activities",
+        "3. **DLL Side-Loading**: - If `sub_0x000005004` or similar functions are used for loading DLLs into the memory space or executing imports explicitly, it could suggest DLL side-loading, but this",
+        "is not definitive from the existing code marker alone.",
+        "4. **Indirect Branching**: - The `call` instructions used here imply changing the execution flow. If there",
+        "However, keep in mind that: - **Without knowing what the functions (`sub_...`) are definitively doing, these techniques aren't confirmable beyond what is typical for such a pattern.** - **These",
+        "patterns could belong to legitimate software, not necessarily a MITRE ATT&CK matrix related to malicious behavior**.",
+        "If the subroutine implementations can be clarified, more specific techniques might be identifiable.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided assembly code, we can infer the use of several MITRE ATT&CK techniques due to the specific Windows API functions being called. Here's the analysis:",
+        "1. **Create or Modify System Process** (T1059/002): - The code calls `CreateProcessA`, which is used to create a new process. This falls under the technique of creating or modifying system",
+        "processes.",
+        "2. **File and Directory Manipulation** (T1105): - The code calls `CreateFileA` to create or open a file and `WriteFile` multiple times to write to the file. Additionally, `DeleteFileA` is called",
+        "to delete a file. These actions involve manipulating files, matching the technique associated with file operations.",
+        "3. **Standard Application Layer Protocol** (T1071): - `WriteFile` and `CreateFileA` are used to create and write data. Activities involving file writing and manipulation can sometimes relate to",
+        "data exchange or exfiltration tactics, even though direct network usage isn't evident from the code, this is considered in context of local file operations for command, control, and data",
+        "exchange over an established channel (e.g., interim file storage).",
+        "These techniques can be directly inferred from the assembly code, based on the documented purposes of the functions being used.",
+        "Close"
+    ]
+}

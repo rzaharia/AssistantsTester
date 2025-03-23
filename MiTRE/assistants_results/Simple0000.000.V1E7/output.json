@@ -1,0 +1,138 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1218.011",
+                "T1003.001"
+            ],
+            "valid": [
+                "T1003.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001"
+            ],
+            "valid": [
+                "T1005.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1047",
+                "T1106",
+                "T1218.011",
+                "T1005.001"
+            ],
+            "valid": [
+                "T1005.001"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1055.002",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1027.002",
+                "T1059.006",
+                "T1083"
+            ],
+            "valid": [
+                "T1027.002",
+                "T1083"
+            ]
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1106",
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "* **T1055.003: Process Injection:** The code retrieves the addresses of `NtCreateThreadEx` and `NtCreateProcessEx` using `GetProcAddress` and attempts to open a process using `OpenProcess` with",
+        "maximum desired access rights (`0x1fffff`). It then appears to attempt process creation/injection using one of the retrieved NT API calls, passing a series of null or zeroed arguments in one",
+        "instance. While the specific injection method isn't fully clear due to the unresolved calls and redacted portions, the overall sequence of actions strongly suggests process injection. *",
+        "**T1218.011: Signed Binary Proxy Execution - Rundll32:** The code retrieves the string length of \"ntdll.dll\" and stores it. Later, there's a call with arguments suggestive of",
+        "`WriteProcessMemory`. Followed by multiple unresolved calls which, given the context, could include `CreateRemoteThread` or other related functions that hint at potential DLL injection using a",
+        "signed binary (ntdll.dll). The use of ntdll.dll specifically is a strong indicator of this technique. It's important to note that this is based on inference; without seeing the full code for the",
+        "unresolved calls, we cannot definitively confirm this technique.",
+        "* **T1003.001: OS Credential Dumping - LSASS Memory:** While not explicitly dumping credentials, the focus on ntdll.dll and use of process manipulation primitives raises suspicion. Ntdll.dll",
+        "provides access to lower-level system functions often leveraged for credential access. Combining this with process injection logic could indicate an attempt to access LSASS memory, though more",
+        "context is needed for definitive classification. Therefore, we cannot conclusively say this technique is being used solely based on this snippet.",
+        "It is extremely important to note that due to the redacted/unresolved calls, the analysis is partially based on inference. The exact sub-techniques might vary depending on the complete code.",
+        "Furthermore, the presence of `NtCreateProcessEx` also introduces the possibility of process creation and hollowing, but without further context, it remains speculative.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1005.001.Process Injection:** The code appears to be allocating memory, potentially for process injection. The calls to `sub_0x00000500C` (with arguments suggesting memory allocation size",
+        "and potentially protection flags), `dword ptr [ebp - 0xc]` (which looks like it might be a function pointer obtained earlier and then called, possibly loaded from a DLL), followed by checks for",
+        "success or failure, strongly suggest an attempt to inject code into another process. The subsequent use of `sub_0x000005000` (potentially `VirtualFree` or a similar function) also reinforces",
+        "this, as it would be used for cleanup.",
+        "It's crucial to understand that this analysis is based on limited information. Without knowing the functionality of the called subroutines (especially `sub_0x00000500C`, `sub_0x000005000`,",
+        "`sub_0x00000501C`, and `sub_0x000005020`), and the context of `dword ptr [ebp - 0xc]`, this assessment is not definitive. Further analysis would be necessary to confirm this with certainty. The",
+        "heavy use of error checking and conditional jumps (`jne`, `je`) indicates a deliberate and structured process, typical of more sophisticated malware techniques.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1055.003: Process Injection:** The code retrieves the addresses of `OpenProcess`, likely to open a handle to a target process, and potentially other functions involved in process injection",
+        "(indicated by API calls where the address is stored and later called indirectly via a register like `call dword ptr [ebp - 0xc]`). The presence of `VirtualAllocEx` or `WriteProcessMemory` would",
+        "make this stronger, but even without those, the current information points towards process injection.",
+        "* **T1047: Process Discovery:** The code calls `OpenProcess`. While `OpenProcess` can be used for various process manipulations, the subsequent calls suggest the intent might be related to",
+        "acquiring information about or interacting with processes.",
+        "* **T1106: Native API:** The code uses `GetModuleHandleA`, `GetProcAddress`, `OpenProcess`, and `CloseHandle`. These are all Windows Native APIs, frequently used by malware to interact with the",
+        "operating system at a low level and potentially bypass security controls that monitor higher-level APIs.",
+        "* **T1218.011: Signed Binary Proxy Execution:** The code dynamically resolves API addresses using `GetProcAddress` and `GetModuleHandleA`. This is a common technique to avoid statically linking",
+        "to API functions, which might make the malicious code more easily detectable by security software. The code uses `GetModuleHandle` with what appears to be a module name (\"lpModuleName\") as a",
+        "parameter, which could indicate using a legitimate signed module for its exported functions (like `kernel32.dll`).",
+        "* **T1005.001: Data from Local System:** The use of `lstrlenA` suggests the code might be working with strings possibly retrieved from a local resource. This is a weak indicator, as string",
+        "manipulation is a normal part of most programs. However, in combination with other TTPs, it might contribute to the overall picture of malicious activity.",
+        "It is crucial to emphasize that without the complete code and further dynamic analysis, these are just potential MITRE ATT&CK techniques. The provided snippet allows inferences but not",
+        "definitive conclusions about the code's full functionality.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the provided assembly code, we can infer some MITRE ATT&CK techniques:",
+        "1. **T1055.002 - Process Injection: Portable Executable Injection**: The code is attempting to gain access to and manipulate other processes using functions like `OpenProcess` and dynamically",
+        "resolving functions such as `NtCreateThreadEx` and `NtCreateProcessEx`. These are consistent with techniques used in process injection.",
+        "2. **T1106 - Native API**: The code explicitly retrieves function addresses from `ntdll.dll` using `GetProcAddress`. This indicates the potential use of Native API calls, which is often involved",
+        "in bypassing higher-level Windows API restrictions.",
+        "These identified techniques are based solely on the observed assembly actions and function calls, such as obtaining function addresses and handling process-related operations. Note, however,",
+        "that fully understanding this code's context might reveal additional techniques or intentions.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the x86 assembly code provided, a few MITRE ATT&CK techniques can be inferred. However, it's important to emphasize that additional context may be necessary to conclusively determine",
+        "the intent of these instructions. Here are the inferred techniques from the provided assembly code:",
+        "1. **Dynamic Function Resolution**: The use of `call dword ptr [ebp - 0xc]` suggests dynamic function resolution or calling through a function pointer, which aligns with \"T1027.002 - Obfuscated",
+        "Files or Information: Software Packing\".",
+        "2. **Indirect Function Calls**: Calls made through registers (such as `call sub_0x000005020`) could indicate the use of indirect function calls, which might also relate to dynamic resolution or",
+        "obfuscation strategies to hinder static analysis.",
+        "3. **API Calls**: The call structure seen with `sub_0x00000500C`, `sub_0x000005014`, `sub_0x000005018`, etc., might indicate common behaviors related to system interaction through APIs,",
+        "especially if they pertain to actions like file handling, memory allocation, or process manipulation. This can be associated with: - \"T1059.006 - Command and Scripting Interpreter: PowerShell or",
+        "similar scripting that utilizes WinAPI calls. - \"T1083 - File and Directory Discovery\" or similar techniques, based on the specific API functions resolved and called.",
+        "Without explicit context on what functions these address calls relate to, one must focus on the patterns of execution and possible intent based on those patterns. Nonetheless, the nature of",
+        "these calls highly depends on the semantic context of those routine operations which are abstracted by symbolic addresses here.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code showcases several functions and typical operations often seen in malicious code patterns. Based on the visible assembly code, we can infer the following MITRE",
+        "ATT&CK techniques:",
+        "1. **API Execution (T1106)**: The usage of `GetProcAddress`, `GetModuleHandleA`, `OpenProcess`, and `CloseHandle` involves executing various API functions, which can facilitate further execution",
+        "or information-gathering operations by dynamically resolving function addresses and obtaining handles to system resources.",
+        "2. **Process Injection (T1055)**: The use of `OpenProcess` with a call to obtain a process handle, combined with the operations following, suggests potential process injection activities. This",
+        "is inferred from the allocation of space (potential use of `VirtualAllocEx` or similar) and calls to functions that are dynamically obtained, which are common in code injection techniques. While",
+        "the function names for injection aren't specifically highlighted here, the pattern suggests this activity.",
+        "The specific detail of dynamically resolving and calling APIs through `GetProcAddress`, especially within the context of process manipulation, is indicative of purposes such as code injection,",
+        "which points to these techniques. Other elements, such as resource handles being closed after usage, are consistent with maintaining operational stealth or cleaning up post-intrusion activities.",
+        "Close"
+    ]
+}

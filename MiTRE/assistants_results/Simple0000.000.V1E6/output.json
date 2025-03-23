@@ -1,0 +1,133 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1563.001",
+                "T1059.001",
+                "T1218.009",
+                "T1082"
+            ],
+            "valid": [
+                "T1563.001",
+                "T1082"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005",
+                "T1546.003",
+                "T1105",
+                "T1547.001"
+            ],
+            "valid": [
+                "T1005",
+                "T1546.003"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1055.012"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1055.002",
+                "T1106",
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.002",
+                "T1036"
+            ],
+            "valid": [
+                "T1036"
+            ]
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1106",
+                "T1059.006",
+                "T1218"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "* **T1055.003:** The code retrieves the address of `NtCreateThreadEx` using `GetModuleHandleA` and `GetProcAddress`. This is indicative of Process Injection via thread execution. *",
+        "**T1563.001:** The code calls `CreateProcessA` to create a new process. The command line argument \"echo\" is suspicious and could easily be substituted with malicious code. This points to Process",
+        "Injection via CreateProcess. * **T1059.001:** The code dynamically resolves API calls (`GetProcAddress` for functions like `WinExec`). This behavior is consistent with Dynamic-link Library",
+        "Injection, as it attempts to obfuscate its intentions and potentially bypass security tools. * **T1218.009:** The presence of `WinExec` being resolved dynamically could potentially be used to",
+        "execute malicious code. This suggests Signed Binary Proxy Execution. * **T1082:** The multiple calls to `null` indicate indirect calls via function pointers. This is a classic obfuscation",
+        "technique used to hide the true nature of the code and hinder analysis, therefore representing System Information Discovery.",
+        "It's important to note that the provided snippet is not conclusive proof of malicious activity on its own. These techniques can be used for legitimate purposes as well. Further context is needed",
+        "to definitively classify this as malicious.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, we can infer the following MITRE ATT&CK techniques:",
+        "* **T1005.T1546.003 - Process Injection:** The code shows signs of process injection. Specifically, the sequence of allocating memory, writing to a memory region (indicated by storing values at",
+        "`0x404000` and `0x404044`), and potential thread creation or code execution (indicated by `call dword ptr [ebp - 8]`, where `[ebp - 8]` likely stores a function pointer written to the allocated",
+        "memory) suggests process injection. The various calls to `sub_0x0000050XX` may be API calls related to process and memory manipulation (e.g., `VirtualAllocEx`, `WriteProcessMemory`,",
+        "`CreateRemoteThread`).",
+        "* **T1105.T1547.001 - Remote File Copy:** While we cannot definitively say this technique is used without further context, pushing `0x403000`, `0x40300c`, `0x403020`, `0x403028`, `0x403030` and",
+        "`0x403040` as arguments to function calls (`sub_0x000005020` and `sub_0x000005024`) might involve file paths or remote file access. It is possible the code is copying data between processes or",
+        "systems. This is a weak indicator and relies on the assumed functionality of `sub_0x000005020` and `sub_0x000005024` relating to file operations.",
+        "It's crucial to emphasize that this analysis is based on limited information. Dynamic analysis or more context regarding the called subroutines is needed for definitive classification. The",
+        "identified techniques are possible interpretations of the observed instructions. Without further context about the functionality of the external calls, these assumptions remain tentative.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1055.003.Process Injection:** The code utilizes `CreateProcessA`, writes data into the new process using what appears to be `WriteProcessMemory` (inferred from arguments pushed onto the",
+        "stack before a null call), and likely executes code within the created process (inferred from the retrieval of a function address using `GetProcAddress` and a later call to that address). The",
+        "use of `lstrlenA` also suggests the writing of a string, potentially a command or code, into the new process. * **T1055.012.Thread Injection:** While the provided code does not directly show the",
+        "use of functions like `CreateRemoteThread` or `QueueUserAPC`, the sequence of `GetProcAddress`, followed by writing to the process memory and subsequent calls (likely to the obtained function",
+        "pointer) heavily implies the execution of code within the created process, which is a hallmark of process injection techniques, which can include thread injection. Distinguishing between process",
+        "and thread injection solely based on assembly is sometimes not possible, but the behavior suggests injection of some form is occurring.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the provided assembly code, we can identify the following MITRE ATT&CK techniques:",
+        "1. **T1055.002 - Process Injection: Portable Executable Injection** - The use of `NtCreateThreadEx` and the manipulation of process memory via `CreateProcessA` and other potential memory-related",
+        "API calls indicate an attempt to inject code into another process.",
+        "2. **T1106 - Native API** - The use of native API calls such as `NtCreateThreadEx` can imply an attempt to bypass user-mode hooks that might be implemented on higher-level API functions.",
+        "3. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell** - The code uses `CreateProcessA` with a command line that includes \"echo\", indicating an attempt to execute a command",
+        "using the Windows Command Shell.",
+        "These techniques are inferred from the API calls present in the assembly code rather than additional context-dependent interpretations of the broader attack chain.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the provided x86 assembly code, several aspects can be related to specific MITRE ATT&CK techniques. However, the interpretation of techniques from assembly code alone can sometimes be",
+        "speculative depending on the lack of high-level context. Here are the MITRE techniques that might be inferred from the assembly code snippet:",
+        "1. **T1055.001 - Process Injection: Dynamic-link Library Injection**: The assembly code references pushing addresses and making calls to functions which could imply process injection or dynamic",
+        "linking. Without specific API calls like LoadLibrary or GetProcAddress, this inference is more general.",
+        "2. **T1055.002 - Process Injection: Portable Executable Injection**: There are references to memory allocation and potential writing to those areas which could be indicative of PE injection.",
+        "Again, specific functions such as VirtualAlloc, WriteProcessMemory would provide more evidence, but in their absence, this is a possible interpretation based on observed behavior patterns.",
+        "3. **T1036 - Masquerading**: The code pattern can suggest mimicking or using standard processes in a malicious way.",
+        "It's important to note that assembly analysis without specifics about API calls such as those part of Windows Kernel32 or broader context of the entire attack chain makes it challenging to",
+        "precisely map to MITRE ATT&CK techniques. The precise function of custom `sub` calls can't be exactly determined without further context which might alter these interpretations.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques can be inferred:",
+        "1. **T1055 - Process Injection**: The assembly code utilizes `CreateProcessA` to start a new process, and there are operations that suggest memory is being manipulated, such as setting up memory",
+        "(with flags like `0x3000` suggesting `MEM_COMMIT | MEM_RESERVE`). The use of function calls with `call (null)` in the context strongly suggests dynamic execution/API calls or potentially",
+        "injecting code into a process space.",
+        "2. **T1106 - Native API**: The code uses Windows API functions such as `GetModuleHandleA`, `GetProcAddress`, and `CreateProcessA`, which aligns with leveraging native APIs directly to perform",
+        "operations, possibly as a way to interact with the system at a lower level.",
+        "3. **T1059.006 - Command and Scripting Interpreter: Windows Command Shell**: The use of `CreateProcessA` along with a command line stored at `0x403020` suggests that a process or command is",
+        "being executed with a specific command line, which may imply the use of Windows Command Shell or process execution via command-line.",
+        "4. **T1218 - System Binary Proxy Execution**: By using `CreateProcessA`, the code might be using system binaries to facilitate potentially malicious actions, depending on the command or",
+        "application executed.",
+        "These are the most direct inferences that can be made without additional context about how the calls or memory operations are specifically leveraged. Additional context could reveal more",
+        "specific techniques, such as those involving process hollowing or reflective DLL injection.",
+        "Close"
+    ]
+}

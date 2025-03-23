@@ -1,0 +1,118 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.003"
+            ],
+            "valid": [
+                "T1005.003"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1027",
+                "T1106"
+            ],
+            "valid": [
+                "T1027"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1620",
+                "T1480",
+                "T1027"
+            ],
+            "valid": [
+                "T1480",
+                "T1027"
+            ]
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1027"
+            ],
+            "valid": [
+                "T1027"
+            ]
+        }
+    },
+    "gemini": [
+        "* **T1059.003.001**: Process Injection: Thread Execution Hijacking The code calls `CreateProcessA` to create a new process (\"cmd.exe\"). Later, it uses `WriteFile` to write data (\"net help\") to a",
+        "handle that likely belongs to the created process. This sequence strongly suggests process injection via thread execution hijacking. The use of `WaitForSingleObject` and multiple `CloseHandle`",
+        "calls further reinforce this assessment as they're commonly used in process injection scenarios.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, we can infer the following MITRE ATT&CK technique:",
+        "* **T1005.003.Process Hollowing:** The code appears to be performing process hollowing. Several indicators suggest this:",
+        "* Multiple calls to `sub_0x000005008`. While we don't know the exact function of this subroutine, it's called repeatedly after a block of code that manipulates memory regions and sets up",
+        "structures (`0x404020`, `0x404058`, `0x40405c`, `0x404060`, `0x40404c`, `0x403000`, etc.). This pattern is common in process hollowing where memory is allocated and written to in preparation for",
+        "a new process image. * The use of `0x40404c` and the `or eax, 0x100` instruction. This suggests modification of access protection flags, potentially to make a memory region executable, which is",
+        "a key step in process hollowing. * `call sub_0x000005018` followed by a test for the return value ( `test eax, eax` and `jne`). This could be a call to `ZwCreateSection` or similar function",
+        "commonly abused in process hollowing. * The use of `call sub_0x00000501C` and `call sub_0x000005004`. This is suspicious and in context with other indicators reinforces the possibility of",
+        "writing the payload to a newly created section.",
+        "It is important to emphasize that *without knowing what the called subroutines actually do*, this is a strong *indication* but not definitive proof of process hollowing. The subroutines could be",
+        "implementing other functionality. However, the combination of memory manipulation, potential access protection changes, and repeated calls to specific functions after these operations make",
+        "process hollowing a very likely explanation.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "Based on the assembly code provided, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1055.002 Process Injection:** The code calls `CreateProcessA` with arguments suggesting the creation of a new process. Combined with other calls like `WriteFile`, `CloseHandle` operating on",
+        "handles likely related to the created process, and memory operations (reading and writing to memory locations), it strongly suggests process injection. The use of `lstrlenA` to get the length of",
+        "a string before writing it using `WriteFile` further reinforces this, hinting at writing data/code into the created process.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the provided x86 assembly code, several MITRE ATT&CK techniques can be inferred:",
+        "1. **T1059.003** - Command and Scripting Interpreter: Windows Command Shell: The code includes activity that suggests executing a command like \"cmd.exe\", indicating the use of the Windows",
+        "Command Shell.",
+        "2. **T1027** - Obfuscated Files or Information: Calls to `(null)` suggest that function pointers or dynamically resolved function calls could be involved, a common tactic for obfuscating file",
+        "execution or information.",
+        "3. **T1106** - Native API: The code interacts with Windows APIs directly, such as `CreateProcessA`, `CloseHandle`, `WriteFile`, etc., to perform tasks which is characteristic of directly using",
+        "the Native API.",
+        "These are specific techniques that can be deduced from the assembly code without additional context. Other potential attack strategies would require more context or additional code to confirm.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the assembly code provided, there are a few potential inferences that can be made regarding MITRE ATT&CK techniques:",
+        "1. **Code Injection**: The presence of instructions that write to specific memory addresses, such as `mov dword ptr [0x404000], 0xc`, followed by calls to functions with these addresses as",
+        "parameters (`push 0x404000`) may suggest manipulation of memory that could be used for code injection. - **Technique**: T1055 - Process Injection",
+        "2. **Indirect System Calls**: The use of function calls (`call sub_xxxxx`) with potential memory manipulation or unknown logic may imply using indirect methods for system call execution, which",
+        "serves as an evasion or execution technique. - **Technique**: T1620 - Reflective Code Loading",
+        "3. **Execution Guardrails**: The sequence of conditions using `test eax, eax` and `jne` (jump if not equal) can be interpreted as a form of execution guardrail, ensuring certain conditions are",
+        "met before proceeding. - **Technique**: T1480 - Execution Guardrails",
+        "4. **Obfuscated Files or Information**: The heavy use of non-standard function names (e.g., `sub_0x000005010`) and extensive use of pushes, moves, and indirect calls suggest potential",
+        "obfuscation. - **Technique**: T1027 - Obfuscated Files or Information",
+        "Without additional context, it is difficult to map more specific sub-techniques or confidently declare these are indeed the techniques being used. The above suggestions are based on common",
+        "indicators typically found in the appearance of such code constructs.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code can be associated with the following MITRE techniques based on the identifiable actions within the code:",
+        "1. **T1059.001 - Command and Scripting Interpreter: PowerShell** - The code uses `CreateProcessA`, which is a Windows API function that can be used to execute processes, including scripts or",
+        "command line statements. While this is a common API used in many contexts, it is also relevant in the context of running commands or scripts. 2. **T1106 - Native API** - The assembly code makes",
+        "use of several Windows native API functions such as `CreateProcessA`, `CloseHandle`, and `WaitForSingleObject`. Leveraging the Windows API is indicative of this technique.",
+        "3. **T1027 - Obfuscated Files or Information** - The repeated use of `call (null)` suggests the possibility of dynamic or indirect function calls, which can sometimes be used to obfuscate",
+        "behavior.",
+        "These identified techniques are directly inferable from the disassembled assembly code and the function calls contained within it.",
+        "Close"
+    ]
+}

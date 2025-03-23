@@ -232,6 +232,7 @@ def search_in_list(problem):
 
 
 def process_assistants_output():
+    clean_errors = {}
     errors_processing = []
     for problem in os.listdir(assistants_out):
         problem_folder = os.path.join(assistants_out, problem)
@@ -289,6 +290,26 @@ def process_assistants_output():
                     sub_technique_name = file_split[1]
                     mitre_ids = utils.find_mitre_ids(combined_text)
                     valid_mitre_ids = utils.filter_mitre_ids(mitre_ids, technique_name, sub_technique_name)
+                    if technique_name.startswith('Simple'):
+                        valid_mitre_ids = []
+                        # Ignoring these techniques because they result from the way commands are executed
+
+                        mitre_ids_to_ignore = ['T1059', 'T1055', 'T1106', 'T1053', 'T1543', 'T1129', 'T1569', 'T1218',
+                                               'T1105', 'T1047', 'T1086', 'T1620', 'T1203', 'T1547']
+                        for mitre_id in mitre_ids:
+                            skip = False
+                            for tech in mitre_ids_to_ignore:
+                                if mitre_id.startswith(tech):
+                                    skip = True
+                                    break
+                            if not skip:
+                                valid_mitre_ids.append(mitre_id)
+                                if mitre_id in clean_errors:
+                                    clean_errors[mitre_id] += 1
+                                else:
+                                    clean_errors[mitre_id] = 1
+                        if len(valid_mitre_ids) > 0:
+                            valid_mitre_ids = valid_mitre_ids
                     assistant_mitre_ids[assistant_name] = {'all': mitre_ids, 'valid': valid_mitre_ids}
         if problem_input:
             data['input'] = problem_input
@@ -344,8 +365,9 @@ def do_statistics():
     if CURRENT_RUN == 0:
         utils.do_statistics_run_0(assistants_out)
     else:
-        utils.do_statistics_run_1(assistants_out, is_clean=False)
-        utils.do_statistics_run_1(assistants_out, is_clean=True)
+        utils.do_statistics_run_1(assistants_out, 'T')
+        utils.do_statistics_run_1(assistants_out, 'C')
+        utils.do_statistics_run_1(assistants_out, 'S')
 
 
 def delete_assistant_results(assistant_name, suffix=''):

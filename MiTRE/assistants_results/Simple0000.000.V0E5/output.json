@@ -1,0 +1,100 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "T1059.003. The code calls `net help` using `system()`. The null argument to `call` indicates the use of the Import Address Table (IAT) to resolve `system` at runtime. Pushing the string \"net",
+        "help\" onto the stack and then 5 immediately prior suggests use of `system` which takes a single string argument. `net help` is commonly used for enumerating information about network resources.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE technique can be inferred:",
+        "* **T1055.002 (Process Injection: Thread Execution Hijacking)**: The code makes calls to `sub_0x00000040A` and `sub_0x000005004` with arguments being pushed onto the stack. The second call",
+        "notably pushes a memory address (`0x403000`) and a value (5). While we don't know the precise functionality of `sub_0x000005004`, this pattern is consistent with starting a new thread",
+        "(represented by the value 5) at a specified memory location (`0x403000`). This suggests the possibility of thread execution hijacking, where malicious code might be written to `0x403000` and",
+        "then executed within the context of the current process by creating a new thread at that address.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "T1055.002: Process Injection (Process Hollowing).",
+        "The code allocates memory with `sub esp, 0x40`, likely for a new PE image. It then calls a function (`sub_0x00000040A`), which could be unpacking or preparing that image. The `push 5` followed",
+        "by `push 0x403000` and `call (null)` strongly suggests a call to `ZwCreateProcess` (system call number 5) with the address `0x403000` specifying the path to the executable to be hollowed out.",
+        "This sequence is indicative of Process Hollowing, where a legitimate process is created in a suspended state and its memory is replaced with malicious code.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code provided contains instructions that are characteristic of certain MITRE ATT&CK techniques. Based on the following observed behaviors, we can infer:",
+        "1. **Command Execution**: - The instruction `push 0x403000 ; \"net help\"` followed by a `call` (though `(null)` suggests an unresolved or contextually dynamic function call) indicates that the",
+        "code is preparing to execute a system command. This aligns with a technique for executing commands, such as `Command and Scripting Interpreter`.",
+        "From this, we can associate the code with the MITRE ATT&CK technique:",
+        "- **MITRE Technique T1059 - Command and Scripting Interpreter**: This technique covers the use of command-line interfaces to execute commands, such as using \"net help\" which is a common",
+        "command-line instruction in Windows environments.",
+        "Note that this analysis is strictly based on the assembly snippet you provided and the inferred objective of executing a command, while known limitations like dynamic or context-specific usage",
+        "and actual command execution may require additional context to confirm.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Analyzing the provided x86 assembly code, there are a few behaviors and patterns we can identify:",
+        "1. **Function Prologue/Epilogue**: The assembly code begins with setting up a stack frame using `push ebp`, `mov ebp, esp`, and sets up space on the stack with `sub esp, 0x40`. It ends with `mov",
+        "esp, ebp`, `pop ebp`, and `ret`. This is typical in function prologues and epilogues but is a standard practice in assembly for function setup and teardown, hence it does not directly correspond",
+        "to any specific MITRE technique.",
+        "2. **Function Calls**: - `call sub_0x00000040A` and `call sub_0x000005004` are invoked. Without knowing what these subroutines do, it's difficult to associate a particular MITRE technique with",
+        "them. However, simply calling functions is common in both benign and malicious code.",
+        "3. **Use of Constants**: Constants are moved into registers and pushed onto the stack (`mov ecx, 0x40609f` and `push 0x403000`). Without context, these operations might relate to coded addresses",
+        "or data, potentially suggesting use of hardcoded data, but without the operation these addresses perform being known, it's speculative.",
+        "4. **NOPS**: There are `nop` instructions, which are often used for alignment or to obfuscate real intent in more complex routines. On their own, their presence does not indicate a specific",
+        "MITRE technique.",
+        "5. **Basic Stack Operations**: The stack is manipulated with `push` and `pop` commands, as part of function setup and cleanup.",
+        "Without additional context about what the called subroutines (`sub_0x00000040A`, `sub_0x000005004`) are doing, it is not possible to assertively map the given assembly code to a MITRE technique.",
+        "The code as-is showcases routine operations common to both standard program functions and parts of more complex attack chains, but those require context outside of standard function handling to",
+        "link definitively to specific MITRE techniques. As such, none can be conclusively identified from this snippet alone.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided x86 assembly code, we can analyze the following actions:",
+        "1. **Stack Frame Manipulation**: - The instructions `push ebp; mov ebp, esp; sub esp, 0x40;` are used to set up a new stack frame. This is typical in function prologues and does not directly",
+        "imply any specific MITRE technique.",
+        "2. **Calling Functions**: - The code uses `call sub_0x00000040A;` and `call (null);`. The latter, `call (null);`, is unusual and suggests an attempt to call a function at address `0x403000` with",
+        "`push 0x403000;`. This can imply the technique of **Indirect System Call** or **API Resolution via Pointer**. However, since the null call itself wouldn",
+        "3. **Data Push**: - The code executes `push` instructions, which are typical in setting up parameters for function calls or manipulating the stack.",
+        "4. **No Operations (NOP)**: - The use of `nop` is typical for alignment or delays and does not indicate a specific MITRE technique without further context about evasions or timings.",
+        "5. **Register Clearing** (set `eax` to zero): - The instruction `xor eax, eax;` is a convention to zero out the `eax` register efficiently.",
+        "Analyzing the provided assembly code directly for specific MITRE techniques without further context or information about what resides at the memory addresses or what is being achieved by these",
+        "specific calls, it does not suggest a clear alignment with any known MITRE ATT&CK techniques as it's mostly context-dependent. If there was clearer evidence of dynamic code calls, such as using",
+        "a resolved API pointer, it might involve T1055 (Process Injection) or similar, but not deterministically from what is provided.",
+        "Close"
+    ]
+}

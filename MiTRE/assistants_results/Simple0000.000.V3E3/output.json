@@ -1,0 +1,130 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.003",
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001"
+            ],
+            "valid": [
+                "T1005.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1074.002"
+            ],
+            "valid": [
+                "T1074.002"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001",
+                "T1059.003",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1134",
+                "T1083"
+            ],
+            "valid": [
+                "T1134",
+                "T1083"
+            ]
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059",
+                "T1059",
+                "T1560",
+                "T1571",
+                "T1106",
+                "T1059.002",
+                "T1106"
+            ],
+            "valid": [
+                "T1560",
+                "T1571"
+            ]
+        }
+    },
+    "gemini": [
+        "* **T1059.003.001:** The code calls `CreateProcessA` with the command line \"cmd.exe\". This clearly indicates **Process Injection:** CreateRemoteThread. Note that while other process creation",
+        "techniques exist, this is the most obvious given the information available. The use of `WriteFile` after creating the process, along with calls to `CloseHandle` on what are presumably handles",
+        "returned by `CreateProcessA`, further supports this assessment.",
+        "* **T1055.001.001:** The presence of \"powershell Get-Date\" as a string literal suggests **Process Injection:** Powershell. Although the string is being written to a file handle and not directly",
+        "executed by PowerShell, it's a strong indicator of potential PowerShell usage within the injected process.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE technique can be inferred:",
+        "* **T1005.001.Process Hollowing:** The code demonstrates actions consistent with process hollowing. Specifically:",
+        "* It calls `sub_0x000005018`, which takes arguments resembling process creation parameters. This could be `CreateProcess`. * Memory is allocated (potentially for the injected image) and written",
+        "to. The instructions involving `0x404020`, `0x404058`, `0x40405c`, `0x404060`, and `0x40404c` suggest manipulation of process-related structures. * The subsequent calls to `sub_0x000005008`",
+        "after `sub_0x000005018` could be `WriteProcessMemory`, where data is written into the newly created process. The presence of `sub_0x00000501C`, which could be reading the injected image from",
+        "disk, strengthens this hypothesis. * The use of `sub_0x000005004` following `sub_0x00000501C` may represent the `ResumeThread` or `SetThreadContext` function, used to start execution within the",
+        "hollowed process.",
+        "It is important to note that this analysis is based on assumptions about the functionality of the subroutines called. Without more context (like symbols or dynamic analysis), it's impossible to",
+        "be certain. However, the sequence of operations strongly suggests process hollowing.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1055.003:** The assembly code shows a call to `CreateProcessA`. This clearly maps to Process Injection, specifically Process Hollowing, given the other supporting calls like `WriteFile`,",
+        "which likely writes the payload to the newly created process. * **T1074.002:** The use of `lstrlenA` along with the writing to a file using `WriteFile` suggests file manipulation.",
+        "It's important to note that while the presence of `CloseHandle` suggests possible cleanup operations, this is not sufficient to definitively assign a specific MITRE technique for process or",
+        "handle manipulation without further context. The presence of `WaitForSingleObject` is also not enough to definitively say that process synchronization is being performed. This code snippet",
+        "likely shows just a part of the overall malicious behavior.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the provided x86 assembly code, there's a notable presence of technique identifiers related to process creation and execution as well as command and script execution. Here are the",
+        "inferred MITRE ATT&CK techniques from the assembly code:",
+        "1. **T1059.001 - Command and Scripting Interpreter: PowerShell:** - The code shows the execution of a PowerShell command (`lpCommandLine \"powershell Get-Date\"`), indicating a use of PowerShell",
+        "scripting.",
+        "2. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell:** - The code pushes the string `\"cmd.exe\"` onto the stack to be used with `CreateProcessA`, which suggests the",
+        "execution of a command via the Windows Command Shell.",
+        "3. **T1106 - Execution: Native API:** - The `CreateProcessA` function is called, which is part of the Windows API used to create new processes.",
+        "These techniques reflect the observed behavior in the assembly code itself, without assuming any additional context.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The assembly code does not provide explicit details on many API calls or operations that directly map to specific MITRE techniques without further context. However, some of the code patterns can",
+        "suggest possible techniques:",
+        "1. **T1055: Process Injection** - The code pattern with multiple `push` and `call` instructions with parameters pushed onto the stack could be indicative of process injection attempts, which is",
+        "a common technique for executing code in the context of another process.",
+        "2. **T1134: Access Token Manipulation** - The `or` operation on a memory address (e.g., `or eax, 0x100`) might suggest token manipulation, such as adjusting privileges, though without more",
+        "context this is speculative.",
+        "3. **T1083: File and Directory Discovery** - The use of `lea` and manipulation of various memory offsets could suggest operations involving file or path discovery or manipulation, although this",
+        "requires more context to confirm definitively.",
+        "The actual API calls made by the function (e.g., sub_0x000005000 etc.) are abstracted and could represent any number of actions depending on their implementation, such as system configuration,",
+        "network, or system enumeration. Without explicit context on what these APIs do, determining specific techniques reliably is difficult.",
+        "Note that these are potential mappings, and definitive identification of techniques often requires more context or metadata (such as identifying the specific calls or strings involved).",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided x86 assembly code can be directly linked to specific MITRE ATT&CK techniques. Here's the analysis:",
+        "1. **T1059/002 - Command and Scripting Interpreter: Windows Command Shell**: - The code appears to use the `CreateProcessA` function, which can be associated with creating new processes,",
+        "particularly when used to execute commands via the Windows Command Shell or PowerShell. This can be linked to technique T1059/002 if the `lpCommandLine` or `lpApplicationName` arguments indicate",
+        "the execution of a command-line interpreter or script.",
+        "2. **T1560/001 - Archive Collected Data: Archive via Utility**: - Although not directly shown in the snippet, if the assembly were used to create and manage archive files (such as using",
+        "utilities like tar or zip via the command line), it could be linked. This snippet, however, doesn't show explicit archiving functionality.",
+        "3. **T1571 - Non-Standard Port**: - Not directly applicable here, as we do not see network-based operations like socket creation or bind operations that specify ports. This is usually inferred",
+        "from context beyond this snippet.",
+        "4. **T1106 - Native API**: - This is applicable due to the direct calling of Windows API functions like `CreateProcessA`, `CloseHandle`, and `WriteFile`. The use of native APIs for various",
+        "operations is a common technique in adversarial activities.",
+        "In conclusion, without further explicit context, the direct mapping to MITRE techniques based on the assembly code provided includes `T1059.002` for command execution with the potential use of",
+        "command line interfaces, `T1106` for the use of native APIs.",
+        "Close"
+    ]
+}

@@ -1,0 +1,103 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1027.002"
+            ],
+            "valid": [
+                "T1027.002"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1055",
+                "T1027"
+            ],
+            "valid": [
+                "T1027"
+            ]
+        }
+    },
+    "gemini": [
+        "T1059.001. The code calls `System` (inferred by `push 0x403000 ; \"powershell Get-Date\"` and `call (null)`) which is commonly used for command execution. The string \"powershell Get-Date\" clearly",
+        "shows the execution of a PowerShell command. While benign in this example, this technique is frequently used for malicious purposes.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE technique can be inferred:",
+        "* **T1027.002 Obfuscated Files or Information:** The `call sub_0x00000040A` instruction suggests a call to a subroutine, potentially to resolve dynamically encoded strings used later by",
+        "functions like `sub_0x000005004`. The `nop` instructions may also be an attempt to obfuscate the control flow.",
+        "It's important to note that this is a weak inference, based solely on indirect calls to subroutines which may obfuscate code. Other techniques *could* be in play, but more context would be",
+        "needed to definitively say so. For example, `sub_0x000005004` being called with a stack string and another value *might* indicate process injection or other nefarious activity. But without",
+        "seeing the code for these subroutines, or understanding what they do, it's difficult to determine their ultimate purpose.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "T1055.002: Process Injection (Process Hollowing).",
+        "The code follows a common pattern for process hollowing:",
+        "1. **Memory Allocation:** `sub esp, 0x40` allocates memory on the stack, likely for preparing the new process image.",
+        "2. **Likely API Call to GetProcAddress and WriteProcessMemory:** `mov ecx, 0x40609f` followed by `call sub_0x00000040A` suggests retrieving the address of a function, potentially",
+        "`GetProcAddress` or `WriteProcessMemory`. `0x40609f` likely refers to the name or hash of the API.",
+        "3. **Suspicious Null Call:** `call (null)` after pushing arguments (5 and 0x403000) strongly suggests the hijacked process will be redirected to an address pointed to by a null pointer. Usually",
+        "this address would be where shellcode is written, but in process hollowing it can point to the entry point of a legitimate DLL or binary that has replaced the original process image.",
+        "4. **Stack Cleanup:** The `xor eax, eax` and subsequent pops restore the stack and registers, typical of a function epilogue. This cleanliness helps the injected code execute seamlessly within",
+        "the hollowed process.",
+        "The combination of these elements points towards Process Hollowing. The code sets up the environment for injection by allocating stack space and resolving necessary API calls. The subsequent",
+        "call to a null address would typically be replaced in a fully functional process hollowing attack to start the injected code.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The given assembly code snippet appears to execute a PowerShell command, specifically `\"powershell Get-Date\"`. From this, we can infer a relevant MITRE ATT&CK technique:",
+        "- **T1059.001**: Command and Scripting Interpreter: PowerShell",
+        "This technique describes the use of PowerShell to execute commands or scripts, which is evident in the assembly code where the string `\"powershell Get-Date\"` is pushed onto the stack and then",
+        "called.",
+        "Other components of the assembly code (such as stack manipulation) generally do not correspond to specific MITRE techniques without additional context or information about their intent or",
+        "execution environment.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the provided assembly code, it appears to perform some function prologue and epilogue operations, basic arithmetic, and function calls. There is not enough specific context or",
+        "operations present in this code snippet to definitively attribute it to any specific MITRE ATT&CK techniques. The code primarily shows standard stack frame setup and teardown, as well as",
+        "function calling procedures. These operations are typical in many programs and don't directly reveal any malicious intent or specific techniques.",
+        "However, if this code were part of a context where the use of stack manipulation, calls to specific addresses, or any payload execution were clearly evident, then it could potentially relate to",
+        "a technique. In this isolated form, no specific MITRE technique can be inferred.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided assembly code, we can infer the following from MITRE ATT&CK techniques:",
+        "1. `call (null)`: This line indicates trying to call a function at a null or invalid memory address, which is typically indicative of code injection or exploitation techniques. However, without",
+        "more context, it is difficult to determine the exact purpose.",
+        "2. Use of `sub esp, 0x40`, `push` and `pop` instructions to manipulate the stack can be indicative of stack-based buffer manipulation, but this alone isn't conclusive without further context,",
+        "such as data being written to specific offsets on the stack. It can suggest techniques like buffer overflow, but the assembly provided doesn't directly perform such an action.",
+        "3. `mov ecx, 0x40609f` and subsequent `call sub_0x00000040A`: This could indicate an indirect function call, possibly part of dynamic resolution or API function calling, which may align with",
+        "dynamic call or obfuscation techniques.",
+        "Given these observations, there's no specific MITRE technique explicitly demonstrated by this small snippet of assembly without further context. It contains function calling, stack manipulation,",
+        "and a potentially suspicious null call, which could be components of various adversarial techniques, but alone do not directly infer a specific MITRE technique ID.",
+        "Assembly analysis often requires broader context to accurately attribute to MITRE techniques, especially without seeing how values are computed or utilized. If the code were part of code",
+        "injection, dynamic API resolution, or function pointer manipulation in larger exploit scenarios, then techniques like `T1055` (Process Injection) or `T1027` (Obfuscated Files or Information)",
+        "could be considered, but this can't be conclusively determined from this snippet alone.",
+        "Close"
+    ]
+}

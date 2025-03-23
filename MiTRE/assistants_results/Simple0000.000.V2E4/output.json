@@ -1,0 +1,179 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1547.001",
+                "T1059.001",
+                "T1059.003",
+                "T1564.004",
+                "T1064.001",
+                "T1546.001",
+                "T1053.005",
+                "T1547.002"
+            ],
+            "valid": [
+                "T1564.004",
+                "T1064.001",
+                "T1546.001"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1105.001",
+                "T1056.001"
+            ],
+            "valid": [
+                "T1005.001",
+                "T1056.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1547.001",
+                "T1059.001",
+                "T1055.002",
+                "T1105",
+                "T1546.001",
+                "T1005",
+                "T1074",
+                "T1106",
+                "T1564.001"
+            ],
+            "valid": [
+                "T1546.001",
+                "T1005",
+                "T1074",
+                "T1564.001"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.003",
+                "T1106",
+                "T1070.004"
+            ],
+            "valid": [
+                "T1070.004"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1569.002",
+                "T1059",
+                "T1132"
+            ],
+            "valid": [
+                "T1132"
+            ]
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1560.001",
+                "T1059.005",
+                "T1106",
+                "T1027",
+                "T1070.004"
+            ],
+            "valid": [
+                "T1560.001",
+                "T1027",
+                "T1070.004"
+            ]
+        }
+    },
+    "gemini": [
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** While the code doesn't directly modify registry run keys or the startup folder, it creates and executes a",
+        "batch file (\"example.bat\"). Batch files placed in startup locations would achieve persistence, suggesting this technique *could* be at play, but we don't see that placement in the code provided.",
+        "Further context on what happens to \"example.bat\" after its creation would be required to confirm.",
+        "* **T1059.001 - Command and Scripting Interpreter: PowerShell:** Not applicable. The code uses `CreateProcessA` to likely execute \"example.bat,\" indicating use of `cmd.exe` and not PowerShell.",
+        "* **T1059.003 - Command and Scripting Interpreter: Windows Command Shell:** The code uses `cmd.exe` by creating and executing a batch file which is highly suggestive of this technique.",
+        "* **T1564.004 - Hide Artifacts: File Deletion:** The code explicitly calls `DeleteFileA` with the path to \"example.bat,\" clearly demonstrating an attempt to delete the batch file after execution",
+        "to remove evidence.",
+        "* **T1064.001 - System Services: Service Execution:** Not observed. While the code uses `CreateProcessA`, which *could* be used to create a new service process, there's no direct interaction",
+        "with service-related APIs. Without further context, we can't definitively say this technique is used.",
+        "* **T1546.001 - Windows Management Instrumentation:** Not applicable. The provided assembly code doesn't interact with WMI.",
+        "* **T1053.005 - Scheduled Task/Job: Scheduled Task:** Not seen in the code. No interaction with task scheduler APIs are apparent.",
+        "* **T1547.002 - Boot or Logon Autostart Execution: Logon Scripts:** It is not confirmed in the provided code. While this code could be used to generate code that runs via a logon script, this is",
+        "not discernible in the code snippet alone.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1005.001 - Process Injection: Thread Execution Hijacking:** The code calls `sub_0x000005018` to potentially write data to a memory address (indicated by pushing memory addresses like",
+        "`0x403010`, `0x403020`, `0x403054`). It then calls `sub_0x000005008` with a handle obtained from a previous call (`dword ptr [ebp - 4]`), which suggests manipulating a process or thread. This",
+        "combination of writing to memory and then using a handle in another call is indicative of potential thread execution hijacking.",
+        "* **T1105.001 - Remote File Copy: Web Protocols:** While not definitive proof, pushing the value `0x40000000` as an argument to `sub_0x000005000` *could* indicate flags for network operations,",
+        "and in combination with the subsequent calls involving handles and potential memory manipulation, this could point to downloading and executing a remote payload (although more context is needed",
+        "to confirm this).",
+        "* **T1056.001 - Input Capture: Keylogging:** The code moves data from memory addresses (`0x403068`, `0x40306c`, `0x403070`, `0x403074`, `0x403078`, `0x40307a`) to the stack. While the meaning of",
+        "this data is unknown, it's located next to each other, hinting at a potential structure. If these memory locations hold keyboard input data, this could imply keylogging. The subsequent call to",
+        "`sub_0x000005014` might be responsible for sending the captured input elsewhere.",
+        "It's **crucial** to remember that these are just potential techniques based on limited information. Without further context like function names, strings, or the purpose of those memory",
+        "addresses, it's impossible to confirm these techniques definitively. For example, the code interacting with memory could be performing legitimate actions, and the network-related call could be",
+        "unrelated to malicious activity. Further analysis would be necessary for a more concrete assessment.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1547.001 - Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder:** While the code doesn't directly interact with the registry or startup folder, the creation and execution",
+        "of a new process (via `CreateProcessA`) using a hardcoded file path (`0x403000`) suggests the possibility of persistence via writing the file to a startup location. Further context (e.g., where",
+        "`0x403000` points to) would be needed to definitively confirm this technique.",
+        "* **T1059.001 - Command and Scripting Interpreter: PowerShell:** Not evident. While `CreateProcessA` *could* be used to execute PowerShell, there is nothing in the provided assembly to",
+        "definitively tie it to PowerShell.",
+        "* **T1055.002 - Process Injection: CreateRemoteThread:** Not evident. `CreateRemoteThread` is not used in this assembly snippet.",
+        "* **T1105 - Ingress Tool Transfer:** Potentially. The code writes data to a file. If that data is an executable or script subsequently executed, it *could* be an ingress tool. However, without",
+        "further context on the data being written, this can't be confirmed.",
+        "* **T1546.001 - Windows Management Instrumentation:** Not evident from the provided code.",
+        "* **T1005 - Data from Local System:** Not evident in the given code.",
+        "* **T1074 - Data Staged:** Potentially. Writing data to the file at `0x403000` combined with the later `CreateProcessA` call could indicate staging data for later execution. More context is",
+        "needed.",
+        "* **T1106 - Native API:** The code leverages Windows API calls (`CreateFileA`, `WriteFile`, `CloseHandle`, `CreateProcessA`, `WaitForSingleObject`, `DeleteFileA`), which constitute using native",
+        "APIs. However, this alone isn't necessarily malicious. Many legitimate programs use these APIs.",
+        "* **T1564.001 - Hiding Artifacts: File Deletion:** The code clearly uses `DeleteFileA` on the file at `0x403000`, suggesting an attempt to remove the file after use.",
+        "**Important Note:** Several techniques are marked as \"potentially\" because the assembly provides clues but lacks the definitive context to say with certainty that the technique is being used.",
+        "For example, the code creates and then deletes a file and launches a process. This *could* be malicious, but without knowing what is written to the file and what process is launched, we can't",
+        "confirm malicious intent.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the given assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "1. **T1059.003 - Command and Scripting Interpreter: Windows Command Shell**: - The code is writing a batch file containing command shell instructions (`@echo off`, `echo This command is inside a",
+        "batch file!`, `echo %username%`) and then executes it. This indicates the use of Windows Command Shell scripting.",
+        "2. **T1106 - Execution** (specifically related to API Execution in Windows): - The code uses the `CreateProcessA` function to execute a process, which is a standard API call for executing",
+        "binaries in Windows.",
+        "3. **T1070.004 - Indicator Removal on Host: File Deletion**: - The code uses `DeleteFileA` to delete the created batch file (`example.bat`). This may be used to remove traces of activity from",
+        "the filesystem.",
+        "These techniques are directly observable from the assembly code based on the functions and actions taken. Further context would be required to assess other potential techniques in a full attack",
+        "chain scenario.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided x86 assembly code suggests several operations that could be associated with specific MITRE techniques. However, without further context, only the direct actions apparent from the",
+        "code can be evaluated. Here's what can be inferred:",
+        "1. **File Creation/Modification**: - The assembly code includes operations that likely handle file creation. Specifically, there is a sequence of `push` instructions followed by a call to a",
+        "subroutine (e.g., `call sub_0x000005000`), which looks like it might correspond to file operations, typical for opening or creating files with specific access modes. - **MITRE Technique**:",
+        "T1569.002 (System Initialization - Create or Write Files)",
+        "2. **Command Execution**: - There are indirect indications of command execution through function calls (`call` instructions) with various parameters being set up. This is typical in scenarios",
+        "where new processes are created or commands are executed. - **MITRE Technique**: T1059 (Command and Scripting Interpreter)",
+        "3. **Data Encoding**: - Near the end of the provided assembly code, there are multiple push instructions followed by calls to subroutines, which could suggest data manipulation, encoding, or",
+        "preparation before a network transmission or another operation. - **MITRE Technique**: T1132 (Data Encoding)",
+        "Although these techniques can be inferred from the explicit actions in the assembly code, knowing their exact use case requires additional context, such as the purpose of the subroutines (e.g.,",
+        "whether they relate directly to file operations, network communications, etc.). The interpretation above is based on typical patterns where these assembly instructions might be used.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the x86 assembly code you've provided, we can infer the following MITRE ATT&CK techniques without needing further context:",
+        "1. **T1560.001 - Archive via Utility**: The code includes file operations such as creating (`CreateFileA`), writing (`WriteFile`), and deleting (`DeleteFileA`) files. These are indicative of",
+        "attempts to archive data via utility functions.",
+        "2. **T1059.005 - Command and Scripting Interpreter: Visual Basic**: While it seems like this technique is related to scripting languages, the presence of processes related commands (e.g.,",
+        "`CreateProcessA`) that might run scripts implicitly or explicitly to run commands can also fall under this. However, given just the binary instructions, it aligns more specifically with creating",
+        "and executing processes.",
+        "3. **T1106 - Native API**: The calls to low-level Windows APIs like `CreateFileA`, `WriteFile`, `CloseHandle`, `CreateProcessA`, and `WaitForSingleObject` indicate the use of native APIs, which",
+        "is a technique for direct interaction with the operating system.",
+        "4. **T1027 - Obfuscated Files or Information**: Though not explicitly referenced, frequent use of APIs and indirect handling without clarity could imply trying to obfuscate intentions.",
+        "5. **T1070.004 - Indicator Removal on Host: File Deletion**: The usage of `DeleteFileA` suggests an effort to remove a file, which is aligned with removing indicators from the host.",
+        "Please note, while these are the direct techniques that can be associated, further context or the broader use of these routines in an attack chain could potentially reveal more techniques",
+        "involved.",
+        "Close"
+    ]
+}

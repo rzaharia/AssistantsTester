@@ -1,0 +1,134 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1055.003",
+                "T1218.011",
+                "T1055.001",
+                "T1547.001"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.003",
+                "T1105.001",
+                "T1055.004"
+            ],
+            "valid": [
+                "T1005.003"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.003",
+                "T1574.002"
+            ],
+            "valid": [
+                "T1574.002"
+            ]
+        },
+        "gpt4o": {
+            "all": [
+                "T1055.002",
+                "T1570",
+                "T1620",
+                "T1059.001"
+            ],
+            "valid": [
+                "T1570"
+            ]
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1055.004"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1219.002",
+                "T1059.003",
+                "T1055",
+                "T1055.001"
+            ],
+            "valid": [
+                "T1219.002"
+            ]
+        }
+    },
+    "gemini": [
+        "* **T1055.003:** The code calls `CreateProcessA` with the command line \"powershell\". This clearly indicates the execution of PowerShell, mapping to Process Injection: Process Hollowing. *",
+        "**T1218.011:** The code retrieves the address of `NtCreateThreadEx` using `GetModuleHandleA` and `GetProcAddress`. This is a strong indicator of the Unquoted Service Path: DLL Search Order",
+        "Hijacking technique, as `NtCreateThreadEx` is commonly used for thread injection. * **T1055.001:** While the provided snippet does not show direct process hollowing (replacing a legitimate",
+        "process' image with malicious code), the presence of `NtCreateThreadEx` obtained by `GetProcAddress`, followed by `CreateProcessA`, suggests a potential setup for process hollowing. The",
+        "subsequent unresolved calls marked as `call (null)` could be where the hollowing takes place. This qualifies as Process Injection: Dynamic-link Library Injection. * **T1547.001:** The use of",
+        "`WinExec` via `GetProcAddress` and `GetModuleHandleA` points towards Boot or Logon Autostart Execution: Registry Run Keys / Startup Folder since WinExec can be used to launch applications at",
+        "startup.",
+        "It's important to note that without full context of the unresolved calls (e.g. `call (null)`), the analysis is incomplete. However, the presented snippets provide strong evidence for the listed",
+        "techniques.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, we can infer the following MITRE ATT&CK techniques:",
+        "* **T1005.003.Process Injection:** The code makes several calls to functions with addresses like `sub_0x000005010`, `sub_0x000005014`, `sub_0x000005018`, and `sub_0x00000501C`. These calls,",
+        "combined with the use of memory addresses (`0x404044`, `0x404000`, `0x403020` etc.), the pushing of values that look like function arguments (e.g., `0x8000000`, `4`, `0x3000`), and error",
+        "checking using `cmp` and `jne` instructions strongly suggest process injection or DLL injection. Especially the pattern of allocating memory, writing to it, and then calling into it is",
+        "indicative of this.",
+        "* **T1105.001.Web Shell:** The indirect call through `dword ptr [ebp - 8]` is suspicious. If the value at `[ebp - 8]` is dynamically determined (potentially based on earlier code not shown),",
+        "this could be indicative of loading and executing a web shell. This is reinforced by the initial calls to `sub_0x00000040A` , `sub_0x000005020`, and `sub_0x000005024` which could be retrieving",
+        "and setting up the web shell's location in memory. However, without more context, it's difficult to say definitively. We would need to know how the value at `[ebp - 8]` is populated to be",
+        "certain.",
+        "* **T1055.004.Process Hollowing:** This technique can be inferred due to the presence of calls like `sub_0x000005000`, `sub_0x000005004`, `sub_0x000005008`, `sub_0x00000500C`, `sub_0x00000501C`,",
+        "and manipulation of memory regions. This combination often appears in process hollowing where a legitimate process is unmapped from memory and replaced by a malicious payload.",
+        "It's important to note that these are just potential techniques based on commonly observed patterns in assembly code. Definitive confirmation would require further analysis and dynamic execution",
+        "of the code. There could be benign explanations for this code as well.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1055.003 Process Injection:** The code uses `CreateProcessA`, writes data to the new process using what appears to be `WriteProcessMemory`, and then likely attempts to execute code within",
+        "the created process by obtaining a remote function address via `GetProcAddress` and then using a function pointer to call it. This combination strongly suggests process injection. * **T1574.002",
+        "DLL Side-Loading:** The use of `GetModuleHandleA` and `GetProcAddress` suggests that the code attempts to load and use functions from a DLL. It's not conclusive proof of DLL side-loading without",
+        "further context on where the DLL paths come from (if they are controllable by an attacker), but it is a strong indicator of the potential for this technique.",
+        "It's important to reiterate that without complete context, such as the values at the string locations, the unknown function calls, and the origin of the executable itself, these are still",
+        "*potential* identifications. Further analysis would be required to solidify these assertions.",
+        "Close"
+    ],
+    "gpt4o": [
+        "Based on the x86 assembly code, we can identify several MITRE ATT&CK techniques:",
+        "1. **T1055.002 - Process Injection: Portable Executable Injection**: The assembly code includes calls to functions for creating a process using `CreateProcessA` and resolving the address of",
+        "`NtCreateThreadEx`. This indicates process injection capabilities, where the assembly code may be setting up for injecting code into another process.",
+        "2. **T1570 - Protocol Tunneling**: The use of `CreateProcessA` with the command line `powershell` implies execution or scripting via a shell, which can be a simple form of command tunneling if",
+        "the PowerShell session is used to mask or tunnel other commands.",
+        "3. **T1620 - Reflective Code Loading**: The code involves dynamically resolving function addresses with `GetProcAddress`, suggestive of reflective loading practices often used in fileless",
+        "malware or to execute code reflectively within a process's address space.",
+        "Note that while the assembly code makes a call to `WinExec`, which could imply command execution (T1059.001 - Command and Scripting Interpreter: PowerShell), there is insufficient context to",
+        "determine this conclusively without knowing further execution details.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the assembly code and the pattern of operations, we can identify some MITRE ATT&CK techniques:",
+        "1. **T1055.001 - Process Injection: Dynamic-link Library Injection**: The use of `LoadLibrary` or similar indirect function calls (`call dword ptr [ebp - 8]`) suggests DLL injection techniques.",
+        "2. **T1055.004 - Process Injection: Thread Execution Hijacking**: Given that the code involves function calls and manipulations indicative of process/thread manipulations (`call` instructions to",
+        "various sub-functions, possible setup for injections).",
+        "Since the assembly code includes a variety of stack operations, calls, and parameter manipulations, it points towards techniques involving injecting code into processes, possibly memory mappings",
+        "or similar behaviors typically used in these contexts.",
+        "It's important to note that specific identification of all precise techniques often requires additional context or knowledge of what the subroutines (e.g., `sub_0x000005010`) specifically",
+        "perform, but based on the visible code patterns, the above techniques are a reasonable match.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code snippet contains certain operations that can be directly mapped to specific MITRE ATT&CK techniques based on observable behaviors in the code. Here are the techniques",
+        "that can be inferred from the code without needing further context:",
+        "1. **Dynamic API Resolution**: - The use of `GetModuleHandleA` and `GetProcAddress` to resolve API functions at runtime is indicative of the `T1219.002` sub-technique, which is \"Dynamic API",
+        "Resolution: Obtain Functions at Runtime\".",
+        "2. **Process Creation**: - The use of `CreateProcessA` indicates the technique `T1059.003`, which is \"Command and Scripting Interpreter: Windows Command Shell\", as it is used to start processes",
+        "potentially including command shells.",
+        "3. **Process Injection**: - Although context is limited, the manipulation of a target process through memory operations and function calls implies the potential for process injection. This maps",
+        "to technique `T1055`, specifically sub-technique `T1055.001` - \"Process Injection: Dynamic-link Library Injection\", as there's indication that function pointers may be calculated or resolved for",
+        "injection.",
+        "These techniques are observed based on direct evidence from the code provided. Please note that certain aspects require further knowledge of the process or target being manipulated.",
+        "Close"
+    ]
+}

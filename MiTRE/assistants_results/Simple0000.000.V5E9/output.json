@@ -1,0 +1,118 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1218.002",
+                "T1059.001",
+                "T1027.002"
+            ],
+            "valid": [
+                "T1027.002"
+            ]
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001",
+                "T1086"
+            ],
+            "valid": [
+                "T1005.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1059.001"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1059.001",
+                "T1106"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055.001",
+                "T1027"
+            ],
+            "valid": [
+                "T1027"
+            ]
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1106",
+                "T1105",
+                "T1027",
+                "T1106"
+            ],
+            "valid": [
+                "T1027"
+            ]
+        }
+    },
+    "gemini": [
+        "* **T1218.002 Signed Binary Proxy Execution: Mshta**: The code uses `mshta.exe` to execute a VBScript command. The VBScript in turn executes a powershell command using `WScript.Shell`. This is",
+        "indicative of using `mshta` as a proxy for executing arbitrary code. * **T1059.001 Command and Scripting Interpreter: PowerShell**: While not directly invoking PowerShell, the code uses `mshta`",
+        "and VBScript to execute a `powershell.exe` command, clearly demonstrating the intent to leverage PowerShell for code execution. * **T1027.002 Obfuscated Files or Information: Software Packing**:",
+        "The line `mov ecx, 0x40609f` followed by `call sub_0x00000040A` suggests a possible unpacking or decryption routine. While we don't have the details of `sub_0x00000040A`, this pattern is",
+        "consistent with unpacking.",
+        "It's crucial to note that, without the contents of the strings at 0x403000 and analyzing `sub_0x00000040A`, this analysis remains incomplete. There could be additional techniques employed that",
+        "aren't revealed in this limited snippet.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1005.001 - Process Injection: Thread Execution Hijacking:** The code calls `sub_0x000005004` with arguments that suggest the creation of a remote thread. Specifically, pushing a non-null",
+        "value to the `lpStartAddress` (0x403000) parameter while calling CreateRemoteThread (presumed `sub_0x000005004`) indicates thread execution hijacking. The other arguments pushed onto the stack",
+        "align with expected parameters for CreateRemoteThread: `hProcess`, `lpThreadAttributes`, `dwStackSize`, `lpParameter`, `dwCreationFlags`, and `lpThreadId`.",
+        "* **T1086 - PowerShell:** While not definitively PowerShell, the call to `sub_0x00000040A` with the argument `0x40609f` *could* indicate the retrieval of a PowerShell command. This is a weak",
+        "indicator on its own and would require more context to confirm. However, given the following thread injection activity, using PowerShell for the injected code is a common pattern. Therefore,",
+        "we'll include it as a *possible* technique, but with low confidence.",
+        "It's important to reiterate that this analysis is based on limited assembly code. Further context (like the contents at address 0x40609f, behaviors of the called subroutines, etc.) is crucial",
+        "for a more definitive and comprehensive assessment.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "* **T1059.001. CreateProcess:** The code clearly calls the `CreateProcessA` Windows API function, which is used to create a new process. The parameters being pushed onto the stack before the",
+        "call correspond to the arguments of this function.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code provided appears to execute a new process using the `CreateProcessA` function, with a command line that includes executing a PowerShell command. This action maps to the",
+        "following MITRE techniques:",
+        "- **T1059.001 - Command and Scripting Interpreter: PowerShell**: The command line used in the `CreateProcessA` call includes `powershell Get-Date`, which indicates the use of PowerShell to",
+        "execute commands.",
+        "- **T1106 - Native API**: The usage of `CreateProcessA` and other Windows API calls such as `WaitForSingleObject` and `CloseHandle` indicate the use of Native API functions to perform tasks.",
+        "Since the creation of processes and execution of scripts are explicitly shown in the assembly code, these are the techniques that can reasonably be inferred without needing further context.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "The provided assembly code contains several operations that can be mapped to specific MITRE ATT&CK techniques based on their nature. Here are the applicable MITRE techniques inferred from the",
+        "assembly code:",
+        "1. **T1055.001 - Process Injection: Dynamic-link Library Injection**: The presence of calls to functions with parameters that resemble memory addresses (e.g., `mov dword ptr [0x404000], 0x44`,",
+        "`push 0x404044`) can be indicative of process injection techniques where certain memory locations are manipulated",
+        "running process.",
+        "2. **T1027 - Obfuscated Files or Information**: The use of arbitrary memory addresses and possibly obfuscated subroutine calls (`call sub_0x00000040A`, `call sub_0x000005004`, etc.) could",
+        "suggest attempts to obscure the functionality of the code, which is typical of efforts to evade detection.",
+        "However, it's crucial to note that while these codes and patterns suggest such techniques, without further context on what each subroutine (`sub_0x00000040A`, `sub_0x000005004`, etc.) does,",
+        "these interpretations might be speculative. The final identification should be corroborated by external documentation or reverse engineering efforts to understand the exact functionality.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "The provided assembly code includes several operations related to process creation and management. Based on the code snippet, the following MITRE ATT&CK techniques can be inferred:",
+        "- **T1059.001 - Command and Scripting Interpreter: PowerShell**: While this technique might suggest script execution, the assembly present is more generic in terms of process creation rather",
+        "than specifically calling PowerShell. One highlighted technique from your context might be: - **T1106 - Execution**: The sequence here uses `CreateProcessA`, which indicates the execution of a",
+        "process. This can be directly mapped to the execution of commands.",
+        "- **T1105 - Ingress Tool Transfer**: This doesn't directly appear in the code, but the overall method could be potentially used to leverage process injection if further assembly context shows",
+        "code or DLL incorporations, nothing particular here. - **T1027 - Obfuscated Files or Information**: Although no direct obfuscation is seen, the use of the constants without direct context may",
+        "align if the context indicates such obscurities. The more appropriate technique for the visible implementation is: - **T1106 - Execution**: This refers to creating or launching a new process",
+        "using `CreateProcessA`.",
+        "It's important to note that understanding specific MITRE techniques require a bit more context about the surrounding operations and objectives of the assembly code. This code alone shows a",
+        "typical process creation and wait pattern which is generic without external contexts indicating malicious intent.",
+        "Close"
+    ]
+}

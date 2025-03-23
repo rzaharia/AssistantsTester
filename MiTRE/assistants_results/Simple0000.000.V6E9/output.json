@@ -1,0 +1,103 @@
+{
+    "mitre_ids": {
+        "gemini": {
+            "all": [
+                "T1059.001",
+                "T1218.005",
+                "T1059.005"
+            ],
+            "valid": []
+        },
+        "gemini_no_imports_no_strings": {
+            "all": [
+                "T1005.001"
+            ],
+            "valid": [
+                "T1005.001"
+            ]
+        },
+        "gemini_yes_imports_no_strings": {
+            "all": [
+                "T1055.002",
+                "T1055.002"
+            ],
+            "valid": []
+        },
+        "gpt4o": {
+            "all": [
+                "T1218.005",
+                "T1059.005"
+            ],
+            "valid": []
+        },
+        "gpt4o_no_imports_no_strings": {
+            "all": [
+                "T1055.001"
+            ],
+            "valid": []
+        },
+        "gpt4o_yes_imports_no_strings": {
+            "all": [
+                "T1059.001",
+                "T1059"
+            ],
+            "valid": []
+        }
+    },
+    "gemini": [
+        "* **T1059.001: Command and Scripting Interpreter: PowerShell:** The code executes a PowerShell command `Get-TimeZone` using `mshta.exe` and `vbscript`. While `Get-TimeZone` itself is benign, the",
+        "use of PowerShell in this context is highly suspicious and suggests potential malicious intent. This is because PowerShell is frequently leveraged by adversaries for execution.",
+        "* **T1218.005: Signed Binary Proxy Execution: Mshta:** The code utilizes `mshta.exe` to execute a VBScript that subsequently launches PowerShell. This is a known technique to bypass application",
+        "whitelisting and execute arbitrary code.",
+        "* **T1059.005: Command and Scripting Interpreter: Visual Basic:** The code uses VBScript, a scripting language, to facilitate the execution of the PowerShell command. While the VBScript is",
+        "relatively simple here, VBScript can be used for various malicious purposes.",
+        "Close"
+    ],
+    "gemini_no_imports_no_strings": [
+        "Based on the provided assembly code, the following MITRE ATT&CK techniques can be inferred:",
+        "* **T1005.001 - Process Injection:** The code makes calls to `sub_0x000005004`, `sub_0x000005000`, and `sub_0x00000500C` with arguments that suggest process manipulation. Specifically, the",
+        "arguments passed to `sub_0x000005004` (address `0x403000`, flags `0x8000000`, and several zeroed parameters) resemble arguments used in process creation/manipulation functions like",
+        "`CreateProcess`. The subsequent calls to `sub_0x000005000` and `sub_0x00000500C` with addresses stored in `0x404044` and `0x404048` further suggest actions taken on a newly created or",
+        "manipulated process (e.g., writing to process memory or starting a remote thread). The `test eax, eax` and subsequent conditional jump based on the result indicates checking for success/failure",
+        "of the process manipulation.",
+        "It's crucial to emphasize that this analysis is based on limited information. The true intent and associated MITRE techniques could be different depending on what those subroutines actually do.",
+        "Without further context or analysis of the subroutines (`sub_0x000005004`, `sub_0x000005000`, `sub_0x00000500C`), definitive classification is difficult. For example, `sub_0x000005004` could be",
+        "a wrapper around other API calls, or the memory addresses could point to data rather than code to be injected.",
+        "Close"
+    ],
+    "gemini_yes_imports_no_strings": [
+        "T1055.002 (Process Injection: Process Hollowing).",
+        "The code calls `CreateProcessA` with a `CREATE_SUSPENDED` flag (0x00000004 within 0x8000000 - other flags may be present but suspended is key). While we don't see the actual hollowing",
+        "(unmapping/writing), the subsequent calls to `WaitForSingleObject`, followed by two calls to `CloseHandle` (likely process and thread handles), strongly suggest process hollowing. The missing",
+        "pieces (writing to the created process) could be in the `sub_0x00000040A` or elsewhere, but this snippet shows enough evidence to infer T1055.002.",
+        "Close"
+    ],
+    "gpt4o": [
+        "The assembly code you provided includes a call to `CreateProcessA` with `lpCommandLine` set to a command that uses `mshta` to execute a `vbscript` that runs `powershell`. This indicates the use",
+        "of scripting utilities in combination to execute commands, which aligns with two specific MITRE ATT&CK techniques:",
+        "1. **T1218.005**: `Mshta` - This technique involves the use of `mshta.exe` to execute malicious scripts.",
+        "2. **T1059.005**: `Command and Scripting Interpreter: Visual Basic` - The use of `vbscript` as a scripting language to execute code.",
+        "The code utilizes `mshta` to execute a `vbscript` which is designed to run a `powershell` command, indicating these specific techniques. These associations can be directly inferred from the code",
+        "without additional context, as they clearly demonstrate a method for executing scripts or commands through well-known utilities.",
+        "Close"
+    ],
+    "gpt4o_no_imports_no_strings": [
+        "Based on the provided x86 assembly code, specific MITRE ATT&CK techniques can be inferred:",
+        "1. **T1055.001 - Process Injection: Dynamic-link Library Injection**: The assembly code shows indications of dynamic function calling and modification of the memory of another process, which",
+        "suggests behavior consistent with code injection techniques. Pushing certain address values like 0x8000000 and addresses (0x404000, 0x403000) is consistent with typical patterns for setting up",
+        "parameters for functions that might facilitate process injections.",
+        "These inferences are made based solely on the visible operations in the assembly code without external context or additional information. More information would be required to definitively",
+        "categorize other activities according to MITRE ATT&CK techniques.",
+        "Close"
+    ],
+    "gpt4o_yes_imports_no_strings": [
+        "Based on the provided x86 assembly code, the following MITRE ATT&CK technique can be inferred:",
+        "- **T1059.001 - Command and Scripting Interpreter: PowerShell**",
+        "The assembly code includes a call to `CreateProcessA` with `lpCommandLine` pointing to `0x403000`. This suggests that a new process is being created, possibly through a command or script. Given",
+        "the limited context, it matches the behavior associated with executing commands or scripts.",
+        "This technique can be associated with process creation, which is a common tactic employed by adversaries to execute commands and launch scripts. Note, however, that specific context about the",
+        "contents of `lpCommandLine` would be necessary to determine if this is specifically an execution of a script or a specific type of command interpreter. Without further context, we cannot",
+        "definitively assign other specific sub-techniques of T1059.",
+        "Close"
+    ]
+}
