@@ -3,17 +3,42 @@
 ## 📌 Purpose  
 This study evaluates how well large language models (LLMs) can **recognize and identify MITRE ATT&CK techniques** in compiled binaries. The primary goal is to assess their ability to detect security-related functions and commands within **x86/x64 disassembly**.
 
+Beyond just testing detection accuracy, the study also examines **how well LLMs handle deceptive cases**, where some binaries are intentionally designed to **trick the model** into misidentifying or falsely detecting techniques. To achieve this, we have built a structured dataset containing three distinct categories of C++ source programs:  
+
+1. **MITRE-related sources** – Programs that **explicitly contain** MITRE ATT&CK techniques.  
+2. **Deceptive (trick) sources** – Programs that **do not contain MITRE techniques** but are crafted to potentially mislead an LLM.  
+3. **Trivial benign sources** – Simple programs that **clearly do not contain** any MITRE techniques and serve as a baseline for correct negative classification.  
+
+This structured dataset allows us to measure not only detection rates but also the LLMs' **robustness against false positives** and their **ability to distinguish real threats from misleading cases**.  
+
 ## 🧪 Methodology  
+
+### ⚠️ Disclaimer  
+
+Our primary goal is to **analyze compiled binaries** and evaluate how well LLMs can recognize MITRE ATT&CK techniques. However, some of these techniques are associated with **potentially malicious behavior**.  
+
+To ensure compliance with ethical guidelines and security best practices, we do **not** distribute pre-compiled binaries that might be considered **malicious**. Instead, we provide **source code** that can be compiled into binaries for research purposes.  
+
+Throughout this documentation, we refer to these files as **"sources"**, but our evaluation is conducted on **the compiled versions of these sources**. Users are responsible for ensuring that they handle and analyze these files in a **controlled and safe environment**.  
 
 ### 🔹 MITRE Technique Selection  
 We analyzed **MITRE techniques** that are relevant for binary analysis using **GView**, a binary visualization tool. The study focuses on techniques that could be **automatically extracted and evaluated** in compiled binaries.  
 
 ### 🔹 Source Code Generation  
-A total of **280 C++ programs** were created, consisting of:  
-- **33 hand-crafted sources**, manually written to ensure a variety of execution patterns.  
-- **247 auto-generated sources** using the **MitreSourceGenerator** component.  
 
-Each source represents a **command execution**, and our automation framework can generate variations of each command in **13 different ways** (details available in the `MitreSourceGenerator` component).  
+A total of **656 C++ programs** were created, forming a structured **evaluation database** consisting of both manually written and automatically generated samples. These samples are categorized as follows:  
+   - **MITRE-related sources (280)** – Programs that explicitly implement various MITRE ATT&CK techniques, covering different tactics and execution patterns.  
+   - **Deceptive (trick) sources (285)** – Programs that are designed to **look suspicious** to an LLM, testing its ability to differentiate real techniques from misleading patterns.  
+   - **Trivial benign sources (91)** – Simple programs that have **no connection to MITRE techniques** and should be correctly identified as benign.  
+
+To ensure diversity in structure and execution behavior:  
+- **33 hand-crafted sources** were manually developed to cover edge cases and complex execution paths.  
+- **623 sources** were automatically generated using **MitreSourceGenerator**, with controlled variations in structure and logic:
+  - **280 auto-generated sources** that reflect a specific technique spread across various MITRE tactics;
+  - **285 C++ benign samples** that do not imply any MITRE techniques, but are designed to trick a LLM;
+  - **91 C++ benign (trivial) samples** that do not imply any MITRE techniques.
+
+Each source that represents a **command execution**, and our automation framework can generate variations of each command in **13 different ways** (details available in the `MitreSourceGenerator` component).  
 
 ### 🔹 Compilation and Binary Optimization  
 Each source is compiled into a **minimal binary** by optimizing the **default Visual Studio project settings**, ensuring that only the **necessary libraries** are linked. This minimizes unnecessary dependencies and focuses the evaluation on core functionality.  
@@ -38,12 +63,20 @@ Our testing framework automatically:
 ### 📁 `sources/`  
 Contains all source code samples used in the evaluation. It has two subfolders:  
 - **`manual/`** – Hand-written C++ source files.  
-- **`all_sources/`** – Contains all **auto-generated** and **manual** sources combined.  
+- **`all_sources/`** – Contains all **auto-generated** and **manual** sources, categorized into three folders based on their purpose:  
+    - **`MITRE/`** – Sources that contain MITRE techniques.  
+    - **`deceptive/`** – Sources designed to trick the LLM into false detection.  
+    - **`trivial/`** – Simple sources that should not trigger MITRE detection.  
 
 ### 📁 `assistants_results/`  
-Stores LLM-generated responses and evaluations. Each MITRE technique has its own folder, containing:  
+Stores LLM-generated responses and evaluations. The results are also categorized into three folders:  
+- **`MITRE/`** – Results for sources that contain MITRE techniques.  
+- **`deceptive/`** – Results for sources designed to mislead the LLM.  
+- **`trivial/`** – Results for sources that should be correctly identified as benign.  
+
+Each corresponding results folder contains:  
 - **`output.json`** – Extracted results from LLM responses, including a `"valid"` list for correct answers.  
-- **LLM-specific responses** – Separate files storing complete, partial, and limited context evaluations for each model.  
+- **LLM-specific response files** – Separate files storing **complete, partial, and limited context** evaluations for each model.  
 
 ### 📄 `MitreOperations.csv`  
 The **core dataset** used for source generation and technique evaluation. It contains:  
@@ -58,7 +91,7 @@ A summary of all experiments, including:
 
 ## 📊 Example of Collected Results (from `statistics.data`)
 
-**Total problems:** 280
+**Problems that contain MITRE:** 280
 
 **Success rates:**
 
@@ -97,3 +130,8 @@ A summary of all experiments, including:
 *   Both models detected: 9
 *   gemini detected: 10
 *   gpt4o detected: 14
+  
+
+For additional statistics see the file: `statistics.data`.
+
+For more details about the framework for automating source generation, building, and evaluation, refer to the [scripts component](../scripts/README.md).
