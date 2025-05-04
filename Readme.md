@@ -13,7 +13,7 @@ This folder contains all the information required for testing and analyzing resu
 - **sources/** – A collection of manually and automatically generated source files.  
 - **assistants_results/** – All responses obtained from the LLM, alongside the corresponding input data (the source code).  
 
-For more details, refer to the [MITRE/README.md](MITRE/README.md).
+For more details, refer to the [MITRE/README.md](MiTRE/README.md).
 
 ### 📂 problems/
 This folder focuses on **LLM-Based Naming Problems**, including:  
