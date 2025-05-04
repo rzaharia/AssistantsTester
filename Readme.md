@@ -15,13 +15,6 @@ This folder contains all the information required for testing and analyzing resu
 
 For more details, refer to the [MITRE/README.md](MiTRE/README.md).
 
-### 📂 problems/
-This folder focuses on **LLM-Based Naming Problems**, including:  
-- **sources** - A collection of naming problems used when querying LLMs for renaming variables, functions, and other identifiers.  
-- **assistants_results/** – All responses obtained from the LLM, alongside the corresponding input data (the source code).   
-
-For a deeper dive, check out the [problems/README.md](problems/README.md).
-
 ### 📂 scripts/
 This folder contains the framework for automating source generation, building, and evaluation. It is divided into two main components:  
 - **MitreSourceGenerator/** – Scripts for automatically generating source code for testing.  
@@ -33,6 +26,13 @@ More details are available in the [scripts/README.md](scripts/README.md).
 This folder contains the **Visual Studio project** used to build all source files in this repository.  
 - The **AssistantsTester** component (found in the `scripts/AssistantsTester/` folder) is designed to optimize the build process to generate the minimal binary.  
 - This folder also contains the necessary configuration files and instructions for ⬇️ obtaining and configuring GView, the tool used for analyzing the generated binaries.  See the sections below for details.
+
+- ### 📂 problems/
+This folder focuses on **LLM-Based Naming Problems**, including:  
+- **sources** - A collection of naming problems used when querying LLMs for renaming variables, functions, and other identifiers.  
+- **assistants_results/** – All responses obtained from the LLM, alongside the corresponding input data (the source code).   
+
+For a deeper dive, check out the [problems/README.md](problems/README.md).
 
 For more information, refer to the [build/README.md](build/README.md).
 
