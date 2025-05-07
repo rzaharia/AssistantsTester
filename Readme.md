@@ -27,14 +27,21 @@ This folder contains the **Visual Studio project** used to build all source file
 - The **AssistantsTester** component (found in the `scripts/AssistantsTester/` folder) is designed to optimize the build process to generate the minimal binary.  
 - This folder also contains the necessary configuration files and instructions for ⬇️ obtaining and configuring GView, the tool used for analyzing the generated binaries.  See the sections below for details.
 
-- ### 📂 problems/
+For more information, refer to the [build/README.md](build/README.md).
+
+### 📂 problems/
 This folder focuses on **LLM-Based Naming Problems**, including:  
 - **sources** - A collection of naming problems used when querying LLMs for renaming variables, functions, and other identifiers.  
 - **assistants_results/** – All responses obtained from the LLM, alongside the corresponding input data (the source code).   
 
 For a deeper dive, check out the [problems/README.md](problems/README.md).
 
-For more information, refer to the [build/README.md](build/README.md).
+
+## ⬇️ Obtaining and Using GView
+
+To analyze the generated binaries, you will need GView. You can either download the pre-built binaries or build GView yourself by following the instructions provided in the [build/README.md](build/README.md).
+
+For detailed guidance on configuring and using GView, refer to the [build/README.md](build/README.md).
 
 ## 📖 Getting Started  
 

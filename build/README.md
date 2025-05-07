@@ -15,4 +15,4 @@ This directory houses the Visual Studio project files (`.vcxproj`) used for buil
 
 ## ⬇️ Obtaining GView
 
-The GView binaries required for this project can be downloaded from the following link: [https://github.com/gdt050579/GView/releases/tag/0.365.0](https://github.com/gdt050579/GView/releases/tag/0.365.0)
+The GView binaries required for this project can be downloaded from the following link: [https://github.com/gdt050579/GView/releases/tag/0.368.0](https://github.com/gdt050579/GView/releases/tag/0.368.0)
