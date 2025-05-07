@@ -15,4 +15,43 @@ This directory houses the Visual Studio project files (`.vcxproj`) used for buil
 
 ## ⬇️ Obtaining GView
 
+### Using already existing binaries
+
 The GView binaries required for this project can be downloaded from the following link: [https://github.com/gdt050579/GView/releases/tag/0.368.0](https://github.com/gdt050579/GView/releases/tag/0.368.0)
+
+### Build it yourself
+
+To build GView from source, you will need the following tools installed on your system:
+
+- **CMake**  
+- **Git**  
+- **C++ Compiler** (e.g., g++ or clang++)  
+
+Follow these steps to build GView:
+
+1. Clone the GView repository, including its submodules, by running:  
+```bash
+git clone --recurse-submodules https://github.com/gdt050579/GView.git
+```
+
+2. Navigate to the cloned repository and generate the build files using CMake:
+```bash
+cd GView
+cmake -B build
+```
+
+3. Build the project by running:
+```bash
+cmake --build build
+```
+
+4. Once the build process is complete, navigate to the `bin` directory where the compiled files are located:
+```bash
+cd build/bin/Debug
+    or
+cd build/bin/Release
+```
+
+5. Run the GView executable.
+   
+You now have a fully functional version of GView built from source. For already built binaries see the previous step from above.
